@@ -310,10 +310,19 @@ input::placeholder{color:var(--muted);opacity:.85}
 .meeting-content{display:flex;flex-direction:column;width:100%;flex-shrink:0}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .scroll-hint{display:block;text-align:center;font-size:11px;color:var(--muted);margin:5px 12px 15px}
-.time-axis,.time-head{position:sticky;left:0;background:var(--white);z-index:4}
+.calendar-scroll{margin-inline:18px;padding-inline:0}
+.time-axis,.time-head{position:sticky;left:0;background:var(--white);z-index:4;border-right:1px solid var(--line)}
 .time-head{background:var(--paper);z-index:5}
 .calendar-scroll:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-@media print{main{width:279mm}.calendar{min-width:0}.time-axis,.time-head{position:relative;left:auto}}
+@media print{
+ main{width:279mm}
+ .workspace{width:100%;height:191mm}
+ .schedule-panel{width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto}
+ .schedule-top{flex-wrap:nowrap}
+ .calendar-scroll{margin:0}
+ .calendar{min-width:0}
+ .time-axis,.time-head{position:relative;left:auto}
+}
 #countBreakdown{display:block;max-width:95px;margin-top:4px;font-size:10px;line-height:1.5;white-space:normal;color:var(--warn)}
 @media print{html,body{background:var(--paper);color:var(--ink);print-color-adjust:exact;-webkit-print-color-adjust:exact}.hour-rule{border-color:var(--line)}}
 .transfer-code{width:100%;resize:vertical;min-height:90px;padding:12px;border:1px solid var(--input-line);border-radius:6px;background:var(--paper);color:var(--ink);font:11px/1.6 Consolas,monospace;overflow-wrap:anywhere}
@@ -774,20 +783,34 @@ function renderList(){
  $('listHelp').textContent=filter==='offered'?'Μόνο όσα έχουν ώρες στην επίσημη πηγή.':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
  $('courseList').innerHTML=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);return `<article class="course ${selected?'selected':''}" style="--course-color:${baseColor(c)}"><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span>·</span><span>${c.semester}ο εξ.</span><span>·</span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?'<span class="tag">✓ Περασμένο</span>':''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${selected?'−':'+'}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}).join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
 }
+let printLayoutActive=false;
 function fitCalendar(){
- const calendar=$('calendar'),wrap=$('calendarWrap');
- calendar.style.removeProperty('--hour');
- if(wrap.hidden){$('calendarHint').hidden=true;return;}
- const hours=Number(calendar.style.getPropertyValue('--hours'));
- let hour=calendar.querySelector('.day-column').getBoundingClientRect().height/hours;
- // Measure natural card content so short lessons grow the shared time scale too.
- for(const block of calendar.querySelectorAll('.meeting')){
-  const css=getComputedStyle(block),inset=['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+parseFloat(css[key]),0);
-  const required=block.querySelector('.meeting-content').getBoundingClientRect().height+inset+5;
-  hour=Math.max(hour,required*60/Number(block.dataset.duration));
+ const calendar=$('calendar'),wrap=$('calendarWrap'),panel=wrap.closest('.schedule-panel'),sheet=panel.parentElement;
+ const printing=printLayoutActive||matchMedia('print').matches;
+ panel.style.removeProperty('--print-scale');
+ panel.style.removeProperty('--print-width');
+ if(printing){
+  // Lay out full titles first, then shrink the complete panel to the A4 sheet.
+  const lanes=parseFloat(calendar.style.getPropertyValue('--day-min'))/220;
+  panel.style.setProperty('--print-width',Math.max(sheet.clientWidth,46+5*lanes*90)+'px');
  }
- calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
- $('calendarHint').hidden=wrap.scrollWidth<=wrap.clientWidth+1;
+ calendar.style.removeProperty('--hour');
+ if(!wrap.hidden){
+  const hours=Number(calendar.style.getPropertyValue('--hours'));
+  let hour=calendar.querySelector('.day-column').getBoundingClientRect().height/hours;
+  // Measure natural card content so short lessons grow the shared time scale too.
+  for(const block of calendar.querySelectorAll('.meeting')){
+   const css=getComputedStyle(block),inset=['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+parseFloat(css[key]),0);
+   const required=block.querySelector('.meeting-content').getBoundingClientRect().height+inset+5;
+   hour=Math.max(hour,required*60/Number(block.dataset.duration));
+  }
+  calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
+ }
+ $('calendarHint').hidden=wrap.hidden||wrap.scrollWidth<=wrap.clientWidth+1;
+ if(printing){
+  const scale=Math.min(1,sheet.clientWidth/panel.offsetWidth,sheet.clientHeight/panel.offsetHeight);
+  panel.style.setProperty('--print-scale',String(Math.floor(scale*100000)/100000));
+ }
 }
 function renderSchedule(){
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
@@ -806,10 +829,10 @@ function renderSchedule(){
  for(let d=0;d<5;d++)html+='<div class="day-column">'+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}–${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-bg:${pale(baseColor(c))};--event-border:${dark(baseColor(c))}"><span class="meeting-content"><span class="event-time">${time(e.start)}–${time(e.end)}${conflictIds.has(e.id)?' ⚠':''}</span><strong class="full-title">${esc(c.name)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  $('calendar').style.setProperty('--day-min',Math.max(1,...laidOut.map(e=>e.lanes))*220+'px');
- fitCalendar();
  const legendCourses=chosen().map(course).filter(Boolean),seen=new Set();
  $('legend').innerHTML=legendCourses.filter(c=>{const key=colorKey(c);if(seen.has(key))return false;seen.add(key);return true;}).map(c=>`<label class="legend-item" style="--legend-bg:${baseColor(c)}"><span class="color-swatch" aria-hidden="true" style="background:${baseColor(c)}"></span><input type="color" value="${baseColor(c)}" data-color="${esc(colorKey(c))}" aria-label="Χρώμα ${esc(state.colorMode==='course'?c.name:c.semester+'ου εξαμήνου')}"><span>${esc(state.colorMode==='course'?c.id+' · '+c.name:c.semester+'ο εξάμηνο')}</span></label>`).join('')+(state.review.some(id=>chosen().includes(id))?'<span class="legend-item">▨ Προς έλεγχο</span>':'')+(pairs.length?'<span class="legend-item">⚠ Διακεκομμένο περίγραμμα: επικάλυψη</span>':'');
  renderChecks(pairs);
+ fitCalendar();
 }
 function renderChecks(pairs){
  const issues=[],selected=chosen().map(course).filter(Boolean),offer=data.catalog.filter(available);
@@ -995,7 +1018,17 @@ let calendarWidth=0;
 new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width!==calendarWidth){calendarWidth=width;fitCalendar();}}).observe($('calendarWrap'));
 document.fonts.ready.then(fitCalendar);
 matchMedia('print').addEventListener('change',fitCalendar);
-window.addEventListener('beforeprint',fitCalendar);
-window.addEventListener('afterprint',fitCalendar);
+const printRules=[...document.styleSheets].flatMap(sheet=>[...sheet.cssRules]).filter(rule=>rule.type===CSSRule.MEDIA_RULE&&rule.conditionText==='print');
+window.addEventListener('beforeprint',()=>{
+ // Chromium fires beforeprint while screen styles still apply. Measure print styles before pagination.
+ printLayoutActive=true;
+ for(const rule of printRules)rule.media.mediaText='all';
+ fitCalendar();
+});
+window.addEventListener('afterprint',()=>{
+ for(const rule of printRules)rule.media.mediaText='print';
+ printLayoutActive=false;
+ fitCalendar();
+});
 </script>
 </body></html>
