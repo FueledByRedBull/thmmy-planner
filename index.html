@@ -315,9 +315,10 @@ input::placeholder{color:var(--muted);opacity:.85}
 .time-head{background:var(--paper);z-index:5}
 .calendar-scroll:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 @media print{
+ body::before{content:'';position:fixed;inset:0;min-height:210mm;background:var(--paper);z-index:-1;print-color-adjust:exact;-webkit-print-color-adjust:exact}
  main{width:297mm;padding:9mm}
  .workspace{width:100%;height:191mm}
- .schedule-panel{width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto}
+ .schedule-panel{width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto;padding:2mm}
  .schedule-top{flex-wrap:nowrap}
  .calendar-scroll{margin:0}
  .calendar{min-width:0}
