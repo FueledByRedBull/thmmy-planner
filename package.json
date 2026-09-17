@@ -1,0 +1,11 @@
+{
+  "name": "thmmy-planner",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && node work/build.mjs"
+  },
+  "engines": { "node": ">=22.18.0" },
+  "devDependencies": { "typescript": "7.0.2" }
+}

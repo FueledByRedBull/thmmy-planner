@@ -1,0 +1,5028 @@
+{
+  "source": {
+    "file": "Odigos_Spoudvn_THMMY_2024-25.pdf",
+    "title": "ΟΔΗΓΟΣ ΣΠΟΥΔΩΝ ΑΚΑΔΗΜΑΪΚΟ ΕΤΟΣ 2024-25",
+    "pdf_pages": 91,
+    "printed_pages_equal_pdf_pages": true,
+    "extraction": "pdfplumber.extract_text(x_tolerance=2, y_tolerance=3)"
+  },
+  "rules": [
+    {
+      "id": "program.duration",
+      "text": "Η προβλεπόμενη φοίτηση είναι πέντε έτη/δέκα εξάμηνα· τα εννέα πρώτα αφορούν μαθήματα και το δέκατο τη διπλωματική εργασία.",
+      "pages": [
+        18
+      ],
+      "machine": {
+        "nominal_years": 5,
+        "nominal_semesters": 10,
+        "course_semesters": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "thesis_semester": 10
+      }
+    },
+    {
+      "id": "program.sectors",
+      "text": "Οι γνωστικοί τομείς του Τμήματος είναι: Εφαρμογών και Θεμελιώσεων της Επιστήμης των Υπολογιστών· Τεχνολογιών Λογισμικού και Πληροφοριακών Συστημάτων· Υλικού και Αρχιτεκτονικής Υπολογιστών· Σημάτων, Τηλεπικοινωνιών και Δικτύων· Ενέργειας.",
+      "pages": [
+        18
+      ],
+      "machine": {
+        "knowledge_sectors": [
+          "Εφαρμογών και Θεμελιώσεων της Επιστήμης των Υπολογιστών",
+          "Τεχνολογιών Λογισμικού και Πληροφοριακών Συστημάτων",
+          "Υλικού και Αρχιτεκτονικής Υπολογιστών",
+          "Σημάτων, Τηλεπικοινωνιών και Δικτύων",
+          "Ενέργειας"
+        ],
+        "course_sector_mapping_in_guide": false
+      }
+    },
+    {
+      "id": "graduation.ects",
+      "text": "Για το δίπλωμα απαιτούνται 300 ECTS: επιτυχής παρακολούθηση 45 μαθημάτων/270 ECTS, πλέον των δύο μαθημάτων Αγγλικής, και διπλωματική εργασία 30 ECTS.",
+      "pages": [
+        19
+      ],
+      "machine": {
+        "required_ects": 300,
+        "required_ects_bearing_courses": 45,
+        "required_ects_bearing_course_ects": 270,
+        "thesis_ects": 30,
+        "extra_zero_ects_courses": [
+          "ECE121",
+          "ECE122"
+        ]
+      }
+    },
+    {
+      "id": "declaration.deadline_and_registration",
+      "text": "Στην αρχή κάθε χειμερινού και εαρινού εξαμήνου υποβάλλεται ηλεκτρονική δήλωση στις ημερομηνίες της Γραμματείας· η δήλωση ισοδυναμεί με εγγραφή και χωρίς αυτήν δεν υπάρχει δικαίωμα στην αντίστοιχη ή επαναληπτική εξεταστική.",
+      "pages": [
+        20
+      ],
+      "machine": {
+        "electronic": true,
+        "no_declaration_exam_access": true
+      }
+    },
+    {
+      "id": "declaration.max_ects_bearing_courses",
+      "text": "Για φοιτητές που εισήχθησαν το 2023-2024 και αργότερα, δηλώνονται έως 9 μαθήματα με ECTS ανά χειμερινό ή εαρινό εξάμηνο, επιπλέον της ενδεχόμενης διπλωματικής εργασίας.",
+      "pages": [
+        20
+      ],
+      "machine": {
+        "entry_cohort_from": "2023-24",
+        "max_ects_bearing_courses_per_semester": 9,
+        "thesis_outside_limit": true,
+        "explicit_ects_cap": null
+      }
+    },
+    {
+      "id": "declaration.graduation_need_cap",
+      "text": "Η δήλωση δεν μπορεί να υπερβαίνει το πλήθος μαθημάτων που απαιτούνται για την αποφοίτηση.",
+      "pages": [
+        20
+      ],
+      "machine": {
+        "cap_is_remaining_graduation_requirement": true
+      }
+    },
+    {
+      "id": "declaration.semester_sequence",
+      "text": "Τα μαθήματα δηλώνονται κατά σειρά εξαμήνων: για δήλωση μαθημάτων ενός εξαμήνου πρέπει να έχουν συμπεριληφθεί όλα τα προηγούμενου εξαμήνου που είναι διαθέσιμα.",
+      "pages": [
+        20
+      ],
+      "machine": {
+        "previous_available_courses_required": true
+      }
+    },
+    {
+      "id": "declaration.mandatory_before_elective",
+      "text": "Για δήλωση μαθημάτων επιλογής πρέπει να έχουν συμπεριληφθεί όλα τα διαθέσιμα υποχρεωτικά μαθήματα.",
+      "pages": [
+        20
+      ],
+      "machine": {
+        "all_available_mandatory_before_elective": true
+      }
+    },
+    {
+      "id": "declaration.zero_ects_language",
+      "text": "Σε κάθε χειμερινό ή εαρινό εξάμηνο δηλώνεται ένα οφειλόμενο μάθημα χωρίς ECTS: ECE121 στο χειμερινό και ECE122 στο εαρινό· είναι υποχρεωτικά για το δίπλωμα.",
+      "pages": [
+        21
+      ],
+      "machine": {
+        "winter_course": "ECE121",
+        "spring_course": "ECE122",
+        "required_for_diploma": true,
+        "ects": 0
+      }
+    },
+    {
+      "id": "declaration.prerequisite_completion",
+      "text": "Η εγγραφή σε μάθημα απαιτεί επιτυχή παρακολούθηση των προαπαιτούμενών του σε προηγούμενο εξάμηνο, εφόσον υπάρχουν.",
+      "pages": [
+        21
+      ],
+      "machine": {
+        "must_pass_prerequisites_before_declaration": true,
+        "must_be_previous_semester": true
+      }
+    },
+    {
+      "id": "declaration.elective_source_semesters",
+      "text": "Τα μαθήματα επιλογής που μπορούν να δηλωθούν προέρχονται από συγκεκριμένα εξάμηνα και χρεώνουν στο εξάμηνο δήλωσης.",
+      "pages": [
+        21
+      ],
+      "machine": {
+        "charge_semester_to_source_semesters": {
+          "5": [
+            5,
+            7,
+            9
+          ],
+          "6": [
+            6,
+            8
+          ],
+          "7": [
+            5,
+            7,
+            9
+          ],
+          "8": [
+            6,
+            8
+          ],
+          "9": [
+            5,
+            7,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "id": "declaration.special_topics_limit",
+      "text": "Μπορούν να δηλωθούν έως δύο «Ειδικά Θέματα – Εργασίες» συνολικά: δύο χειμερινά (7ο και 9ο), δύο εαρινά (6ο και 8ο), ή ένα χειμερινό και ένα εαρινό.",
+      "pages": [
+        21
+      ],
+      "machine": {
+        "max_special_topics_total": 2,
+        "allowed_winter_semesters": [
+          7,
+          9
+        ],
+        "allowed_spring_semesters": [
+          6,
+          8
+        ],
+        "same_season_pairs": [
+          [
+            7,
+            9
+          ],
+          [
+            6,
+            8
+          ]
+        ]
+      }
+    },
+    {
+      "id": "declaration.special_topics_and_thesis_approval",
+      "text": "Για Ειδικό Θέμα ή Διπλωματική απαιτείται ηλεκτρονική αίτηση με επιβλέποντα, αποδοχή μέσα στην περίοδο δηλώσεων και κατόπιν δήλωση στην Ηλεκτρονική Γραμματεία· δήλωση χωρίς αποδοχή διαγράφεται.",
+      "pages": [
+        21
+      ],
+      "machine": {
+        "supervisor_acceptance_required": true,
+        "application_deadline_relative": "at_least_one_day_before_declaration_period_end",
+        "secretariat_declaration_after_acceptance": true
+      }
+    },
+    {
+      "id": "duration.maximum_for_2022_23_plus",
+      "text": "Για εισαγωγή το 2022-2023 και αργότερα, η ανώτατη διάρκεια είναι Ν+3 έτη με Ν=5, δηλαδή 8 έτη/16 εξάμηνα.",
+      "pages": [
+        22
+      ],
+      "machine": {
+        "entry_cohort_from": "2022-23",
+        "max_years": 8,
+        "max_semesters": 16
+      }
+    },
+    {
+      "id": "duration.part_time",
+      "text": "Σε μερική φοίτηση κάθε εξάμηνο προσμετράται ως μισό και δεν μπορούν να δηλωθούν περισσότερα από το ήμισυ των μαθημάτων του εξαμήνου του προγράμματος.",
+      "pages": [
+        22
+      ],
+      "machine": {
+        "semester_credit_factor": 0.5,
+        "max_program_semester_course_fraction": 0.5
+      }
+    },
+    {
+      "id": "duration.interruption",
+      "text": "Διακοπή φοίτησης επιτρέπεται έως δύο έτη, άπαξ ή τμηματικά με ελάχιστο ένα ακαδημαϊκό εξάμηνο· κατά τη διακοπή αναστέλλεται η φοιτητική ιδιότητα και απαγορεύεται η συμμετοχή σε εκπαιδευτική διαδικασία.",
+      "pages": [
+        22
+      ],
+      "machine": {
+        "max_years": 2,
+        "min_semesters_per_interruption": 1,
+        "student_status_suspended": true
+      }
+    },
+    {
+      "id": "course.semester_is_recommended",
+      "text": "Τα μαθήματα επιλογής εμφανίζονται στο συνιστώμενο εξάμηνο.",
+      "pages": [
+        22
+      ],
+      "machine": {
+        "semester_field_semantics": "recommended",
+        "elective_semester_is_not_by_itself_a_hard_declaration_lock": true
+      }
+    },
+    {
+      "id": "course.code_convention",
+      "text": "Οι κωδικοί έχουν ECE και τρία ψηφία· το πρώτο ψηφίο δείχνει το έτος συνήθους παρακολούθησης, το τρίτο ψηφίο είναι περιττό στο χειμερινό και άρτιο στο εαρινό εξάμηνο.",
+      "pages": [
+        22
+      ],
+      "machine": {
+        "prefix": "ECE",
+        "digits": 3,
+        "first_digit_semantics": "usual_year",
+        "winter_third_digit": "odd",
+        "spring_third_digit": "even"
+      }
+    },
+    {
+      "id": "prerequisites.formal_definition",
+      "text": "Τα προαπαιτούμενα είναι μαθήματα που πρέπει να έχουν ολοκληρωθεί επιτυχώς πριν από τη δήλωση πιο προχωρημένων μαθημάτων· αν το Α είναι προαπαιτούμενο του Β, το Α πρέπει να έχει περαστεί σε κανονική, Σεπτεμβρίου ή εμβόλιμη εξεταστική για να δηλωθεί το Β σε επόμενο εξάμηνο.",
+      "pages": [
+        25
+      ],
+      "machine": {
+        "prerequisite_kind": "formal",
+        "accepted_pass_sessions": [
+          "regular",
+          "September",
+          "supplementary"
+        ],
+        "must_be_before_target_semester": true
+      }
+    },
+    {
+      "id": "thesis.requirements",
+      "text": "Η διπλωματική είναι 30 ECTS, δηλώνεται κατά προτίμηση στις αρχές του 9ου εξαμήνου και απαιτεί έγκριση της Συνέλευσης· η αίτηση προϋποθέτει επιτυχή παρακολούθηση τουλάχιστον 180 ECTS μαθημάτων.",
+      "pages": [
+        25
+      ],
+      "machine": {
+        "course_id": "ECE588",
+        "ects": 30,
+        "preferred_declaration_semester": 9,
+        "minimum_passed_course_ects": 180,
+        "department_approval_required": true
+      }
+    },
+    {
+      "id": "practice.optional_and_eligibility",
+      "text": "Η πρακτική άσκηση είναι προαιρετική, δίμηνη τον Ιούλιο–Αύγουστο, μάθημα επιλογής 8ου εξαμήνου με κωδικό ECE496, βαθμολόγηση επιτυχία/αποτυχία και 6 ECTS· υπάρχει δικαίωμα ολοκλήρωσης έως το πέρας των σπουδών και στο γενικό κείμενο αναφέρεται δικαίωμα συμμετοχής από το 3ο έτος.",
+      "pages": [
+        19,
+        26,
+        27
+      ],
+      "machine": {
+        "optional": true,
+        "duration_months": 2,
+        "months": [
+          "July",
+          "August"
+        ],
+        "course_id_in_section": "ECE496",
+        "semester_in_section": 8,
+        "ects": 6,
+        "grading": "pass_fail",
+        "access_from_year": 3,
+        "until_end_of_studies": true
+      }
+    },
+    {
+      "id": "practice.selection_criteria",
+      "text": "Για την πρακτική πρέπει να έχει περατωθεί το 6ο εξάμηνο· κατά προτεραιότητα να μην έχει προηγηθεί πρακτική, να μην έχει υπάρξει σχετική απασχόληση και να μην πρόκειται για δημόσιο υπάλληλο, στρατιωτικό ή σώμα ασφαλείας.",
+      "pages": [
+        27
+      ],
+      "machine": {
+        "completed_semester_required": 6,
+        "priority_no_prior_practice": true,
+        "disallowed_prior_related_employment": true,
+        "disallowed_public_military_security_service": true
+      }
+    }
+  ],
+  "courses": [
+    {
+      "id": "ECE111",
+      "name": "Φυσική",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Φυσική",
+      "appendix_header_page": 33,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        33
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Φυσική",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        33
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          33
+        ],
+        "prerequisite": [
+          33
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE113",
+      "name": "Λογισμός Ι",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Λογισμός Ι",
+      "appendix_header_page": 33,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        33
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Λογισμός Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        33
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          33
+        ],
+        "prerequisite": [
+          33
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE115",
+      "name": "Προγραμματισμός Ι",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 6,
+      "ects": 6,
+      "appendix_title": "Προγραμματισμός Ι",
+      "appendix_header_page": 33,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        33
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Προγραμματισμός Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        33
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          33
+        ],
+        "prerequisite": [
+          33
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE117",
+      "name": "Γραμμική Άλγεβρα",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Γραμμική Άλγεβρα",
+      "appendix_header_page": 34,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        34
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Γραμμική Άλγεβρα",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        34
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          34
+        ],
+        "prerequisite": [
+          34
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE119",
+      "name": "Ψηφιακή Σχεδίαση",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Ψηφιακή Σχεδίαση",
+      "appendix_header_page": 34,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        34
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Ψηφιακή Σχεδίαση",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        34
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          34
+        ],
+        "prerequisite": [
+          34
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE121",
+      "name": "Αγγλική Γλώσσα και Τεχνική Ορολογία",
+      "semester": 1,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 3,
+      "ects": 0,
+      "appendix_title": "Αγγλική Γλώσσα και Τεχνική Ορολογία",
+      "appendix_header_page": 35,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        35
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Αγγλική Γλώσσα και Τεχνική Ορολογία",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        35
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          35
+        ],
+        "prerequisite": [
+          35
+        ]
+      },
+      "course_type": "language",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE114",
+      "name": "Λογισμός ΙΙ",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Λογισμός ΙΙ",
+      "appendix_header_page": 35,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        35
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Λογισμός ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        35
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          35
+        ],
+        "prerequisite": [
+          35
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE116",
+      "name": "Προγραμματισμός ΙΙ",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 6,
+      "ects": 6,
+      "appendix_title": "Προγραμματισμός ΙΙ",
+      "appendix_header_page": 36,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        36
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Προγραμματισμός ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        36
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          36
+        ],
+        "prerequisite": [
+          36
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE118",
+      "name": "Διακριτά Μαθηματικά",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Διακριτά Μαθηματικά",
+      "appendix_header_page": 36,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        36
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Διακριτά Μαθηματικά",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        36
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          36
+        ],
+        "prerequisite": [
+          36
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE120",
+      "name": "Τεχνικό Σχέδιο",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τεχνικό Σχέδιο",
+      "appendix_header_page": 36,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        36
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Τεχνικό Σχέδιο",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        36
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          36
+        ],
+        "prerequisite": [
+          36
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE122",
+      "name": "Μεθοδολογία Σύνταξης Τεχνικών Κειμένων και Παρουσιάσεων στην Αγγλική Γλώσσα",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 3,
+      "ects": 0,
+      "appendix_title": "Μεθοδολογία Σύνταξης Τεχνικών Κειμένων και Παρουσιάσεων στην Αγγλική Γλώσσα",
+      "appendix_header_page": 37,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        37
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Μεθοδολογία Σύνταξης Τεχνικών Κειμένων και Παρουσιάσεων στην Αγγλική Γλώσσα",
+      "prerequisite_type": "formal",
+      "pages": [
+        22,
+        37
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          37
+        ],
+        "prerequisite": [
+          37
+        ]
+      },
+      "course_type": "language",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE124",
+      "name": "Ανάλυση Κυκλωμάτων Ι",
+      "semester": 2,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Ανάλυση Κυκλωμάτων Ι",
+      "appendix_header_page": 37,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_pages": [],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Ανάλυση Κυκλωμάτων Ι",
+      "prerequisite_type": "not_stated",
+      "pages": [
+        22,
+        37
+      ],
+      "page_detail": {
+        "catalog_table": [
+          22
+        ],
+        "appendix_header": [
+          37
+        ],
+        "prerequisite": []
+      },
+      "course_type": "required",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE213",
+      "name": "Ηλεκτρικές Μετρήσεις",
+      "semester": 3,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρικές Μετρήσεις",
+      "appendix_header_page": 38,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        38
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Ηλεκτρικές Μετρήσεις",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        38
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          38
+        ],
+        "prerequisite": [
+          38
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE215",
+      "name": "Δομές Δεδομένων",
+      "semester": 3,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Δομές Δεδομένων",
+      "appendix_header_page": 38,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        38
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Δομές Δεδομένων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        38
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          38
+        ],
+        "prerequisite": [
+          38
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE217",
+      "name": "Πιθανότητες και Στατιστική",
+      "semester": 3,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Πιθανότητες και Στατιστική",
+      "appendix_header_page": 39,
+      "prerequisites": [
+        "ECE118"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE118 Διακριτά Μαθηματικά",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        39
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Πιθανότητες και Στατιστική",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        39
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          39
+        ],
+        "prerequisite": [
+          39
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE118 Διακριτά Μαθηματικά"
+    },
+    {
+      "id": "ECE219",
+      "name": "Οργάνωση και Σχεδίαση Η/Υ",
+      "semester": 3,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Οργάνωση και Σχεδίαση Η/Υ",
+      "appendix_header_page": 39,
+      "prerequisites": [
+        "ECE115",
+        "ECE119"
+      ],
+      "prerequisite_text": "ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        39
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Οργάνωση και Σχεδίαση Η/Υ",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        39
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          39
+        ],
+        "prerequisite": [
+          39
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση"
+    },
+    {
+      "id": "ECE221",
+      "name": "Ανάλυση Κυκλωμάτων ΙΙ",
+      "semester": 3,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ανάλυση Κυκλωμάτων ΙΙ",
+      "appendix_header_page": 40,
+      "prerequisites": [
+        "ECE124"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE124 Ανάλυση Κυκλωμάτων Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        40
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Ανάλυση Κυκλωμάτων ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        40
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          40
+        ],
+        "prerequisite": [
+          40
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE124 Ανάλυση Κυκλωμάτων Ι"
+    },
+    {
+      "id": "ECE212",
+      "name": "Διαφορικές Εξισώσεις",
+      "semester": 4,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Διαφορικές Εξισώσεις",
+      "appendix_header_page": 40,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        40
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Διαφορικές Εξισώσεις",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        40
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          40
+        ],
+        "prerequisite": [
+          40
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE214",
+      "name": "Εισαγωγή στην Ηλεκτρονική",
+      "semester": 4,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στην Ηλεκτρονική",
+      "appendix_header_page": 40,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        40
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Εισαγωγή στην Ηλεκτρονική",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        40
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          40
+        ],
+        "prerequisite": [
+          40
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE216",
+      "name": "Αλγόριθμοι",
+      "semester": 4,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αλγόριθμοι",
+      "appendix_header_page": 41,
+      "prerequisites": [
+        "ECE116"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        41
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Αλγόριθμοι",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        41
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          41
+        ],
+        "prerequisite": [
+          41
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ"
+    },
+    {
+      "id": "ECE218",
+      "name": "Σήματα και Συστήματα",
+      "semester": 4,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σήματα και Συστήματα",
+      "appendix_header_page": 41,
+      "prerequisites": [
+        "ECE113"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE113 Λογισμός Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        41
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Σήματα και Συστήματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        41
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          41
+        ],
+        "prerequisite": [
+          41
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE113 Λογισμός Ι"
+    },
+    {
+      "id": "ECE220",
+      "name": "Αριθμητική Ανάλυση",
+      "semester": 4,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Αριθμητική Ανάλυση",
+      "appendix_header_page": 41,
+      "prerequisites": [
+        "ECE113",
+        "ECE115",
+        "ECE117"
+      ],
+      "prerequisite_text": "ECE113 Λογισμός Ι / ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        42
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Αριθμητική Ανάλυση",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        41,
+        42
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          41
+        ],
+        "prerequisite": [
+          42
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "ECE113 Λογισμός Ι / ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα"
+    },
+    {
+      "id": "ECE311",
+      "name": "Συστήματα Βάσεων Δεδομένων Ι",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Συστήματα Βάσεων Δεδομένων Ι",
+      "appendix_header_page": 42,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        42
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Συστήματα Βάσεων Δεδομένων Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        42
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          42
+        ],
+        "prerequisite": [
+          42
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE313",
+      "name": "Δίκτυα Υπολογιστών Ι",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 5,
+      "ects": 6,
+      "appendix_title": "Δίκτυα Υπολογιστών Ι",
+      "appendix_header_page": 42,
+      "prerequisites": [
+        "ECE217"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        42
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Δίκτυα Υπολογιστών Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        42
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          42
+        ],
+        "prerequisite": [
+          42
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE315",
+      "name": "Συστήματα Αυτόματου Ελέγχου Ι",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Αυτομάτου Ελέγχου",
+      "appendix_header_page": 43,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        43
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Συστήματα Αυτομάτου Ελέγχου",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        43
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          43
+        ],
+        "prerequisite": [
+          43
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE317",
+      "name": "Τεχνητή Νοημοσύνη",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τεχνητή Νοημοσύνη",
+      "appendix_header_page": 44,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        44
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τεχνητή Νοημοσύνη",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        44
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          44
+        ],
+        "prerequisite": [
+          44
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE319",
+      "name": "Μεταγλωττιστές",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Μεταγλωττιστές (Compilers)",
+      "appendix_header_page": 44,
+      "prerequisites": [
+        "ECE115"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        44
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Μεταγλωττιστές (Compilers)",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        44
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          44
+        ],
+        "prerequisite": [
+          44
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι"
+    },
+    {
+      "id": "ECE321",
+      "name": "Ταυτόχρονος Προγραμματισμός",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ταυτόχρονος Προγραμματισμός",
+      "appendix_header_page": 45,
+      "prerequisites": [
+        "ECE116"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        45
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ταυτόχρονος Προγραμματισμός",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        45
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          45
+        ],
+        "prerequisite": [
+          45
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ"
+    },
+    {
+      "id": "ECE325",
+      "name": "Ψηφιακή Επεξεργασία Σημάτων",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ψηφιακή Επεξεργασία Σημάτων",
+      "appendix_header_page": 45,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        45
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ψηφιακή Επεξεργασία Σημάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        45
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          45
+        ],
+        "prerequisite": [
+          45
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE327",
+      "name": "Ψηφιακά Συστήματα VLSI",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ψηφιακά Συστήματα VLSI",
+      "appendix_header_page": 46,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        46
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ψηφιακά Συστήματα VLSI",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        46
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          46
+        ],
+        "prerequisite": [
+          46
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE329",
+      "name": "Τεχνολογίες Εκπαίδευσης",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τεχνολογίες Εκπαίδευσης",
+      "appendix_header_page": 46,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        46
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τεχνολογίες Εκπαίδευσης",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        46
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          46
+        ],
+        "prerequisite": [
+          46
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE331",
+      "name": "Ηλεκτρικές Μηχανές",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρικές Μηχανές",
+      "appendix_header_page": 47,
+      "prerequisites": [
+        "ECE221"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        47
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτρικές Μηχανές",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        47
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          47
+        ],
+        "prerequisite": [
+          47
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ"
+    },
+    {
+      "id": "ECE333",
+      "name": "Εργαστήριο Ψηφιακών Συστημάτων",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εργαστήριο Ψηφιακών Συστημάτων",
+      "appendix_header_page": 48,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        48
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εργαστήριο Ψηφιακών Συστημάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        48
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          48
+        ],
+        "prerequisite": [
+          48
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE335",
+      "name": "Συστήματα Παραγωγής Ηλεκτρικής Ενέργειας",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Παραγωγής Ηλεκτρικής Ενέργειας",
+      "appendix_header_page": 48,
+      "prerequisites": [
+        "ECE111"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE111 Φυσική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        48
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Παραγωγής Ηλεκτρικής Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        48
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          48
+        ],
+        "prerequisite": [
+          48
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE111 Φυσική"
+    },
+    {
+      "id": "ECE337",
+      "name": "Γραμμικός Προγραμματισμός",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Γραμμικός Προγραμματισμός",
+      "appendix_header_page": 49,
+      "prerequisites": [
+        "ECE117"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        49
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Γραμμικός Προγραμματισμός",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        49
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          49
+        ],
+        "prerequisite": [
+          49
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα"
+    },
+    {
+      "id": "ECE339",
+      "name": "Εφαρμοσμένη Στατιστική",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εφαρμοσμένη Στατιστική",
+      "appendix_header_page": 50,
+      "prerequisites": [
+        "ECE217"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        50
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εφαρμοσμένη Στατιστική",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        50
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          50
+        ],
+        "prerequisite": [
+          50
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE341",
+      "name": "Προχωρημένη Ηλεκτρονική",
+      "semester": 5,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Προχωρημένη Ηλεκτρονική",
+      "appendix_header_page": 50,
+      "prerequisites": [
+        "ECE214"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        50
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Προχωρημένη Ηλεκτρονική",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        50
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          50
+        ],
+        "prerequisite": [
+          50
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική"
+    },
+    {
+      "id": "ECE312",
+      "name": "Τηλεπικοινωνιακά Συστήματα Ι",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τηλεπικοινωνιακά Συστήματα Ι",
+      "appendix_header_page": 50,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        50
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Τηλεπικοινωνιακά Συστήματα Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        50
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          50
+        ],
+        "prerequisite": [
+          50
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE314",
+      "name": "Ηλεκτρομαγνητικά Πεδία Ι",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρομαγνητικά Πεδία I",
+      "appendix_header_page": 51,
+      "prerequisites": [
+        "ECE111",
+        "ECE114"
+      ],
+      "prerequisite_text": "ECE111 Φυσική / Προαπαιτούμενα ECE114 Λογισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        51
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Ηλεκτρομαγνητικά Πεδία I",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        51
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          51
+        ],
+        "prerequisite": [
+          51
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "ECE111 Φυσική / Προαπαιτούμενα ECE114 Λογισμός ΙΙ"
+    },
+    {
+      "id": "ECE316",
+      "name": "Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "appendix_header_page": 51,
+      "prerequisites": [
+        "ECE221"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        51
+      ],
+      "course_type_in_appendix": "required",
+      "name_from_appendix": "Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        51
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          51
+        ],
+        "prerequisite": [
+          51
+        ]
+      },
+      "course_type": "required",
+      "prerequisiteText": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ"
+    },
+    {
+      "id": "ECE318",
+      "name": "Λειτουργικά Συστήματα",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Λειτουργικά Συστήματα",
+      "appendix_header_page": 52,
+      "prerequisites": [
+        "ECE116"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        52
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Λειτουργικά Συστήματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        52
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          52
+        ],
+        "prerequisite": [
+          52
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ"
+    },
+    {
+      "id": "ECE320",
+      "name": "Συστήματα Μετρήσεων",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Μετρήσεων",
+      "appendix_header_page": 53,
+      "prerequisites": [
+        "ECE213"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE213 Ηλεκτρικές Μετρήσεις",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        53
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Μετρήσεων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        53
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          53
+        ],
+        "prerequisite": [
+          53
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE213 Ηλεκτρικές Μετρήσεις"
+    },
+    {
+      "id": "ECE324",
+      "name": "Εισαγωγή στην Θεωρία Υπολογισμού",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στη Θεωρία Υπολογισμού",
+      "appendix_header_page": 53,
+      "prerequisites": [
+        "ECE118"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE118 Διακριτά Μαθηματικά",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        54
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στη Θεωρία Υπολογισμού",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        53,
+        54
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          53
+        ],
+        "prerequisite": [
+          54
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE118 Διακριτά Μαθηματικά"
+    },
+    {
+      "id": "ECE326",
+      "name": "Αντικειμενοστραφής Προγραμματισμός",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αντικειμενοστραφής Προγραμματισμός",
+      "appendix_header_page": 54,
+      "prerequisites": [
+        "ECE115"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        54
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αντικειμενοστραφής Προγραμματισμός",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        54
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          54
+        ],
+        "prerequisite": [
+          54
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι"
+    },
+    {
+      "id": "ECE328",
+      "name": "Ανάκληση Πληροφορίας",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ανάκληση Πληροφορίας",
+      "appendix_header_page": 54,
+      "prerequisites": [
+        "ECE117",
+        "ECE216"
+      ],
+      "prerequisite_text": "ECE117 Γραμμική Άλγεβρα / Προαπαιτούμενα ECE216 Αλγόριθμοι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        55
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ανάκληση Πληροφορίας",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        54,
+        55
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          54
+        ],
+        "prerequisite": [
+          55
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE117 Γραμμική Άλγεβρα / Προαπαιτούμενα ECE216 Αλγόριθμοι"
+    },
+    {
+      "id": "ECE330",
+      "name": "Εργαστήριο Σχεδίασης SoC (System On Chip) με Εργαλεία CAD",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εργαστήριο Σχεδίασης SoC (System – on – Chip) με Εργαλεία CAD",
+      "appendix_header_page": 55,
+      "prerequisites": [
+        "ECE119"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        55
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εργαστήριο Σχεδίασης SoC (System – on – Chip) με Εργαλεία CAD",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        55
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          55
+        ],
+        "prerequisite": [
+          55
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση"
+    },
+    {
+      "id": "ECE334",
+      "name": "Αναγνώριση Προτύπων",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αναγνώριση Προτύπων",
+      "appendix_header_page": 56,
+      "prerequisites": [
+        "ECE117",
+        "ECE217"
+      ],
+      "prerequisite_text": "ECE117 Γραμμική Άλγεβρα / Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        56
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αναγνώριση Προτύπων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        56
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          56
+        ],
+        "prerequisite": [
+          56
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE117 Γραμμική Άλγεβρα / Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE338",
+      "name": "Αρχιτεκτονική Παράλληλων Συστημάτων",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αρχιτεκτονική Παράλληλων Συστημάτων",
+      "appendix_header_page": 56,
+      "prerequisites": [
+        "ECE219"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        56
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αρχιτεκτονική Παράλληλων Συστημάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        56
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          56
+        ],
+        "prerequisite": [
+          56
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ"
+    },
+    {
+      "id": "ECE340",
+      "name": "Ενσωματωμένα Συστήματα",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ενσωματωμένα Συστήματα",
+      "appendix_header_page": 57,
+      "prerequisites": [
+        "ECE219"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        57
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ενσωματωμένα Συστήματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        57
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          57
+        ],
+        "prerequisite": [
+          57
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ"
+    },
+    {
+      "id": "ECE342",
+      "name": "Εναλλακτικές Μορφές Ενέργειας",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εναλλακτικές Μορφές Ενέργειας",
+      "appendix_header_page": 57,
+      "prerequisites": [
+        "ECE111"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE111 Φυσική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        58
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εναλλακτικές Μορφές Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        57,
+        58
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          57
+        ],
+        "prerequisite": [
+          58
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE111 Φυσική"
+    },
+    {
+      "id": "ECE344",
+      "name": "Ηλεκτρονικά Ισχύος",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρονικά Ισχύος",
+      "appendix_header_page": 58,
+      "prerequisites": [
+        "ECE214"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        58
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτρονικά Ισχύος",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        58
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          58
+        ],
+        "prerequisite": [
+          58
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική"
+    },
+    {
+      "id": "ECE348",
+      "name": "Κατανεμημένα Συστήματα",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Κατανεμημένα Συστήματα",
+      "appendix_header_page": 59,
+      "prerequisites": [
+        "ECE116"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        59
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Κατανεμημένα Συστήματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        59
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          59
+        ],
+        "prerequisite": [
+          59
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE116 Προγραμματισμός ΙΙ"
+    },
+    {
+      "id": "ECE350",
+      "name": "Ηλεκτροτεχνικά Υλικά",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτροτεχνικά Υλικά",
+      "appendix_header_page": 59,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        59
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτροτεχνικά Υλικά",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        59
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          59
+        ],
+        "prerequisite": [
+          59
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE352",
+      "name": "Επεξεργασία Εικόνας",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Επεξεργασία Εικόνας",
+      "appendix_header_page": 60,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        60
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Επεξεργασία Εικόνας",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        60
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          60
+        ],
+        "prerequisite": [
+          60
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE354",
+      "name": "Εισαγωγή στη Νανοηλεκτρονική",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στη Νανοηλεκτρονική",
+      "appendix_header_page": 61,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        61
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στη Νανοηλεκτρονική",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        61
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          61
+        ],
+        "prerequisite": [
+          61
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE356",
+      "name": "Ειδικά Θέματα - Εργασίες",
+      "semester": 6,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        23
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "special_topics",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE411",
+      "name": "Συστήματα Ηλεκτρικής Ενέργειας ΙΙ",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Ηλεκτρικής Ενέργειας ΙΙ",
+      "appendix_header_page": 61,
+      "prerequisites": [
+        "ECE316"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        61
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Ηλεκτρικής Ενέργειας ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        61
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          61
+        ],
+        "prerequisite": [
+          61
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι"
+    },
+    {
+      "id": "ECE415",
+      "name": "Συστήματα Υπολογισμού Υψηλών Επιδόσεων",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Υπολογισμού Υψηλών Επιδόσεων",
+      "appendix_header_page": 62,
+      "prerequisites": [
+        "ECE318"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE318 Λειτουργικά Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        62
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Υπολογισμού Υψηλών Επιδόσεων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        62
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          62
+        ],
+        "prerequisite": [
+          62
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE318 Λειτουργικά Συστήματα"
+    },
+    {
+      "id": "ECE419",
+      "name": "Λογικός και Συναρτησιακός Προγραμματισμός",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Λογικός και Συναρτησιακός Προγραμματισμός",
+      "appendix_header_page": 63,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        63
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Λογικός και Συναρτησιακός Προγραμματισμός",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        63
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          63
+        ],
+        "prerequisite": [
+          63
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE421",
+      "name": "Ηλεκτρομαγνητικά Πεδία ΙΙ",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρομαγνητικά Πεδία ΙΙ",
+      "appendix_header_page": 63,
+      "prerequisites": [
+        "ECE212",
+        "ECE314"
+      ],
+      "prerequisite_text": "ECE212 Διαφορικές Εξισώσεις / Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        63
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτρομαγνητικά Πεδία ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        63
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          63
+        ],
+        "prerequisite": [
+          63
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE212 Διαφορικές Εξισώσεις / Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I"
+    },
+    {
+      "id": "ECE423",
+      "name": "Θεωρία Πληροφοριών και Κωδίκων",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Θεωρία Πληροφοριών και Κωδίκων",
+      "appendix_header_page": 63,
+      "prerequisites": [
+        "ECE217"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        63
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Θεωρία Πληροφοριών και Κωδίκων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        63
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          63
+        ],
+        "prerequisite": [
+          63
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE425",
+      "name": "Έλεγχος και Επαλήθευση Ψηφιακών Κυκλωμάτων",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Έλεγχος και Επαλήθευση Ψηφιακών Κυκλωμάτων",
+      "appendix_header_page": 64,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        64
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Έλεγχος και Επαλήθευση Ψηφιακών Κυκλωμάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        64
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          64
+        ],
+        "prerequisite": [
+          64
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE427",
+      "name": "Εισαγωγή στην Επιχειρηματικότητα",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στην Επιχειρηματικότητα",
+      "appendix_header_page": 64,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        64
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στην Επιχειρηματικότητα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        64
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          64
+        ],
+        "prerequisite": [
+          64
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE429",
+      "name": "Τεχνολογία Υψηλών Τάσεων",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τεχνολογία Υψηλών Τάσεων",
+      "appendix_header_page": 65,
+      "prerequisites": [
+        "ECE221"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        65
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τεχνολογία Υψηλών Τάσεων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        65
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          65
+        ],
+        "prerequisite": [
+          65
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE221 Ανάλυση Κυκλωμάτων ΙΙ"
+    },
+    {
+      "id": "ECE431",
+      "name": "Αλγόριθμοι CAD",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αλγόριθμοι CAD",
+      "appendix_header_page": 65,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        65
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αλγόριθμοι CAD",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        65
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          65
+        ],
+        "prerequisite": [
+          65
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE433",
+      "name": "Γραφικά Η/Υ",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Γραφικά Η/Υ",
+      "appendix_header_page": 65,
+      "prerequisites": [
+        "ECE115",
+        "ECE117"
+      ],
+      "prerequisite_text": "ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        65
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Γραφικά Η/Υ",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        65
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          65
+        ],
+        "prerequisite": [
+          65
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE115 Προγραμματισμός Ι / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα"
+    },
+    {
+      "id": "ECE437",
+      "name": "Ηλεκτρικές Εγκαταστάσεις",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτρικές Εγκαταστάσεις",
+      "appendix_header_page": 66,
+      "prerequisites": [
+        "ECE120"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE120 Τεχνικό Σχέδιο",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        66
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτρικές Εγκαταστάσεις",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        66
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          66
+        ],
+        "prerequisite": [
+          66
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE120 Τεχνικό Σχέδιο"
+    },
+    {
+      "id": "ECE439",
+      "name": "Ειδικά Θέματα - Εργασίες",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        24
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "special_topics",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE441",
+      "name": "Σχεδιασμός Διαδικτυακών Πρωτοκόλλων",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδιασμός Διαδικτυακών Πρωτοκόλλων",
+      "appendix_header_page": 67,
+      "prerequisites": [
+        "ECE313"
+      ],
+      "prerequisite_text": "ECE313 Δίκτυα Υπολογιστών Ι / Υπογράφημα Προαπαιτούμενων",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        67
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδιασμός Διαδικτυακών Πρωτοκόλλων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        67
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          67
+        ],
+        "prerequisite": [
+          67
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE313 Δίκτυα Υπολογιστών Ι / Υπογράφημα Προαπαιτούμενων"
+    },
+    {
+      "id": "ECE443",
+      "name": "Επεξεργασία Φωνής και Ήχου",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Επεξεργασία Φωνής και Ήχου",
+      "appendix_header_page": 67,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        67
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Επεξεργασία Φωνής και Ήχου",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        67
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          67
+        ],
+        "prerequisite": [
+          67
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE445",
+      "name": "Παράλληλοι και Δικτυακοί Υπολογισμοί",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Παράλληλοι και Δικτυακοί Υπολογισμοί",
+      "appendix_header_page": 68,
+      "prerequisites": [
+        "ECE220"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE220 Αριθμητική Ανάλυση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        68
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Παράλληλοι και Δικτυακοί Υπολογισμοί",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        68
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          68
+        ],
+        "prerequisite": [
+          68
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE220 Αριθμητική Ανάλυση"
+    },
+    {
+      "id": "ECE447",
+      "name": "Νευρο-Ασαφή Υπολογιστική",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Νευρο-Ασαφής Υπολογιστική",
+      "appendix_header_page": 68,
+      "prerequisites": [
+        "ECE114"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE114 Λογισμός ΙΙ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        68
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Νευρο-Ασαφής Υπολογιστική",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        68
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          68
+        ],
+        "prerequisite": [
+          68
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE114 Λογισμός ΙΙ"
+    },
+    {
+      "id": "ECE449",
+      "name": "Ευφυή Δίκτυα Μεταφοράς Ενέργειας",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ευφυή Δίκτυα Μεταφοράς Ενέργειας",
+      "appendix_header_page": 69,
+      "prerequisites": [
+        "ECE316"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        69
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ευφυή Δίκτυα Μεταφοράς Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        69
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          69
+        ],
+        "prerequisite": [
+          69
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι"
+    },
+    {
+      "id": "ECE455",
+      "name": "Ασφάλεια Υλικού",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ασφάλεια Υλικού",
+      "appendix_header_page": 69,
+      "prerequisites": [
+        "ECE119"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        70
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ασφάλεια Υλικού",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        69,
+        70
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          69
+        ],
+        "prerequisite": [
+          70
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση"
+    },
+    {
+      "id": "ECE457",
+      "name": "Εισαγωγή στην Όραση Υπολογιστών",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στην Όραση Υπολογιστών",
+      "appendix_header_page": 70,
+      "prerequisites": [
+        "ECE218"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        70
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στην Όραση Υπολογιστών",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        70
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          70
+        ],
+        "prerequisite": [
+          70
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE461",
+      "name": "Μηχανική Μάθηση για την Επιστήμη Δεδομένων και Ανάλυση",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Μηχανική Μάθηση για Επιστήμη Δεδομένων και Ανάλυση",
+      "appendix_header_page": 71,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        71
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Μηχανική Μάθηση για Επιστήμη Δεδομένων και Ανάλυση",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        71
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          71
+        ],
+        "prerequisite": [
+          71
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE463",
+      "name": "Τηλεπικοινωνιακά Συστήματα ΙΙ",
+      "semester": 7,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τηλεπικοινωνιακά Συστήματα ΙΙ",
+      "appendix_header_page": 71,
+      "prerequisites": [
+        "ECE312"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE312 Τηλεπικοινωνιακά Συστήματα Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        71
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τηλεπικοινωνιακά Συστήματα ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        71
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          71
+        ],
+        "prerequisite": [
+          71
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE312 Τηλεπικοινωνιακά Συστήματα Ι"
+    },
+    {
+      "id": "ECE414",
+      "name": "Εφαρμοσμένες Στοχαστικές Διεργασίες",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εφαρμοσμένες Στοχαστικές Διεργασίες",
+      "appendix_header_page": 71,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        72
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εφαρμοσμένες Στοχαστικές Διεργασίες",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        71,
+        72
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          71
+        ],
+        "prerequisite": [
+          72
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE416",
+      "name": "Βελτιστοποίηση Δικτύων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Βελτιστοποίηση Δικτύων",
+      "appendix_header_page": 72,
+      "prerequisites": [
+        "ECE313"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        72
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Βελτιστοποίηση Δικτύων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        72
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          72
+        ],
+        "prerequisite": [
+          72
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι"
+    },
+    {
+      "id": "ECE418",
+      "name": "Τεχνολογίες Blockchain και Αποκεντρωμένες Εφαρμογές",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τεχνολογίες Blockchain και Αποκεντρωμένες Εφαρμογές",
+      "appendix_header_page": 72,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        73
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τεχνολογίες Blockchain και Αποκεντρωμένες Εφαρμογές",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        72,
+        73
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          72
+        ],
+        "prerequisite": [
+          73
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE420",
+      "name": "Αρχιτεκτονική και Ανάπτυξη Παιγνίων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αρχιτεκτονική και Ανάπτυξη Παιγνίων",
+      "appendix_header_page": 73,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        73
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αρχιτεκτονική και Ανάπτυξη Παιγνίων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        73
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          73
+        ],
+        "prerequisite": [
+          73
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE422",
+      "name": "Εξόρυξη Δεδομένων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εξόρυξη Δεδομένων",
+      "appendix_header_page": 74,
+      "prerequisites": [
+        "ECE217"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        74
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εξόρυξη Δεδομένων",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        74
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          74
+        ],
+        "prerequisite": [
+          74
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE424",
+      "name": "Πολυπρακτορικά Συστήματα",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Πολυπρακτορικά Συστήματα",
+      "appendix_header_page": 74,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        74
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Πολυπρακτορικά Συστήματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        74
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          74
+        ],
+        "prerequisite": [
+          74
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE434",
+      "name": "Σύνθετα Δίκτυα",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σύνθετα Δίκτυα",
+      "appendix_header_page": 74,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        74
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σύνθετα Δίκτυα",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        74
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          74
+        ],
+        "prerequisite": [
+          74
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE436",
+      "name": "Ασύρματες Επικοινωνίες",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ασύρματες Επικοινωνίες",
+      "appendix_header_page": 75,
+      "prerequisites": [
+        "ECE313"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        75
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ασύρματες Επικοινωνίες",
+      "prerequisite_type": "formal",
+      "pages": [
+        23,
+        75
+      ],
+      "page_detail": {
+        "catalog_table": [
+          23
+        ],
+        "appendix_header": [
+          75
+        ],
+        "prerequisite": [
+          75
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι"
+    },
+    {
+      "id": "ECE440",
+      "name": "Ακέραιος Προγραμματισμός και Συνδιαστική Βελτίωση",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ακέραιος Προγραμματισμός και Συνδυαστική Βελτίωση",
+      "appendix_header_page": 75,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        75
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ακέραιος Προγραμματισμός και Συνδυαστική Βελτίωση",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        75
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          75
+        ],
+        "prerequisite": [
+          75
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE442",
+      "name": "Ανάπτυξη Επιχειρηματικών Σχεδίων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ανάπτυξη Επιχειρηματικών Σχεδίων",
+      "appendix_header_page": 76,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        76
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ανάπτυξη Επιχειρηματικών Σχεδίων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        76
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          76
+        ],
+        "prerequisite": [
+          76
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE444",
+      "name": "Αλγόριθμοι CAD Φυσικής Σχεδίασης",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αλγόριθμοι CAD Φυσικής Σχεδίασης",
+      "appendix_header_page": 76,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        76
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αλγόριθμοι CAD Φυσικής Σχεδίασης",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        76
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          76
+        ],
+        "prerequisite": [
+          76
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE446",
+      "name": "Οικονομική της Τεχνολογίας",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Οικονομική της Τεχνολογίας",
+      "appendix_header_page": 77,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        77
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Οικονομική της Τεχνολογίας",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        77
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          77
+        ],
+        "prerequisite": [
+          77
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE450",
+      "name": "Δίκτυα Υπολογιστών ΙΙ",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Δίκτυα Υπολογιστών ΙΙ",
+      "appendix_header_page": 77,
+      "prerequisites": [
+        "ECE313"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        77
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Δίκτυα Υπολογιστών ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        77
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          77
+        ],
+        "prerequisite": [
+          77
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE313 Δίκτυα Υπολογιστών Ι"
+    },
+    {
+      "id": "ECE452",
+      "name": "Ειδικά Θέματα Εφαρμοσμένων Μαθηματικών",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ειδικά Θέματα Εφαρμοσμένων Μαθηματικών",
+      "appendix_header_page": 78,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        78
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ειδικά Θέματα Εφαρμοσμένων Μαθηματικών",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        78
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          78
+        ],
+        "prerequisite": [
+          78
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE456",
+      "name": "Έλεγχος και Ευστάθεια Συστημάτων Ηλεκτρικής Ενέργειας",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Έλεγχος και Ευστάθεια Συστημάτων Ηλεκτρικής Ενέργειας",
+      "appendix_header_page": 78,
+      "prerequisites": [
+        "ECE316"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        78
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Έλεγχος και Ευστάθεια Συστημάτων Ηλεκτρικής Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        78
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          78
+        ],
+        "prerequisite": [
+          78
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι"
+    },
+    {
+      "id": "ECE458",
+      "name": "Ειδικά Θέματα - Εργασίες",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        24
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "special_topics",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE460",
+      "name": "Προχωρημένη Διαχείριση Δεδομένων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Προχωρημένη Διαχείριση Δεδομένων",
+      "appendix_header_page": 79,
+      "prerequisites": [
+        "ECE311"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE311 Συστήματα Βάσεων Δεδομένων Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        79
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Προχωρημένη Διαχείριση Δεδομένων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        79
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          79
+        ],
+        "prerequisite": [
+          79
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE311 Συστήματα Βάσεων Δεδομένων Ι"
+    },
+    {
+      "id": "ECE464",
+      "name": "Εισαγωγή στην Οικονομία της Ενέργειας",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στην Οικονομία της Ενέργειας",
+      "appendix_header_page": 80,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        80
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στην Οικονομία της Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        80
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          80
+        ],
+        "prerequisite": [
+          80
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE468",
+      "name": "Ασφάλεια Δικτύων και Πληροφοριακών Συστημάτων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ασφάλεια Δικτύων και Πληροφοριακών Συστημάτων",
+      "appendix_header_page": 80,
+      "prerequisites": [
+        "ECE313",
+        "ECE318"
+      ],
+      "prerequisite_text": "ECE313 Δίκτυα Υπολογιστών Ι / Προαπαιτούμενα ECE318 Λειτουργικά Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        80
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ασφάλεια Δικτύων και Πληροφοριακών Συστημάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        80
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          80
+        ],
+        "prerequisite": [
+          80
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE313 Δίκτυα Υπολογιστών Ι / Προαπαιτούμενα ECE318 Λειτουργικά Συστήματα"
+    },
+    {
+      "id": "ECE470",
+      "name": "Σχεδίαση και Ανάπτυξη Λογισμικού",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδίαση και Ανάπτυξη Λογισμικού",
+      "appendix_header_page": 81,
+      "prerequisites": [
+        "ECE115"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        81
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδίαση και Ανάπτυξη Λογισμικού",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        81
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          81
+        ],
+        "prerequisite": [
+          81
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι"
+    },
+    {
+      "id": "ECE472",
+      "name": "Βιομηχανικός Αυτόματος Έλεγχος",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Βιομηχανικός Αυτόματος Έλεγχος",
+      "appendix_header_page": 81,
+      "prerequisites": [
+        "ECE120"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE120 Τεχνικό Σχέδιο",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        81
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Βιομηχανικός Αυτόματος Έλεγχος",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        81
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          81
+        ],
+        "prerequisite": [
+          81
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE120 Τεχνικό Σχέδιο"
+    },
+    {
+      "id": "ECE474",
+      "name": "Ειδικά Θέματα Ηλεκτρικών Εγκαταστάσεων",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ειδικά Θέματα Ηλεκτρικών Εγκαταστάσεων",
+      "appendix_header_page": 82,
+      "prerequisites": [
+        "ECE437"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE437 Ηλεκτρικές Εγκαταστάσεις",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        82
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ειδικά Θέματα Ηλεκτρικών Εγκαταστάσεων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        82
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          82
+        ],
+        "prerequisite": [
+          82
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE437 Ηλεκτρικές Εγκαταστάσεις"
+    },
+    {
+      "id": "ECE480",
+      "name": "Βαθιά Μάθηση και Εφαρμογές της",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Βαθιά Μάθηση και Εφαρμογές της",
+      "appendix_header_page": 83,
+      "prerequisites": [
+        "ECE114",
+        "ECE217"
+      ],
+      "prerequisite_text": "ECE114 Λογισμός ΙΙ / Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        83
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Βαθιά Μάθηση και Εφαρμογές της",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        83
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          83
+        ],
+        "prerequisite": [
+          83
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE114 Λογισμός ΙΙ / Προαπαιτούμενα ECE217 Πιθανότητες και Στατιστική"
+    },
+    {
+      "id": "ECE482",
+      "name": "Υπολογιστική Μοντελοποίηση Υλικών για Μικροηλεκτρονικές Εφαρμογές",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Υπολογιστική Μοντελοποίηση Υλικών για Μικροηλεκτρονικές Εφαρμογές",
+      "appendix_header_page": 83,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        83
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Υπολογιστική Μοντελοποίηση Υλικών για Μικροηλεκτρονικές Εφαρμογές",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        83
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          83
+        ],
+        "prerequisite": [
+          83
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE484",
+      "name": "Σχεδίαση Κυκλωμάτων για Ιοντίζοντα Περιβάλλοντα",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδίαση Κυκλωμάτων για Ιοντίζοντα Περιβάλλοντα",
+      "appendix_header_page": 83,
+      "prerequisites": [
+        "ECE119"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        83
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδίαση Κυκλωμάτων για Ιοντίζοντα Περιβάλλοντα",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        83
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          83
+        ],
+        "prerequisite": [
+          83
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE119 Ψηφιακή Σχεδίαση"
+    },
+    {
+      "id": "ECE486",
+      "name": "Ηλεκτροακουστική",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Ηλεκτροακουστική",
+      "appendix_header_page": 84,
+      "prerequisites": [
+        "ECE124",
+        "ECE218"
+      ],
+      "prerequisite_text": "ECE124 Ανάλυση Κυκλωμάτων Ι / Προαπαιτούμενα ECE218 Σήματα και Συστήματα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        84
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Ηλεκτροακουστική",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        84
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          84
+        ],
+        "prerequisite": [
+          84
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE124 Ανάλυση Κυκλωμάτων Ι / Προαπαιτούμενα ECE218 Σήματα και Συστήματα"
+    },
+    {
+      "id": "ECE488",
+      "name": "Σχεδίαση Κβαντικών Υπολογιστών",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδίαση Κβαντικών Υπολογιστών",
+      "appendix_header_page": 85,
+      "prerequisites": [
+        "ECE111",
+        "ECE117"
+      ],
+      "prerequisite_text": "ECE111 Φυσική / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        85
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδίαση Κβαντικών Υπολογιστών",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        85
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          85
+        ],
+        "prerequisite": [
+          85
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE111 Φυσική / Προαπαιτούμενα ECE117 Γραμμική Άλγεβρα"
+    },
+    {
+      "id": "ECE490",
+      "name": "Διαδίκτυο των Πραγμάτων (Internet of Things) και Εφαρμογές",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Διαδίκτυο των Πραγμάτων (Internet of Things) και Εφαρμογές",
+      "appendix_header_page": 85,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        85
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Διαδίκτυο των Πραγμάτων (Internet of Things) και Εφαρμογές",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        85
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          85
+        ],
+        "prerequisite": [
+          85
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE492",
+      "name": "Εισαγωγή στην Ρομποτική",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εισαγωγή στη Ρομποτική",
+      "appendix_header_page": 86,
+      "prerequisites": [
+        "ECE220"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE220 Αριθμητική Ανάλυση",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        86
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εισαγωγή στη Ρομποτική",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        86
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          86
+        ],
+        "prerequisite": [
+          86
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE220 Αριθμητική Ανάλυση"
+    },
+    {
+      "id": "ECE494",
+      "name": "Σχεδίαση Επεξεργαστών",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδίαση Επεξεργαστών",
+      "appendix_header_page": 86,
+      "prerequisites": [
+        "ECE119",
+        "ECE219"
+      ],
+      "prerequisite_text": "ECE119 Ψηφιακή Σχεδίαση / Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        86
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδίαση Επεξεργαστών",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        86
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          86
+        ],
+        "prerequisite": [
+          86
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE119 Ψηφιακή Σχεδίαση / Προαπαιτούμενα ECE219 Οργάνωση και Σχεδίαση Η/Υ"
+    },
+    {
+      "id": "ECE496",
+      "name": "Πρακτική Άσκηση",
+      "semester": 8,
+      "term": "spring",
+      "mandatory": false,
+      "teaching_hours": 40,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        24
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "practice",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE513",
+      "name": "Αλγόριθμοι Προσομοίωσης Κυκλωμάτων",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Αλγόριθμοι Προσομοίωσης Κυκλωμάτων",
+      "appendix_header_page": 87,
+      "prerequisites": [
+        "ECE115"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        87
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Αλγόριθμοι Προσομοίωσης Κυκλωμάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        87
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          87
+        ],
+        "prerequisite": [
+          87
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE115 Προγραμματισμός Ι"
+    },
+    {
+      "id": "ECE515",
+      "name": "Κινητός και Διάχυτος Υπολογισμός",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Κινητός και Διάχυτος Υπολογισμός",
+      "appendix_header_page": 87,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        87
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Κινητός και Διάχυτος Υπολογισμός",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        87
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          87
+        ],
+        "prerequisite": [
+          87
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE519",
+      "name": "Εργαστήριο Αναλογικών Κυκλωμάτων",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Εργαστήριο Αναλογικών Κυκλωμάτων",
+      "appendix_header_page": 87,
+      "prerequisites": [
+        "ECE214"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        87
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Εργαστήριο Αναλογικών Κυκλωμάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        87
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          87
+        ],
+        "prerequisite": [
+          87
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE214 Εισαγωγή στην Ηλεκτρονική"
+    },
+    {
+      "id": "ECE527",
+      "name": "Κεραίες",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Κεραίες",
+      "appendix_header_page": 88,
+      "prerequisites": [
+        "ECE314"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        88
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Κεραίες",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        88
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          88
+        ],
+        "prerequisite": [
+          88
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I"
+    },
+    {
+      "id": "ECE535",
+      "name": "Μικροκύματα",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Μικροκύματα",
+      "appendix_header_page": 88,
+      "prerequisites": [
+        "ECE314"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        88
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Μικροκύματα",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        88
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          88
+        ],
+        "prerequisite": [
+          88
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE314 Ηλεκτρομαγνητικά Πεδία I"
+    },
+    {
+      "id": "ECE541",
+      "name": "Συστήματα Βάσεων Δεδομένων ΙΙ",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Βάσεων Δεδομένων ΙΙ",
+      "appendix_header_page": 89,
+      "prerequisites": [
+        "ECE311"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE311 Συστήματα Βάσεων Δεδομένων Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        89
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Βάσεων Δεδομένων ΙΙ",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        89
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          89
+        ],
+        "prerequisite": [
+          89
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE311 Συστήματα Βάσεων Δεδομένων Ι"
+    },
+    {
+      "id": "ECE549",
+      "name": "Προστασία Συστημάτων Ηλεκτρικής Ενέργειας",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Προστασία Συστημάτων Ηλεκτρικής Ενέργειας",
+      "appendix_header_page": 89,
+      "prerequisites": [
+        "ECE316"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        89
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Προστασία Συστημάτων Ηλεκτρικής Ενέργειας",
+      "prerequisite_type": "formal",
+      "pages": [
+        24,
+        89
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [
+          89
+        ],
+        "prerequisite": [
+          89
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE316 Συστήματα Ηλεκτρικής Ενέργειας Ι"
+    },
+    {
+      "id": "ECE553",
+      "name": "Σχεδιαστική Σκέψη",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Σχεδιαστική Σκέψη",
+      "appendix_header_page": 89,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        90
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Σχεδιαστική Σκέψη",
+      "prerequisite_type": "formal",
+      "pages": [
+        25,
+        89,
+        90
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [
+          89
+        ],
+        "prerequisite": [
+          90
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE555",
+      "name": "Προχωρημένα Θέματα Δικτύων",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Προχωρημένα Θέματα Δικτύων",
+      "appendix_header_page": 90,
+      "prerequisites": [
+        "ECE436"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE436 Ασύρματες Επικοινωνίες",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        90
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Προχωρημένα Θέματα Δικτύων",
+      "prerequisite_type": "formal",
+      "pages": [
+        25,
+        90
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [
+          90
+        ],
+        "prerequisite": [
+          90
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE436 Ασύρματες Επικοινωνίες"
+    },
+    {
+      "id": "ECE557",
+      "name": "Κατασκευή Μικροηλεκτρονικών Διατάξεων",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Κατασκευή Μικροηλεκτρονικών Διατάξεων",
+      "appendix_header_page": 90,
+      "prerequisites": [],
+      "prerequisite_text": "Κανένα",
+      "prerequisite_status": "specified_none",
+      "prerequisite_pages": [
+        91
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Κατασκευή Μικροηλεκτρονικών Διατάξεων",
+      "prerequisite_type": "formal",
+      "pages": [
+        25,
+        90,
+        91
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [
+          90
+        ],
+        "prerequisite": [
+          91
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Κανένα"
+    },
+    {
+      "id": "ECE561",
+      "name": "Τυπική Επαλήθευση Κρυπτοσυστημάτων",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Τυπική Επαλήθευση Κρυπτοσυστημάτων",
+      "appendix_header_page": 91,
+      "prerequisites": [
+        "ECE118",
+        "ECE418"
+      ],
+      "prerequisite_text": "ECE118 Διακριτά Μαθηματικά / Προαπαιτούμενα ECE418 Τεχνολογίες Blockchain και Αποκεντρωμένες Εφαρμογές",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        91
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Τυπική Επαλήθευση Κρυπτοσυστημάτων",
+      "prerequisite_type": "formal",
+      "pages": [
+        25,
+        91
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [
+          91
+        ],
+        "prerequisite": [
+          91
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "ECE118 Διακριτά Μαθηματικά / Προαπαιτούμενα ECE418 Τεχνολογίες Blockchain και Αποκεντρωμένες Εφαρμογές"
+    },
+    {
+      "id": "ECE563",
+      "name": "Συστήματα Ραντάρ και Τηλεσκόπηση",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "appendix_title": "Συστήματα Ραντάρ και Τηλεπισκόπηση",
+      "appendix_header_page": 91,
+      "prerequisites": [
+        "ECE312"
+      ],
+      "prerequisite_text": "Προαπαιτούμενα ECE312 Τηλεπικοινωνιακά Συστήματα Ι",
+      "prerequisite_status": "specified",
+      "prerequisite_pages": [
+        91
+      ],
+      "course_type_in_appendix": "elective",
+      "name_from_appendix": "Συστήματα Ραντάρ και Τηλεπισκόπηση",
+      "prerequisite_type": "formal",
+      "pages": [
+        25,
+        91
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [
+          91
+        ],
+        "prerequisite": [
+          91
+        ]
+      },
+      "course_type": "elective",
+      "prerequisiteText": "Προαπαιτούμενα ECE312 Τηλεπικοινωνιακά Συστήματα Ι"
+    },
+    {
+      "id": "ECE565",
+      "name": "Ειδικά Θέματα - Εργασίες",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 4,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        25
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "special_topics",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE567",
+      "name": "Πρακτική Άσκηση",
+      "semester": 9,
+      "term": "winter",
+      "mandatory": false,
+      "teaching_hours": 40,
+      "ects": 6,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        25
+      ],
+      "page_detail": {
+        "catalog_table": [
+          25
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "practice",
+      "prerequisiteText": null
+    },
+    {
+      "id": "ECE588",
+      "name": "Διπλωματική Εργασία",
+      "semester": 10,
+      "term": "spring",
+      "mandatory": true,
+      "teaching_hours": 0,
+      "ects": 30,
+      "name_from_appendix": null,
+      "prerequisites": null,
+      "prerequisite_text": null,
+      "prerequisite_status": "not_stated",
+      "prerequisite_type": "not_stated",
+      "appendix_header_page": null,
+      "prerequisite_pages": [],
+      "pages": [
+        24
+      ],
+      "page_detail": {
+        "catalog_table": [
+          24
+        ],
+        "appendix_header": [],
+        "prerequisite": []
+      },
+      "course_type": "thesis",
+      "prerequisiteText": null
+    }
+  ],
+  "checks": {
+    "schedule_course_count": 123,
+    "appendix_course_count": 116,
+    "schedule_codes_without_appendix_description": [
+      "ECE356",
+      "ECE439",
+      "ECE458",
+      "ECE496",
+      "ECE565",
+      "ECE567",
+      "ECE588"
+    ],
+    "appendix_codes_missing_from_schedule": [],
+    "course_code_unique": true,
+    "printed_page_numbers_checked_on_rendered_pages": [
+      22,
+      25,
+      37,
+      42,
+      67,
+      91
+    ]
+  },
+  "uncertainties": [
+    "Το ECE124 δεν έχει γραμμή «Προαπαιτούμενα» στην καρτέλα του στη σελίδα 37· καταγράφεται ως not_stated και όχι ως «Κανένα».",
+    "Το ECE441 εμφανίζει ECE313 και «Υπογράφημα Προαπαιτούμενων»· καταγράφεται το ECE313 ως κωδικός και διατηρείται το κείμενο του υπογραφήματος.",
+    "Η ενότητα 5.8 περιγράφει την πρακτική ως ECE496/8ο εξάμηνο, ενώ ο πίνακας της σελίδας 24-25 περιέχει επίσης ECE567/9ο εξάμηνο· και οι δύο γραμμές διατηρούνται με not_stated prerequisites.",
+    "Ο οδηγός δεν δίνει αντιστοίχιση κάθε μαθήματος σε έναν από τους πέντε γνωστικούς τομείς και δεν δηλώνει ξεχωριστό ανώτατο όριο ECTS ανά δήλωση, μόνο όριο πλήθους μαθημάτων με ECTS."
+  ]
+}

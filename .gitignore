@@ -1,0 +1,15 @@
+node_modules/
+outputs/
+tmp/
+work/*
+!work/app.ts
+!work/app.css
+!work/experience.ts
+!work/experience.css
+!work/template.html
+!work/build.mjs
+!work/source-parser.js
+!work/source-seed.json
+!work/guide-rules.json
+!work/fonts.css
+!work/font-licenses.txt
