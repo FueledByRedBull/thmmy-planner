@@ -61,13 +61,22 @@ function layoutEvents(events){
 function conflicts(events){const result=[];for(let i=0;i<events.length;i++)for(let j=i+1;j<events.length;j++){const a=events[i],b=events[j];if(a.day===b.day&&a.start<b.end&&b.start<a.end)result.push([a,b]);}return result;}
 function contactMinutes(events){let total=0;for(let d=0;d<5;d++){const entries=events.filter(e=>e.day===d).sort((a,b)=>a.start-b.start);let end=-1;for(const e of entries){total+=Math.max(0,e.end-Math.max(end,e.start));end=Math.max(end,e.end);}}return total;}
 function renderList(){
+ const focused=document.activeElement,focusKey=focused.closest('#courseList')&&['detail','toggle','passed'].find(key=>focused.dataset[key]);
  const q=norm($('search').value),sem=Number($('semesterFilter').value),filter=$('listFilter').value;
  const list=data.catalog.filter(c=>(!sem||c.semester===sem)&&(!q||norm(c.name+' '+c.id).includes(q))&&(filter==='all'||filter==='offered'&&available(c)||filter==='selected'&&chosen().includes(c.id)||filter==='passed'&&state.passed.includes(c.id)));
  $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;
  $('listHelp').textContent=filter==='offered'?'Μόνο όσα έχουν ώρες στην επίσημη πηγή.':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
- $('courseList').innerHTML=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);return `<article class="course ${selected?'selected':''}" style="--course-color:${baseColor(c)}"><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span>·</span><span>${c.semester}ο εξ.</span><span>·</span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?'<span class="tag">✓ Περασμένο</span>':''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${selected?'−':'+'}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}).join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
+ $('courseList').innerHTML=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);return `<article class="course ${selected?'selected':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span>·</span><span>${c.semester}ο εξ.</span><span>·</span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?'<span class="tag">✓ Περασμένο</span>':''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${selected?'−':'+'}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}).join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
+ if(focusKey)$('courseList').querySelector(`[data-${focusKey}="${CSS.escape(focused.dataset[focusKey])}"]`)?.focus({preventScroll:true});
+ hoveredCourse=$('courseList').querySelector('.course:hover')?.dataset.course||'';
+ highlightCourse();
 }
-let printLayoutActive=false;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let printLayoutActive=false,hoveredCourse='';
+function highlightCourse(){
+ const id=hoveredCourse||document.activeElement.closest('.course')?.dataset.course;
+ for(const block of $('calendar').querySelectorAll('.meeting'))block.classList.toggle('course-highlight',block.dataset.detail===id);
+}
 function fitCalendar(){
  const calendar=$('calendar'),wrap=$('calendarWrap'),panel=wrap.closest('.schedule-panel'),sheet=panel.parentElement;
  const printing=printLayoutActive||matchMedia('print').matches;
@@ -81,14 +90,16 @@ function fitCalendar(){
  calendar.style.removeProperty('--hour');
  if(!wrap.hidden){
   const hours=Number(calendar.style.getPropertyValue('--hours'));
-  let hour=calendar.querySelector('.day-column').getBoundingClientRect().height/hours;
+  let hour=calendar.querySelector('.day-column').offsetHeight/hours;
   // Measure natural card content so short lessons grow the shared time scale too.
+  calendar.classList.add('measuring');
   for(const block of calendar.querySelectorAll('.meeting')){
    const css=getComputedStyle(block),inset=['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+parseFloat(css[key]),0);
-   const required=block.querySelector('.meeting-content').getBoundingClientRect().height+inset+5;
+   const required=block.querySelector('.meeting-content').offsetHeight+inset+5;
    hour=Math.max(hour,required*60/Number(block.dataset.duration));
   }
   calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
+  calendar.classList.remove('measuring');
  }
  $('calendarHint').hidden=wrap.hidden||wrap.scrollWidth<=wrap.clientWidth+1;
  if(printing){
@@ -97,6 +108,8 @@ function fitCalendar(){
  }
 }
 function renderSchedule(){
+ const animate=!reducedMotion.matches&&!printLayoutActive&&!matchMedia('print').matches;
+ const previous=new Map(animate?[...$('calendar').querySelectorAll('.meeting')].map(b=>[b.dataset.event,b.getBoundingClientRect()]):[]);
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
  $('countStat').textContent=chosen().length;$('hoursStat').textContent=(contactMinutes(events)/60).toLocaleString('el-GR',{maximumFractionDigits:1});$('conflictStat').textContent=pairs.length;$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
  const reviewCount=chosen().filter(id=>state.review.includes(id)).length;
@@ -110,13 +123,21 @@ function renderSchedule(){
  let html='<div class="day-head time-head">ΩΡΑ</div>'+DAYS.map((d,i)=>`<div class="day-head"><b>${d}</b><small>${events.filter(e=>e.day===i).length} συναντήσεις · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR')} ώρες</small></div>`).join('');
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events);
- for(let d=0;d<5;d++)html+='<div class="day-column">'+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}–${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-bg:${pale(baseColor(c))};--event-border:${dark(baseColor(c))}"><span class="meeting-content"><span class="event-time">${time(e.start)}–${time(e.end)}${conflictIds.has(e.id)?' ⚠':''}</span><strong class="full-title">${esc(c.name)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+='<div class="day-column">'+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}–${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-bg:${pale(baseColor(c))};--event-border:${dark(baseColor(c))}"><span class="meeting-content"><span class="event-time">${time(e.start)}–${time(e.end)}${conflictIds.has(e.id)?' ⚠':''}</span><strong class="full-title">${esc(c.name)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  $('calendar').style.setProperty('--day-min',Math.max(1,...laidOut.map(e=>e.lanes))*220+'px');
  const legendCourses=chosen().map(course).filter(Boolean),seen=new Set();
  $('legend').innerHTML=legendCourses.filter(c=>{const key=colorKey(c);if(seen.has(key))return false;seen.add(key);return true;}).map(c=>`<label class="legend-item" style="--legend-bg:${baseColor(c)}"><span class="color-swatch" aria-hidden="true" style="background:${baseColor(c)}"></span><input type="color" value="${baseColor(c)}" data-color="${esc(colorKey(c))}" aria-label="Χρώμα ${esc(state.colorMode==='course'?c.name:c.semester+'ου εξαμήνου')}"><span>${esc(state.colorMode==='course'?c.id+' · '+c.name:c.semester+'ο εξάμηνο')}</span></label>`).join('')+(state.review.some(id=>chosen().includes(id))?'<span class="legend-item">▨ Προς έλεγχο</span>':'')+(pairs.length?'<span class="legend-item">⚠ Διακεκομμένο περίγραμμα: επικάλυψη</span>':'');
  renderChecks(pairs);
  fitCalendar();
+ highlightCourse();
+ if(animate)for(const block of $('calendar').querySelectorAll('.meeting')){
+  const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
+  if(old&&now.width&&now.height){
+   const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
+   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.7,.2,1)'});
+  }else block.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:180,easing:'ease-out'});
+ }
 }
 function renderChecks(pairs){
  const issues=[],selected=chosen().map(course).filter(Boolean),offer=data.catalog.filter(available);
@@ -293,7 +314,16 @@ $('search').addEventListener('input',renderList);$('semesterFilter').addEventLis
 $('profileButton').onclick=()=>{$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;$('profileDialog').showModal();};
 $('saveProfile').onclick=()=>{state.entryYear=$('entryYear').value;state.studySemester=$('studySemester').value;state.passedComplete=$('passedComplete').checked;persist();render();$('profileDialog').close();};
 $('sourcesButton').onclick=()=>$('sourcesDialog').showModal();$('guideButton').onclick=()=>$('guideDialog').showModal();$('provider').onchange=e=>{state.provider=e.target.value;persist();};$('refresh').onclick=refresh;$('importFile').onchange=importHtml;$('saveCopy').onclick=downloadCopy;$('printButton').onclick=()=>window.print();
-$('focusSchedule').onclick=()=>{const wide=document.body.classList.toggle('wide-layout');$('focusSchedule').textContent=wide?'Εμφάνιση μαθημάτων':'Μεγέθυνση προγράμματος';renderSchedule();};
+$('focusSchedule').onclick=()=>{const wide=document.body.classList.toggle('wide-layout');$('focusSchedule').textContent=wide?'Εμφάνιση μαθημάτων':'Απόκρυψη μαθημάτων';$('focusSchedule').setAttribute('aria-expanded',String(!wide));hoveredCourse='';highlightCourse();fitCalendar();};
+const dataMenu=$('dataMenu');
+dataMenu.addEventListener('click',event=>{if(event.target.closest('button')){dataMenu.open=false;dataMenu.querySelector('summary').focus();}},true);
+dataMenu.addEventListener('focusout',event=>{if(!dataMenu.contains(event.relatedTarget))dataMenu.open=false;});
+document.addEventListener('click',event=>{if(!dataMenu.contains(event.target))dataMenu.open=false;});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&dataMenu.open){dataMenu.open=false;dataMenu.querySelector('summary').focus();event.preventDefault();}});
+$('courseList').addEventListener('pointerover',event=>{if(event.pointerType==='touch')return;hoveredCourse=event.target.closest('.course')?.dataset.course||'';highlightCourse();});
+$('courseList').addEventListener('pointerout',event=>{hoveredCourse=event.relatedTarget?.closest('.course')?.dataset.course||'';highlightCourse();});
+for(const type of ['focusin','focusout'])$('courseList').addEventListener(type,()=>queueMicrotask(highlightCourse));
+reducedMotion.addEventListener('change',()=>{if(reducedMotion.matches)document.getAnimations().forEach(a=>a.cancel());});
 renderGuide();
 $('guideContent').insertAdjacentHTML('beforeend','<details><summary>Αναλυτικές σημειώσεις οδηγού και παραπομπές</summary><ul>'+(GUIDE.rules||[]).map(r=>`<li>${esc(r.text)} <small>(σ. ${esc(r.pages.join(', '))})</small></li>`).join('')+'</ul></details>');
 render();if(storageWarning)notify(storageWarning,true);
@@ -306,6 +336,7 @@ const printRules=[...document.styleSheets].flatMap(sheet=>[...sheet.cssRules]).f
 window.addEventListener('beforeprint',()=>{
  // Chromium fires beforeprint while screen styles still apply. Measure print styles before pagination.
  printLayoutActive=true;
+ document.getAnimations().forEach(a=>a.cancel());
  for(const rule of printRules)rule.media.mediaText='all';
  fitCalendar();
 });

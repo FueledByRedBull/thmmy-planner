@@ -332,18 +332,86 @@ input::placeholder{color:var(--muted);opacity:.85}
 .transfer-preview p{margin:0 0 10px}.transfer-preview p:last-child{margin:0}
 .transfer-code:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
 
-@media screen{.schedule-panel{box-shadow:none}}
+.meeting-content{flex-grow:1}
+.calendar.measuring .meeting-content{flex-grow:0}
+.meeting{transform-origin:top left}
+.data-menu{position:relative}
+.data-menu summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-size:13px;font-weight:600;height:100%}
+.data-menu summary::-webkit-details-marker{display:none}
+.data-menu summary:hover,.data-menu[open] summary{background:var(--hover)}
+.data-menu-actions{position:absolute;right:0;top:calc(100% + 8px);z-index:10;width:270px;max-width:calc(100vw - 36px);padding:6px;background:var(--white);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px var(--dialog-shadow)}
+.data-menu-actions button{display:block;text-align:left;width:100%;border:0;line-height:1.5}
+.workspace-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.season-switch{position:relative;isolation:isolate;gap:0}
+.season-switch:before{content:'';position:absolute;inset:4px auto 4px 4px;width:calc((100% - 8px)/2);border-radius:5px;background:var(--white);transition:transform 220ms cubic-bezier(.2,.7,.2,1);z-index:-1}
+.season-switch:has([data-season=spring][aria-pressed=true]):before{transform:translateX(100%)}
+.season-switch button{flex:1}
+.season-switch button[aria-pressed=true]{background:transparent;box-shadow:none}
+@keyframes dialog-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media screen{
+ main{padding-top:24px}
+ .intro{margin-bottom:20px}
+ .intro h1{font-size:38px;margin:8px 0 7px}
+ .intro .eyebrow{font-size:9px}
+ .sync-box{gap:7px}
+ .sync-box button{padding:10px 14px}
+ .header-actions .source-action{border-color:transparent;font-weight:400}
+ .workspace-bar{padding-bottom:14px}
+ .workspace{padding-top:18px;gap:22px}
+ .wide-layout .sidebar{display:none}
+ #focusSchedule{display:inline-flex;align-items:center}
+ .schedule-panel{box-shadow:none}
+ .schedule-top{padding:18px 20px;margin-bottom:14px}
+ .schedule-top h2{font-size:21px;margin-top:6px;line-height:1.4}
+ .meeting{padding:10px;border-width:1px;border-radius:6px;transition:box-shadow 180ms,filter 180ms}
+ .meeting strong{font-size:13px;line-height:1.45}
+ .meeting .event-time{font-size:11px;margin-bottom:6px}
+ .meeting .event-room{font-size:11px;padding-top:8px;line-height:1.4}
+ .meeting .event-teacher{font-size:10px;line-height:1.4;opacity:.9;margin-top:2px}
+ .meeting.course-highlight{box-shadow:inset 0 0 0 2px var(--event-edge,var(--event-border));filter:brightness(1.06)}
+ .course{border-radius:6px;transition:background 180ms}
+ .course.selected{border-radius:6px;padding:13px 12px}
+ .course-title{font-size:14px;line-height:1.45}
+ .course-meta{line-height:1.5}
+ .course:focus-within{background:var(--hover)}
+ dialog[open]{animation:dialog-enter 200ms cubic-bezier(.2,.7,.2,1)}
+ .data-menu[open] .data-menu-actions{animation:dialog-enter 150ms ease-out}
+}
+@media(max-width:820px){
+ .intro{gap:14px;margin-bottom:18px}
+ .intro h1{font-size:32px}
+ .sync-box{flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px 12px}
+ .sync-box span{font-size:10px}
+ .workspace-actions{margin-left:0;gap:6px}
+ .workspace-actions button{font-size:11px;padding:9px}
+ .header-actions .source-action{order:3}
+ .header-actions{position:relative}
+ .data-menu{position:static}
+ .data-menu-actions{left:0;right:auto}
+ .data-menu summary{font-size:11px;padding:9px}
+ .schedule-top h2{font-size:19px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+@media print{
+ .meeting{padding:1.2mm;border-radius:3px;transform:none!important;opacity:1!important;filter:none!important;box-shadow:none!important;outline:none!important}
+ .meeting strong{font-size:9px;line-height:1.25}
+ .meeting .event-time,.meeting .event-room{font-size:8px;line-height:1.4}
+ .meeting .event-time{margin-bottom:4px}
+ .meeting .event-room{padding-top:4px}
+ .schedule-top{padding:0 0 5mm;margin-bottom:0}
+ .schedule-top h2{font-size:22px;margin-top:9px;line-height:1.35}
+}
 </style>
 </head>
 <body>
-<header class="masthead"><a class="brand" href="#"><span class="brand-mark">ΗΜ<br>ΜΥ</span><span>ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΙΑΣ<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span></a><div class="header-actions"><label class="theme-control"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20.8 13.3A9 9 0 0 1 10.7 3.2 9 9 0 1 0 20.8 13.3Z"/></svg><select id="theme" aria-label="Θέμα εμφάνισης"><option value="system">Σύστημα</option><option value="light">Φωτεινό</option><option value="dark">Σκοτεινό</option></select></label><button id="sourcesButton" class="quiet">Πηγές & ενημέρωση</button><button id="transferButton" class="quiet">Μεταφορά δεδομένων</button><button id="saveCopy" class="quiet" title="Κατεβάζει νέο αυτοτελές HTML με τα δεδομένα και τις επιλογές σου">Αποθήκευση αντιγράφου ↗</button><button id="printButton">Εκτύπωση / PDF</button></div></header>
+<header class="masthead"><a class="brand" href="#"><span class="brand-mark">ΗΜ<br>ΜΥ</span><span>ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΙΑΣ<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span></a><div class="header-actions"><label class="theme-control"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20.8 13.3A9 9 0 0 1 10.7 3.2 9 9 0 1 0 20.8 13.3Z"/></svg><select id="theme" aria-label="Θέμα εμφάνισης"><option value="system">Σύστημα</option><option value="light">Φωτεινό</option><option value="dark">Σκοτεινό</option></select></label><button id="sourcesButton" class="quiet source-action">Πηγές & ενημέρωση</button><details id="dataMenu" class="data-menu"><summary>Τα δεδομένα μου <span aria-hidden="true">⌄</span></summary><div class="data-menu-actions"><button id="transferButton" class="quiet">Εισαγωγή / εξαγωγή κωδικού</button><button id="saveCopy" class="quiet" title="Κατεβάζει νέο αυτοτελές HTML με τα δεδομένα και τις επιλογές σου">Αποθήκευση αντιγράφου HTML ↗</button></div></details><button id="printButton">Εκτύπωση / PDF</button></div></header>
 <main>
 <section class="intro"><div><div class="eyebrow">ΠΡΟΣΩΠΙΚΟ ΩΡΟΛΟΓΙΟ</div><h1>Η εβδομάδα μου<span>.</span></h1><p>Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.</p></div><div class="sync-box"><button id="refresh" class="primary">↻ Ανανέωση από ΤΗΜΜΥ</button><span id="syncMeta"></span></div></section>
 <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
-<section class="workspace-bar"><div class="season-switch" aria-label="Περίοδος προγράμματος"><button data-season="fall" aria-pressed="true">Χειμερινό</button><button data-season="spring" aria-pressed="false">Εαρινό</button></div><div class="bar-caption" id="periodLabel"></div><button id="profileButton" class="quiet">Το προφίλ σπουδών μου ↗</button></section>
+<section class="workspace-bar"><div class="season-switch" aria-label="Περίοδος προγράμματος"><button data-season="fall" aria-pressed="true">Χειμερινό</button><button data-season="spring" aria-pressed="false">Εαρινό</button></div><div class="bar-caption" id="periodLabel"></div><div class="workspace-actions"><button id="focusSchedule" class="quiet" aria-controls="courseSidebar" aria-expanded="true">Απόκρυψη μαθημάτων</button><button id="profileButton" class="quiet">Το προφίλ σπουδών μου ↗</button></div></section>
 <div class="workspace">
-<aside class="sidebar"><div class="panel-heading"><h2>Μαθήματα</h2><span id="catalogCount" class="mono"></span></div><div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Τίτλος ή κωδικός μαθήματος" aria-label="Αναζήτηση μαθημάτων"></div><div class="filters"><select id="semesterFilter" aria-label="Φίλτρο εξαμήνου"><option value="">Όλα τα εξάμηνα</option></select><select id="listFilter" aria-label="Προβολή μαθημάτων"><option value="offered">Στο ωρολόγιο</option><option value="selected">Επιλεγμένα</option><option value="all">Όλος ο κατάλογος</option><option value="passed">Περασμένα</option></select></div><p class="subtle list-help" id="listHelp"></p><div id="courseList" class="course-list"></div><div class="sidebar-foot">Οι επιλογές σώζονται τοπικά.<br>Η επίσημη δήλωση γίνεται στην Ηλεκτρονική Γραμματεία.</div></aside>
-<section class="schedule-panel" aria-label="Εβδομαδιαίο πρόγραμμα"><div class="schedule-top"><div><span class="eyebrow">ΤΟ ΠΡΟΓΡΑΜΜΑ ΣΟΥ</span><h2 id="scheduleTitle">Μια εβδομάδα, στα μέτρα σου.</h2></div><div class="stats"><span><b id="countStat">0</b>μαθήματα<small id="countBreakdown" hidden></small></span><span><b id="hoursStat">0</b>ώρες</span><span><b id="conflictStat">0</b>επικαλύψεις</span><span><b id="creditsStat">0</b>ECTS</span></div></div><p id="calendarHint" class="scroll-hint" hidden>← Σύρε το πρόγραμμα οριζόντια για τις υπόλοιπες ημέρες →</p><div id="availabilityNote" class="inline-note" hidden></div><div id="emptyState" class="empty-state"><div class="empty-icon" aria-hidden="true">▦</div><h3>Πρώτα, τα μαθήματά σου.</h3><p>Πάτησε + στον κατάλογο αριστερά.<br>Οι ώρες και οι αίθουσες θα μπουν αυτόματα εδώ.</p></div><div class="calendar-scroll" id="calendarWrap" role="region" aria-label="Ωρολόγιο πρόγραμμα με οριζόντια κύλιση" tabindex="0" hidden><div id="calendar" class="calendar"></div></div><div class="legend-bar"><label>Χρώματα ανά <select id="colorMode"><option value="semester">εξάμηνο</option><option value="course">μάθημα</option></select></label><span class="subtle">Πάτησε ένα χρώμα για αλλαγή.</span><button id="focusSchedule" class="quiet">Μεγέθυνση προγράμματος</button><div id="legend" class="legend"></div></div><details id="checks" class="checks"><summary><span>Έλεγχος προγράμματος & δήλωσης</span><span id="checkBadge" class="badge">Προσθήκη μαθημάτων</span></summary><div id="checkContent"></div></details></section>
+<aside class="sidebar" id="courseSidebar"><div class="panel-heading"><h2>Μαθήματα</h2><span id="catalogCount" class="mono"></span></div><div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Τίτλος ή κωδικός μαθήματος" aria-label="Αναζήτηση μαθημάτων"></div><div class="filters"><select id="semesterFilter" aria-label="Φίλτρο εξαμήνου"><option value="">Όλα τα εξάμηνα</option></select><select id="listFilter" aria-label="Προβολή μαθημάτων"><option value="offered">Στο ωρολόγιο</option><option value="selected">Επιλεγμένα</option><option value="all">Όλος ο κατάλογος</option><option value="passed">Περασμένα</option></select></div><p class="subtle list-help" id="listHelp"></p><div id="courseList" class="course-list"></div><div class="sidebar-foot">Οι επιλογές σώζονται τοπικά.<br>Η επίσημη δήλωση γίνεται στην Ηλεκτρονική Γραμματεία.</div></aside>
+<section class="schedule-panel" aria-label="Εβδομαδιαίο πρόγραμμα"><div class="schedule-top"><div><span class="eyebrow">ΤΟ ΠΡΟΓΡΑΜΜΑ ΣΟΥ</span><h2 id="scheduleTitle">Μια εβδομάδα, στα μέτρα σου.</h2></div><div class="stats"><span><b id="countStat">0</b>μαθήματα<small id="countBreakdown" hidden></small></span><span><b id="hoursStat">0</b>ώρες</span><span><b id="conflictStat">0</b>επικαλύψεις</span><span><b id="creditsStat">0</b>ECTS</span></div></div><p id="calendarHint" class="scroll-hint" hidden>← Σύρε το πρόγραμμα οριζόντια για τις υπόλοιπες ημέρες →</p><div id="availabilityNote" class="inline-note" hidden></div><div id="emptyState" class="empty-state"><div class="empty-icon" aria-hidden="true">▦</div><h3>Πρώτα, τα μαθήματά σου.</h3><p>Πάτησε + στον κατάλογο αριστερά.<br>Οι ώρες και οι αίθουσες θα μπουν αυτόματα εδώ.</p></div><div class="calendar-scroll" id="calendarWrap" role="region" aria-label="Ωρολόγιο πρόγραμμα με οριζόντια κύλιση" tabindex="0" hidden><div id="calendar" class="calendar"></div></div><div class="legend-bar"><label>Χρώματα ανά <select id="colorMode"><option value="semester">εξάμηνο</option><option value="course">μάθημα</option></select></label><span class="subtle">Πάτησε ένα χρώμα για αλλαγή.</span><div id="legend" class="legend"></div></div><details id="checks" class="checks"><summary><span>Έλεγχος προγράμματος & δήλωσης</span><span id="checkBadge" class="badge">Προσθήκη μαθημάτων</span></summary><div id="checkContent"></div></details></section>
 </div><footer><span>ΤΗΜΜΥ / PERSONAL TIMETABLE</span><span>Ωρολόγιο από e-ce.uth.gr · Κανόνες: οδηγός σπουδών 2024–25</span><button class="link-button" id="guideButton">Πώς λειτουργούν οι έλεγχοι;</button></footer>
 </main>
 <dialog id="courseDialog"><div class="dialog-head"><div><div id="detailCode" class="eyebrow"></div><h2 id="detailName"></h2></div><button data-close="courseDialog" aria-label="Κλείσιμο">✕</button></div><div id="detailBody"></div></dialog>
@@ -780,13 +848,22 @@ function layoutEvents(events){
 function conflicts(events){const result=[];for(let i=0;i<events.length;i++)for(let j=i+1;j<events.length;j++){const a=events[i],b=events[j];if(a.day===b.day&&a.start<b.end&&b.start<a.end)result.push([a,b]);}return result;}
 function contactMinutes(events){let total=0;for(let d=0;d<5;d++){const entries=events.filter(e=>e.day===d).sort((a,b)=>a.start-b.start);let end=-1;for(const e of entries){total+=Math.max(0,e.end-Math.max(end,e.start));end=Math.max(end,e.end);}}return total;}
 function renderList(){
+ const focused=document.activeElement,focusKey=focused.closest('#courseList')&&['detail','toggle','passed'].find(key=>focused.dataset[key]);
  const q=norm($('search').value),sem=Number($('semesterFilter').value),filter=$('listFilter').value;
  const list=data.catalog.filter(c=>(!sem||c.semester===sem)&&(!q||norm(c.name+' '+c.id).includes(q))&&(filter==='all'||filter==='offered'&&available(c)||filter==='selected'&&chosen().includes(c.id)||filter==='passed'&&state.passed.includes(c.id)));
  $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;
  $('listHelp').textContent=filter==='offered'?'Μόνο όσα έχουν ώρες στην επίσημη πηγή.':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
- $('courseList').innerHTML=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);return `<article class="course ${selected?'selected':''}" style="--course-color:${baseColor(c)}"><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span>·</span><span>${c.semester}ο εξ.</span><span>·</span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?'<span class="tag">✓ Περασμένο</span>':''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${selected?'−':'+'}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}).join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
+ $('courseList').innerHTML=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);return `<article class="course ${selected?'selected':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span>·</span><span>${c.semester}ο εξ.</span><span>·</span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?'<span class="tag">✓ Περασμένο</span>':''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${selected?'−':'+'}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}).join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
+ if(focusKey)$('courseList').querySelector(`[data-${focusKey}="${CSS.escape(focused.dataset[focusKey])}"]`)?.focus({preventScroll:true});
+ hoveredCourse=$('courseList').querySelector('.course:hover')?.dataset.course||'';
+ highlightCourse();
 }
-let printLayoutActive=false;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let printLayoutActive=false,hoveredCourse='';
+function highlightCourse(){
+ const id=hoveredCourse||document.activeElement.closest('.course')?.dataset.course;
+ for(const block of $('calendar').querySelectorAll('.meeting'))block.classList.toggle('course-highlight',block.dataset.detail===id);
+}
 function fitCalendar(){
  const calendar=$('calendar'),wrap=$('calendarWrap'),panel=wrap.closest('.schedule-panel'),sheet=panel.parentElement;
  const printing=printLayoutActive||matchMedia('print').matches;
@@ -800,14 +877,16 @@ function fitCalendar(){
  calendar.style.removeProperty('--hour');
  if(!wrap.hidden){
   const hours=Number(calendar.style.getPropertyValue('--hours'));
-  let hour=calendar.querySelector('.day-column').getBoundingClientRect().height/hours;
+  let hour=calendar.querySelector('.day-column').offsetHeight/hours;
   // Measure natural card content so short lessons grow the shared time scale too.
+  calendar.classList.add('measuring');
   for(const block of calendar.querySelectorAll('.meeting')){
    const css=getComputedStyle(block),inset=['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+parseFloat(css[key]),0);
-   const required=block.querySelector('.meeting-content').getBoundingClientRect().height+inset+5;
+   const required=block.querySelector('.meeting-content').offsetHeight+inset+5;
    hour=Math.max(hour,required*60/Number(block.dataset.duration));
   }
   calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
+  calendar.classList.remove('measuring');
  }
  $('calendarHint').hidden=wrap.hidden||wrap.scrollWidth<=wrap.clientWidth+1;
  if(printing){
@@ -816,6 +895,8 @@ function fitCalendar(){
  }
 }
 function renderSchedule(){
+ const animate=!reducedMotion.matches&&!printLayoutActive&&!matchMedia('print').matches;
+ const previous=new Map(animate?[...$('calendar').querySelectorAll('.meeting')].map(b=>[b.dataset.event,b.getBoundingClientRect()]):[]);
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
  $('countStat').textContent=chosen().length;$('hoursStat').textContent=(contactMinutes(events)/60).toLocaleString('el-GR',{maximumFractionDigits:1});$('conflictStat').textContent=pairs.length;$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
  const reviewCount=chosen().filter(id=>state.review.includes(id)).length;
@@ -829,13 +910,21 @@ function renderSchedule(){
  let html='<div class="day-head time-head">ΩΡΑ</div>'+DAYS.map((d,i)=>`<div class="day-head"><b>${d}</b><small>${events.filter(e=>e.day===i).length} συναντήσεις · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR')} ώρες</small></div>`).join('');
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events);
- for(let d=0;d<5;d++)html+='<div class="day-column">'+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}–${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-bg:${pale(baseColor(c))};--event-border:${dark(baseColor(c))}"><span class="meeting-content"><span class="event-time">${time(e.start)}–${time(e.end)}${conflictIds.has(e.id)?' ⚠':''}</span><strong class="full-title">${esc(c.name)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+='<div class="day-column">'+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}–${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-bg:${pale(baseColor(c))};--event-border:${dark(baseColor(c))}"><span class="meeting-content"><span class="event-time">${time(e.start)}–${time(e.end)}${conflictIds.has(e.id)?' ⚠':''}</span><strong class="full-title">${esc(c.name)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  $('calendar').style.setProperty('--day-min',Math.max(1,...laidOut.map(e=>e.lanes))*220+'px');
  const legendCourses=chosen().map(course).filter(Boolean),seen=new Set();
  $('legend').innerHTML=legendCourses.filter(c=>{const key=colorKey(c);if(seen.has(key))return false;seen.add(key);return true;}).map(c=>`<label class="legend-item" style="--legend-bg:${baseColor(c)}"><span class="color-swatch" aria-hidden="true" style="background:${baseColor(c)}"></span><input type="color" value="${baseColor(c)}" data-color="${esc(colorKey(c))}" aria-label="Χρώμα ${esc(state.colorMode==='course'?c.name:c.semester+'ου εξαμήνου')}"><span>${esc(state.colorMode==='course'?c.id+' · '+c.name:c.semester+'ο εξάμηνο')}</span></label>`).join('')+(state.review.some(id=>chosen().includes(id))?'<span class="legend-item">▨ Προς έλεγχο</span>':'')+(pairs.length?'<span class="legend-item">⚠ Διακεκομμένο περίγραμμα: επικάλυψη</span>':'');
  renderChecks(pairs);
  fitCalendar();
+ highlightCourse();
+ if(animate)for(const block of $('calendar').querySelectorAll('.meeting')){
+  const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
+  if(old&&now.width&&now.height){
+   const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
+   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.7,.2,1)'});
+  }else block.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:180,easing:'ease-out'});
+ }
 }
 function renderChecks(pairs){
  const issues=[],selected=chosen().map(course).filter(Boolean),offer=data.catalog.filter(available);
@@ -1012,7 +1101,16 @@ $('search').addEventListener('input',renderList);$('semesterFilter').addEventLis
 $('profileButton').onclick=()=>{$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;$('profileDialog').showModal();};
 $('saveProfile').onclick=()=>{state.entryYear=$('entryYear').value;state.studySemester=$('studySemester').value;state.passedComplete=$('passedComplete').checked;persist();render();$('profileDialog').close();};
 $('sourcesButton').onclick=()=>$('sourcesDialog').showModal();$('guideButton').onclick=()=>$('guideDialog').showModal();$('provider').onchange=e=>{state.provider=e.target.value;persist();};$('refresh').onclick=refresh;$('importFile').onchange=importHtml;$('saveCopy').onclick=downloadCopy;$('printButton').onclick=()=>window.print();
-$('focusSchedule').onclick=()=>{const wide=document.body.classList.toggle('wide-layout');$('focusSchedule').textContent=wide?'Εμφάνιση μαθημάτων':'Μεγέθυνση προγράμματος';renderSchedule();};
+$('focusSchedule').onclick=()=>{const wide=document.body.classList.toggle('wide-layout');$('focusSchedule').textContent=wide?'Εμφάνιση μαθημάτων':'Απόκρυψη μαθημάτων';$('focusSchedule').setAttribute('aria-expanded',String(!wide));hoveredCourse='';highlightCourse();fitCalendar();};
+const dataMenu=$('dataMenu');
+dataMenu.addEventListener('click',event=>{if(event.target.closest('button')){dataMenu.open=false;dataMenu.querySelector('summary').focus();}},true);
+dataMenu.addEventListener('focusout',event=>{if(!dataMenu.contains(event.relatedTarget))dataMenu.open=false;});
+document.addEventListener('click',event=>{if(!dataMenu.contains(event.target))dataMenu.open=false;});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&dataMenu.open){dataMenu.open=false;dataMenu.querySelector('summary').focus();event.preventDefault();}});
+$('courseList').addEventListener('pointerover',event=>{if(event.pointerType==='touch')return;hoveredCourse=event.target.closest('.course')?.dataset.course||'';highlightCourse();});
+$('courseList').addEventListener('pointerout',event=>{hoveredCourse=event.relatedTarget?.closest('.course')?.dataset.course||'';highlightCourse();});
+for(const type of ['focusin','focusout'])$('courseList').addEventListener(type,()=>queueMicrotask(highlightCourse));
+reducedMotion.addEventListener('change',()=>{if(reducedMotion.matches)document.getAnimations().forEach(a=>a.cancel());});
 renderGuide();
 $('guideContent').insertAdjacentHTML('beforeend','<details><summary>Αναλυτικές σημειώσεις οδηγού και παραπομπές</summary><ul>'+(GUIDE.rules||[]).map(r=>`<li>${esc(r.text)} <small>(σ. ${esc(r.pages.join(', '))})</small></li>`).join('')+'</ul></details>');
 render();if(storageWarning)notify(storageWarning,true);
@@ -1025,6 +1123,7 @@ const printRules=[...document.styleSheets].flatMap(sheet=>[...sheet.cssRules]).f
 window.addEventListener('beforeprint',()=>{
  // Chromium fires beforeprint while screen styles still apply. Measure print styles before pagination.
  printLayoutActive=true;
+ document.getAnimations().forEach(a=>a.cancel());
  for(const rule of printRules)rule.media.mediaText='all';
  fitCalendar();
 });
