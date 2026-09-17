@@ -1,11 +1,10 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
-import {stripTypeScriptTypes} from 'node:module';
 const read=name=>readFile('work/'+name,'utf8');
-const [template,css,app,parser,seed,guideText,fonts,licenses,experienceCss,experience]=await Promise.all(['template.html','app.css','app.ts','source-parser.js','source-seed.json','guide-rules.json','fonts.css','font-licenses.txt','experience.css','experience.ts'].map(read));
+const [template,css,app,parser,seed,guideText,fonts,licenses]=await Promise.all(['template.html','app.css','app.js','source-parser.js','source-seed.json','guide-rules.json','fonts.css','font-licenses.txt'].map(read));
 const guide=JSON.parse(guideText);
 for(const c of guide.courses)c.prerequisiteText=c.prerequisite_text||'';
 const safeJson=value=>JSON.stringify(value).replace(/</g,'\\u003c');
-const html=template.replace('/*__CSS__*/',()=>`/* ${licenses} */\n`+fonts+'\n'+css).replace('/*__EXPERIENCE_CSS__*/',()=>experienceCss).replace('/*__APP__*/',()=>stripTypeScriptTypes(app)).replace('/*__EXPERIENCE__*/',()=>stripTypeScriptTypes(experience)).replace('/*__PARSER__*/',()=>parser).replace('__DATA__',()=>safeJson(JSON.parse(seed))).replace('__GUIDE__',()=>safeJson(guide));
+const html=template.replace('/*__CSS__*/',()=>`/* ${licenses} */\n`+fonts+'\n'+css).replace('/*__APP__*/',()=>app).replace('/*__PARSER__*/',()=>parser).replace('__DATA__',()=>safeJson(JSON.parse(seed))).replace('__GUIDE__',()=>safeJson(guide));
 await mkdir('outputs',{recursive:true});
 await writeFile('outputs/THMMY-programma.html',html,'utf8');
 await writeFile('index.html',html,'utf8');

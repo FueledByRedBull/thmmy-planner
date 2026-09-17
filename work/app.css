@@ -71,4 +71,5 @@ input::placeholder{color:var(--muted);opacity:.85}
 .transfer-preview{padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--paper);margin:15px 0}
 .transfer-preview p{margin:0 0 10px}.transfer-preview p:last-child{margin:0}
 .transfer-code:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
-[data-screen-only]{display:none}
+
+@media screen{.schedule-panel{box-shadow:none}}
