@@ -91,7 +91,7 @@ input::placeholder{color:var(--muted);opacity:.85}
 @media screen{
  main{padding-top:24px}
  .intro{margin-bottom:20px}
- .intro h1{font-size:38px;margin:8px 0 7px}
+ .intro h1{font-size:38px;margin:8px 0 7px;letter-spacing:-.035em}
  .intro .eyebrow{font-size:9px}
  .sync-box{gap:7px}
  .sync-box button{padding:10px 14px}
@@ -100,20 +100,35 @@ input::placeholder{color:var(--muted);opacity:.85}
  .workspace{padding-top:18px;gap:22px}
  .wide-layout .sidebar{display:none}
  #focusSchedule{display:inline-flex;align-items:center}
- .schedule-panel{box-shadow:none}
+ .schedule-panel{border-radius:10px;box-shadow:0 2px 8px #00000008}
  .schedule-top{padding:18px 20px;margin-bottom:14px}
  .schedule-top h2{font-size:21px;margin-top:6px;line-height:1.4}
- .meeting{padding:10px;border-width:1px;border-radius:6px;transition:box-shadow 180ms,filter 180ms}
+ .meeting{padding:10px 12px;border-width:1px;border-radius:6px;box-shadow:inset 3px 0 0 var(--event-edge,var(--event-border));transition:box-shadow 180ms,filter 180ms}
  .meeting strong{font-size:13px;line-height:1.45}
  .meeting .event-time{font-size:11px;margin-bottom:6px}
  .meeting .event-room{font-size:11px;padding-top:8px;line-height:1.4}
  .meeting .event-teacher{font-size:10px;line-height:1.4;opacity:.9;margin-top:2px}
  .meeting.course-highlight{box-shadow:inset 0 0 0 2px var(--event-edge,var(--event-border));filter:brightness(1.06)}
- .course{border-radius:6px;transition:background 180ms}
- .course.selected{border-radius:6px;padding:13px 12px}
+ .course{grid-template-columns:1fr 32px;padding:14px 12px;border-radius:0;transition:background 160ms,border-color 160ms}
+ .course.selected{border-radius:6px;padding:13px 12px;margin:5px 0}
  .course-title{font-size:14px;line-height:1.45}
+ .course-title:hover{text-underline-offset:4px;text-decoration-thickness:1px}
+ .course-add{width:30px;height:30px;border-radius:50%;font-size:19px}
  .course-meta{line-height:1.5}
  .course:focus-within{background:var(--hover)}
+ .calendar-scroll,.course-list{scrollbar-width:thin;scrollbar-color:var(--input-line) var(--white)}
+ .season-switch{border-radius:8px}
+ .stats b{font-variant-numeric:tabular-nums}
+ .checks summary{border-radius:4px;transition:color 160ms}
+ .checks li::marker{color:var(--muted)}
+ dialog{border-radius:12px}
+ .header-actions button,.workspace-actions button,.sync-box button,.data-menu summary,.course-add{transition:background-color 160ms,border-color 160ms,box-shadow 160ms}
+ .header-actions button:active:not(:disabled),.workspace-actions button:active:not(:disabled),.sync-box button:active:not(:disabled),.course-add:active{box-shadow:inset 0 2px 4px #00000018}
+ @media(hover:hover){
+  .course:not(.selected):hover{background:var(--hover)}
+  .meeting:hover{filter:brightness(1.04)}
+  .header-actions button:hover:not(:disabled),.workspace-actions button:hover:not(:disabled),.data-menu summary:hover,.course-add:hover{border-color:var(--muted)}
+ }
  dialog[open]{animation:dialog-enter 200ms cubic-bezier(.2,.7,.2,1)}
  .data-menu[open] .data-menu-actions{animation:dialog-enter 150ms ease-out}
 }
