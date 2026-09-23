@@ -16,13 +16,14 @@ function applyTheme(){
 applyTheme();
 systemTheme.addEventListener('change',applyTheme);
 </script>
-<link rel="stylesheet" href="./assets/styles.css?v=bc3f046cb3b9">
+<link rel="stylesheet" href="./assets/styles.css?v=1e59e6b4d95b">
 </head>
 <body>
 <header class="masthead"><a class="brand" href="#"><span class="brand-mark">ΗΜ<br>ΜΥ</span><span>ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΙΑΣ<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span></a><div class="header-actions"><label class="theme-control"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20.8 13.3A9 9 0 0 1 10.7 3.2 9 9 0 1 0 20.8 13.3Z"/></svg><select id="theme" aria-label="Θέμα εμφάνισης"><option value="system">Σύστημα</option><option value="light">Φωτεινό</option><option value="dark">Σκοτεινό</option></select></label><button id="sourcesButton" class="quiet source-action">Πηγές & ενημέρωση</button><details id="dataMenu" class="data-menu"><summary>Τα δεδομένα μου <span aria-hidden="true">⌄</span></summary><div class="data-menu-actions"><button id="transferButton" class="quiet">Εισαγωγή / εξαγωγή κωδικού</button><button id="saveCopy" class="quiet" title="Κατεβάζει νέο αυτοτελές HTML με τα δεδομένα και τις επιλογές σου">Αποθήκευση αντιγράφου HTML ↗</button></div></details><button id="printButton">Εκτύπωση / PDF</button></div></header>
 <main>
 <section class="intro"><div><div class="eyebrow">ΠΡΟΣΩΠΙΚΟ ΩΡΟΛΟΓΙΟ</div><h1>Η εβδομάδα μου<span>.</span></h1><p>Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.</p></div><div class="sync-box"><button id="refresh" class="primary">↻ Ανανέωση από ΤΗΜΜΥ</button><span id="syncMeta"></span></div></section>
 <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+<details id="updateReport" class="update-report" hidden><summary>Τι άλλαξε</summary><div id="updateReportBody"></div></details>
 <section class="workspace-bar"><div class="season-switch" aria-label="Περίοδος προγράμματος"><button data-season="fall" aria-pressed="true">Χειμερινό</button><button data-season="spring" aria-pressed="false">Εαρινό</button></div><div class="bar-caption" id="periodLabel"></div><div class="workspace-actions"><button id="focusSchedule" class="quiet" aria-controls="courseSidebar" aria-expanded="true">Απόκρυψη μαθημάτων</button><button id="profileButton" class="quiet">Το προφίλ σπουδών μου ↗</button></div></section>
 <div class="workspace">
 <aside class="sidebar" id="courseSidebar"><div class="panel-heading"><h2>Μαθήματα</h2><span id="catalogCount" class="mono"></span></div><div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Τίτλος ή κωδικός μαθήματος" aria-label="Αναζήτηση μαθημάτων"></div><div class="filters"><select id="semesterFilter" aria-label="Φίλτρο εξαμήνου"><option value="">Όλα τα εξάμηνα</option></select><select id="listFilter" aria-label="Προβολή μαθημάτων"><option value="offered">Στο ωρολόγιο</option><option value="selected">Επιλεγμένα</option><option value="all">Όλος ο κατάλογος</option><option value="passed">Περασμένα</option></select></div><p class="subtle list-help" id="listHelp"></p><div id="courseList" class="course-list"></div><div class="sidebar-foot">Οι επιλογές σώζονται τοπικά.<br>Η επίσημη δήλωση γίνεται στην Ηλεκτρονική Γραμματεία.</div></aside>
@@ -57,7 +58,7 @@ systemTheme.addEventListener('change',applyTheme);
   const files=await Promise.all(["./data/courses.json?v=f3e6a7eefa89","./data/guide.json?v=5020198886fc"].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return r.json();}));
   document.getElementById('initial-data').textContent=JSON.stringify(files[0]);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=0e505957c158";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=ef5e6697446c";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
  }catch(error){notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}
 })();

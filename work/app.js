@@ -36,7 +36,7 @@ const invalidCredit=c=>!mandatory(c)&&state.creditTo[c.id]!=null&&credited(c)===
 const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.startsWith(state.season+'|'+id+'|')&&!allMeetings().some(e=>e.id===key));
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
-function notify(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
+function notify(text,error=false){$('updateReport').hidden=true;$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
 function available(c){return meetings(c.id).length>0;}
 function courseIssues(c){
  const issues=[],pre=prerequisites(c),sem=Number(state.studySemester);
@@ -221,6 +221,43 @@ async function fetchSource(kind){
  }finally{clearTimeout(timeout);}
 }
 function preserveCatalog(next){const ids=new Set(next.map(c=>c.id));for(const c of data.catalog)if(!ids.has(c.id)&&[...state.passed,...state.selected.fall,...state.selected.spring].includes(c.id))next.push({...c,archived:true});return next;}
+function sourceChanges(before,after,replacements){
+ const changes=[],catalog=new Map([...before.catalog,...after.catalog].map(c=>[c.id,c]));
+ const title=id=>catalog.get(id)?.name||id;
+ const slot=e=>`${DAYS[e.day]} ${time(e.start)}–${time(e.end)}`;
+ const meeting=e=>`${slot(e)} · ${e.type}${e.room?' · '+e.room:''}`;
+ for(const season of ['fall','spring']){
+  const next=new Map(after[season].events.map(e=>[e.id,e])),matched=new Set();
+  for(const old of before[season].events){
+   const current=next.get(replacements.get(old.id)||old.id);
+   if(!current){changes.push({kind:'removed',season,courseId:old.courseId,name:title(old.courseId),detail:meeting(old)});continue;}
+   matched.add(current.id);
+   const differences=[];
+   if(slot(old)!==slot(current))differences.push(`${slot(old)} → ${slot(current)}`);
+   for(const [field,label] of [['type','τύπος'],['room','αίθουσα'],['teacher','διδάσκων'],['semester','εξάμηνο']])if(old[field]!==current[field])differences.push(`${label}: ${old[field]||'—'} → ${current[field]||'—'}`);
+   if(differences.length)changes.push({kind:'changed',season,courseId:old.courseId,name:title(old.courseId),detail:differences.join(' · ')});
+  }
+  for(const event of after[season].events)if(!matched.has(event.id))changes.push({kind:'added',season,courseId:event.courseId,name:title(event.courseId),detail:meeting(event)});
+ }
+ const oldCourses=new Map(before.catalog.filter(c=>!c.archived).map(c=>[c.id,c]));
+ const newCourses=new Map(after.catalog.filter(c=>!c.archived).map(c=>[c.id,c]));
+ for(const old of oldCourses.values()){
+  const current=newCourses.get(old.id);
+  if(!current){changes.push({kind:'catalogRemoved',courseId:old.id,name:old.name,detail:''});continue;}
+  const fields=[['name','τίτλος'],['semester','εξάμηνο'],['mandatory','χαρακτήρας'],['domain','τομέας']].filter(([key])=>old[key]!==current[key]).map(([key,label])=>`${label}: ${old[key]??'—'} → ${current[key]??'—'}`);
+  if(fields.length)changes.push({kind:'catalogChanged',courseId:old.id,name:current.name,detail:fields.join(' · ')});
+ }
+ for(const current of newCourses.values())if(!oldCourses.has(current.id))changes.push({kind:'catalogAdded',courseId:current.id,name:current.name,detail:''});
+ return changes;
+}
+function showUpdateReport(changes){
+ const groups=[['changed','Αλλαγές συναντήσεων'],['added','Νέες συναντήσεις'],['removed','Συναντήσεις που αφαιρέθηκαν'],['catalogChanged','Αλλαγές στον κατάλογο'],['catalogAdded','Νέα μαθήματα στον κατάλογο'],['catalogRemoved','Μαθήματα που αφαιρέθηκαν από τον κατάλογο']];
+ const report=$('updateReport');report.querySelector('summary').textContent=changes.length?`Τι άλλαξε · ${changes.length} ${changes.length===1?'αλλαγή':'αλλαγές'}`:'Τι άλλαξε · καμία αλλαγή';
+ $('updateReportBody').innerHTML=changes.length?groups.map(([kind,label])=>{
+  const items=changes.filter(c=>c.kind===kind);return items.length?`<section><h3>${label} (${items.length})</h3><ul>${items.map(c=>`<li><strong>${c.season==='fall'?'Χειμερινό · ':c.season==='spring'?'Εαρινό · ':''}${esc(c.courseId)} · ${esc(c.name)}</strong>${c.detail?' — '+esc(c.detail):''}</li>`).join('')}</ul></section>`:'';
+ }).join(''):'<p>Δεν εντοπίστηκαν διαφορές στο ωρολόγιο ή στον κατάλογο σε σχέση με τα προηγούμενα δεδομένα σου.</p>';
+ report.hidden=false;
+}
 function replaceSources(next){
  const replacements=new Map();
  for(const season of ['fall','spring']){
@@ -234,21 +271,23 @@ function replaceSources(next){
    previous=previous.filter(e=>!pairs.some(([id])=>e.id===id));incoming=incoming.filter(e=>!pairs.some(([,id])=>e.id===id));
   }
  }
+ const changes=sourceChanges(data,next,replacements);
  for(const key of ['labs','excluded'])state[key]=[...new Set(state[key].map(id=>replacements.get(id)||id))];
  data=next;
  const ids=new Set([...data.fall.events,...data.spring.events].map(e=>e.id));
- return [...state.labs,...state.excluded].filter(id=>!ids.has(id)).length;
+ return {unresolved:[...state.labs,...state.excluded].filter(id=>!ids.has(id)).length,changes};
 }
 async function refresh(){
  if(busy)return;busy=true;$('refresh').disabled=true;$('importFile').disabled=true;
  try{notify('Ανάκτηση καταλόγου μαθημάτων…');const catalog=SourceParser.parseCatalog(await fetchSource('catalog'));notify('Ανάκτηση χειμερινού ωρολογίου…');const fall=SourceParser.parseTimetable(await fetchSource('fall'),'fall',catalog);notify('Ανάκτηση εαρινού ωρολογίου…');const spring=SourceParser.parseTimetable(await fetchSource('spring'),'spring',catalog);
-  const oldCount=data.fall.events.length+data.spring.events.length,unresolved=replaceSources({catalog:preserveCatalog(catalog),fall,spring,catalogFetchedAt:new Date().toISOString()});persist();render();
+  const oldCount=data.fall.events.length+data.spring.events.length,{unresolved,changes}=replaceSources({catalog:preserveCatalog(catalog),fall,spring,catalogFetchedAt:new Date().toISOString()});persist();render();
   notify(`Η ανανέωση ολοκληρώθηκε: ${fall.events.length} χειμερινές και ${spring.events.length} εαρινές συναντήσεις (προηγουμένως ${oldCount} συνολικά). Οι επιλογές μαθημάτων διατηρήθηκαν.${unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''}${!spring.published?' Η εαρινή πηγή είναι κενή.':''}`,unresolved>0);
+  showUpdateReport(changes);
  }catch(error){notify(`Η ανανέωση δεν ολοκληρώθηκε: ${error.name==='AbortError'?'η υπηρεσία δεν απάντησε εντός 35 δευτερολέπτων':error.message}. Διατηρήθηκαν όλα τα προηγούμενα δεδομένα. Στις «Πηγές & ενημέρωση» μπορείς να αλλάξεις υπηρεσία ή να εισαγάγεις αποθηκευμένη επίσημη σελίδα.`,true);}finally{busy=false;$('refresh').disabled=false;$('importFile').disabled=false;}
 }
 async function importHtml(){
  const file=$('importFile').files[0];if(!file)return;$('importStatus').textContent='Ανάγνωση αρχείου…';
- try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const unresolved=replaceSources(next);persist();render();$('importStatus').textContent='';$('sourcesDialog').close();notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+error.message+' Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
+ try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const {unresolved,changes}=replaceSources(next);persist();render();$('importStatus').textContent='';$('sourcesDialog').close();notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);showUpdateReport(changes);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+error.message+' Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
 }
 async function downloadCopy(){
  $('saveCopy').disabled=true;

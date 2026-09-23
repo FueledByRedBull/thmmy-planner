@@ -156,3 +156,4 @@ input::placeholder{color:var(--muted);opacity:.85}
  .schedule-top{padding:0 0 5mm;margin-bottom:0}
  .schedule-top h2{font-size:22px;margin-top:9px;line-height:1.35}
 }
+.update-report{border:1px solid var(--line);background:var(--white);border-radius:6px;padding:0 17px;margin:-4px 0 18px;font-size:12px;line-height:1.6}.update-report summary{font-weight:700;padding:12px 0}.update-report[open] summary{border-bottom:1px solid var(--line)}.update-report h3{font-size:12px;margin:14px 0 5px}.update-report ul{margin:0 0 12px;padding-left:19px}.update-report li+li{margin-top:5px}.update-report p{margin:12px 0}@media print{.update-report{display:none!important}}
