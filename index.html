@@ -16,7 +16,7 @@ function applyTheme(){
 applyTheme();
 systemTheme.addEventListener('change',applyTheme);
 </script>
-<link rel="stylesheet" href="./assets/styles.css?v=ab00f60b8226">
+<link rel="stylesheet" href="./assets/styles.css?v=b35c5acca64f">
 </head>
 <body>
 <svg class="sprite" aria-hidden="true" focusable="false"><defs>
@@ -74,7 +74,7 @@ systemTheme.addEventListener('change',applyTheme);
   const files=await Promise.all(["./data/courses.json?v=f3e6a7eefa89","./data/guide.json?v=5020198886fc"].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return r.json();}));
   document.getElementById('initial-data').textContent=JSON.stringify(files[0]);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=b44a3b964ff0";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=f1429604d390";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
   const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
  }catch(error){document.documentElement.classList.remove('is-loading');document.getElementById('emptyState').hidden=false;notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}

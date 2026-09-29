@@ -417,10 +417,10 @@ main{max-width:1640px;margin:0 auto;padding:0 max(20px,2vw) 24px}
 .scroll-hint{margin:0 20px 8px;color:var(--text-3);font-size:12px;text-align:center;text-wrap:balance}
 .calendar-scroll{margin:0 12px;overflow-x:auto}
 .calendar{display:grid;grid-template-columns:54px repeat(5,minmax(150px,1fr));min-width:calc(62px + var(--lane-total,5) * 150px);padding:0 8px 16px 0}
-.day-head{display:flex;flex-direction:column;justify-content:center;gap:1px;height:60px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.day-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;height:60px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface);text-align:center}
 .day-head b{font-size:13.5px;font-weight:700}
 .day-head small{color:var(--text-3);font-size:11.5px}
-.time-head{justify-content:flex-end;padding:0 10px 8px 0;color:var(--text-3);font-size:11px;font-weight:600}
+.time-head{justify-content:flex-end;align-items:flex-end;padding:0 10px 8px 0;color:var(--text-3);font-size:11px;font-weight:600}
 .time-axis,.time-head{position:sticky;left:0;z-index:4;background:var(--surface)}
 .time-axis{color:var(--text-3);font-size:11px;font-weight:550}
 .time-axis,.day-column{height:calc(var(--hours)*var(--hour))}
@@ -650,15 +650,18 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 @media(prefers-reduced-transparency:reduce){.masthead{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}}
 
 /* ---------- Print: the week card exactly as on screen, in the active theme, on one A4 landscape page.
-   fitCalendar() sets --print-width (layout width) and --print-scale (zoom to the sheet). ---------- */
+   fitCalendar() sets --print-width (layout width) and --print-scale (scale to the sheet). ---------- */
 @page{size:A4 landscape;margin:0}
 @media print{
  html,body{min-height:0;background:var(--bg);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ /* Fixed layers repeat per page and cover the whole sheet, so the theme background reaches every edge. */
+ body::before{content:'';position:fixed;inset:0;z-index:-1;background:var(--bg)}
  .sprite,.update-report,.masthead,.intro,.sidebar,footer,.notice,.checks,#focusSchedule,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
  /* One page, always: the sheet is a fixed A4 box that clips anything that could spill onto a second page. */
  main{width:297mm;height:209mm;max-width:none;margin:0;padding:8mm;overflow:hidden}
- .workspace{display:block;width:100%;height:100%;overflow:hidden}
- .schedule-panel{display:block;width:var(--print-width,281mm);zoom:var(--print-scale,1);margin-inline:auto;box-shadow:none;animation:none}
+ .workspace{position:relative;display:block;width:100%;height:100%;overflow:hidden}
+ /* Laid out at its on-screen size, then scaled as a whole (transform, not zoom) so borders and corners render exactly as on screen. */
+ .schedule-panel{position:absolute;top:0;left:50%;display:block;width:var(--print-width,281mm);transform:translateX(-50%) scale(var(--print-scale,1));transform-origin:top center;box-shadow:none;animation:none}
  /* Screen layout, whatever the window size was when printing started. */
  .schedule-top{flex-wrap:nowrap;padding:18px 20px 14px}
  .stats{display:flex;flex-wrap:nowrap;width:auto;margin-left:auto}

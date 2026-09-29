@@ -126,7 +126,7 @@ function fitCalendar(){
   calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
   calendar.classList.remove('measuring');
   if(printing){
-   // Match the page's shape before zooming: a short week grows its hours, a tall one widens the sheet.
+   // Match the page's shape before scaling: a short week grows its hours, a tall one widens the sheet.
    // The hour never drops below what the blocks' text needs.
    calendar.style.setProperty('--hour',Math.ceil(need)+'px');
    const ratio=sheet.clientHeight/sheet.clientWidth,rest=panel.offsetHeight-calendar.querySelector('.day-column').offsetHeight,target=panel.offsetWidth*ratio;
