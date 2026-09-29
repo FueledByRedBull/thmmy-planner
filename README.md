@@ -20,7 +20,7 @@ data/
 
 Open the split site over HTTP/HTTPS, keeping these folders together. For double-click/offline use, open `outputs/THMMY-programma.html`, which embeds everything. Refreshing the official timetable needs an internet connection. The hosted app's HTML backup action fetches and embeds its assets; the resulting backup works offline with your selections.
 
-Selections, passed courses, review flags and preferences are stored in the current browser. Personal data is never embedded in the public build. The existing THMMY1 export/import codes remain compatible.
+Selections, passed courses, review flags and preferences are stored in the current browser. Personal data is never embedded in the public build. Transfer codes are short `THMMY2:` strings that hold only your choices (the timetable reloads from the public source); older `THMMY1.` codes still import.
 
 ## Development
 

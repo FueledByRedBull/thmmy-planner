@@ -23,7 +23,7 @@ const loader=`<script id="load-data">
 (async()=>{
  const notice=document.getElementById('notice'),loading='Φόρτωση μαθημάτων…';
  const controls=[...document.querySelectorAll('button,select,input,textarea')].filter(el=>!el.disabled);
- controls.forEach(el=>el.disabled=true);document.getElementById('emptyState').hidden=true;notice.hidden=false;notice.textContent=loading;
+ controls.forEach(el=>el.disabled=true);notice.textContent=loading;
  try{
   if(location.protocol==='file:')throw Error('Άνοιξε το αυτοτελές THMMY-programma.html για χρήση χωρίς server ή χρησιμοποίησε την έκδοση GitHub Pages.');
   if(!globalThis.SourceParser)throw Error('Δεν φορτώθηκε ο αναγνώστης του ωρολογίου.');
@@ -32,10 +32,11 @@ const loader=`<script id="load-data">
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
   await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=${JSON.stringify(asset('assets/app.js',app))};script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
- }catch(error){notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}
+  const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
+ }catch(error){document.documentElement.classList.remove('is-loading');document.getElementById('emptyState').hidden=false;notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}
 })();
 </script>`;
-const web=template.replace("script-src 'unsafe-inline'","script-src 'self' 'unsafe-inline'").replace("style-src 'unsafe-inline'","style-src 'self' 'unsafe-inline'").replace('font-src data:',"font-src 'self' data:").replace('connect-src https:',"connect-src 'self' https:")
+const web=template.replace('<html lang="el">','<html lang="el" class="is-loading">').replace("script-src 'unsafe-inline'","script-src 'self' 'unsafe-inline'").replace("style-src 'unsafe-inline'","style-src 'self' 'unsafe-inline'").replace('font-src data:',"font-src 'self' data:").replace('connect-src https:',"connect-src 'self' https:")
  .replace('<style>/*__CSS__*/</style>',`<link rel="stylesheet" href="${asset('assets/styles.css',styles)}">`)
  .replace('__DATA__','null').replace('__GUIDE__','null')
  .replace('<script>/*__PARSER__*/</script>',`<script src="${asset('assets/source-parser.js',parser)}"></script>`)
