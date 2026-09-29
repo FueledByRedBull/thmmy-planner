@@ -179,7 +179,7 @@ main{max-width:1640px;margin:0 auto;padding:0 max(20px,2vw) 24px}
 .stats>span{display:flex;flex-direction:column;min-width:88px;padding:8px 14px 9px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);transition:background-color .3s,border-color .3s}
 .tb-label{color:var(--text-3);font-size:11.5px;font-weight:550}
 .stats b{font-size:21px;font-weight:750;line-height:1.2;letter-spacing:-.02em}
-.stats>span:has(.has-conflict){background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 30%,transparent)}
+.stats>span:has(.has-conflict){background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 30%,var(--surface))}
 .stats b.has-conflict{color:var(--danger)}
 .tb-note{display:block;margin-top:2px;color:var(--text-3);font-size:12px}
 .inline-note{margin:0 20px 12px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);border-radius:12px;background:var(--warning-soft);font-size:12.5px;line-height:1.55}
@@ -207,7 +207,7 @@ main{max-width:1640px;margin:0 auto;padding:0 max(20px,2vw) 24px}
  --block-fill:color-mix(in srgb,var(--event-color) 58%,var(--surface));
  --block-edge:color-mix(in srgb,var(--event-color) 72%,var(--text));
  position:absolute;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-width:0;min-height:0;padding:8px 10px;
- border:1px solid color-mix(in srgb,var(--block-edge) 45%,transparent);border-radius:var(--r-md);background:linear-gradient(180deg,#ffffff4d,transparent 60%) var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--shadow-sm);
+ border:1px solid color-mix(in srgb,var(--block-edge) 45%,var(--block-fill));border-radius:var(--r-md);background:linear-gradient(180deg,#ffffff4d,transparent 60%) var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--shadow-sm);
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;transform-origin:center top;
  transition:transform .25s var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
 :root[data-theme=dark] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 27%,var(--surface));--block-edge:color-mix(in srgb,var(--event-color) 62%,var(--surface));background:linear-gradient(180deg,#ffffff0a,transparent 55%) var(--block-fill);color:var(--text)}
@@ -232,7 +232,7 @@ main{max-width:1640px;margin:0 auto;padding:0 max(20px,2vw) 24px}
 .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-teacher{display:none}
 /* Review: warning semantics. Conflict: danger semantics. */
 .meeting.review{border-style:dashed;border-color:var(--warning);background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,var(--warning) 16%,transparent) 7px 9px)}
-.meeting.conflict{z-index:2;border-color:var(--danger);outline:2px solid color-mix(in srgb,var(--danger) 55%,transparent);outline-offset:1px}
+.meeting.conflict{z-index:2;border-color:var(--danger);outline:2px solid color-mix(in srgb,var(--danger) 55%,var(--surface));outline-offset:1px}
 .meeting.trace{z-index:3;outline:2px solid var(--danger);animation:trace .8s var(--ease) infinite alternate}
 @keyframes trace{from{outline-offset:1px}to{outline-offset:5px}}
 
@@ -418,37 +418,26 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 @media(prefers-reduced-transparency:reduce){.masthead{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}}
 
-/* ---------- Print: one A4 landscape sheet; fitCalendar() sets --print-width and --print-scale ---------- */
+/* ---------- Print: the week card exactly as on screen, in the active theme, on one A4 landscape page.
+   fitCalendar() sets --print-width (layout width) and --print-scale (zoom to the sheet). ---------- */
 @page{size:A4 landscape;margin:0}
 @media print{
- :root,:root[data-theme=dark]{color-scheme:light;--bg:#fff;--surface:#fff;--surface-2:#f4f5f7;--surface-3:#e7e9ee;--line:#d9dce3;--line-strong:#c4c9d2;--text:#14161b;--text-2:#474d59;--text-3:#5b6270;--accent:#2f5bff;--danger:#d42a3b;--danger-soft:#d42a3b12;--warning:#a8560a;--warning-soft:#d9770614;--success:#15803d;--shadow-sm:none;--highlight:none}
- html,body{background:#fff;color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
- .sprite,.update-report,.masthead,.intro,.workspace-bar,.sidebar,footer,.notice,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
- main{width:297mm;max-width:none;padding:9mm}
- .workspace{display:block;width:100%;height:191mm}
- .schedule-panel{display:block;width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto;padding:2mm;border:0;border-radius:0;box-shadow:none;background:#fff}
- .schedule-top{flex-wrap:nowrap;padding:0 0 5mm}
- .schedule-top h2{font-size:22px;white-space:nowrap}
- .stats{display:flex;flex-wrap:nowrap;width:auto}
+ html,body{min-height:0;background:var(--bg);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .sprite,.update-report,.masthead,.intro,.sidebar,footer,.notice,.checks,#focusSchedule,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ /* One page, always: the sheet is a fixed A4 box that clips anything that could spill onto a second page. */
+ main{width:297mm;height:209mm;max-width:none;margin:0;padding:8mm;overflow:hidden}
+ .workspace{display:block;width:100%;height:100%;overflow:hidden}
+ .schedule-panel{display:block;width:var(--print-width,281mm);zoom:var(--print-scale,1);margin-inline:auto;box-shadow:none;animation:none}
+ /* Screen layout, whatever the window size was when printing started. */
+ .schedule-top{flex-wrap:nowrap;padding:18px 20px 14px}
+ .stats{display:flex;flex-wrap:nowrap;width:auto;margin-left:auto}
+ .stats>span{flex-direction:column;min-width:88px;padding:8px 14px 9px}
+ .calendar-scroll{margin:0 12px;overflow:visible}
+ .time-axis,.time-head{position:relative;left:auto}
  .day-column.today{background:none}
  .day-head.today{box-shadow:none}
  .day-head.today b{color:inherit}
- .stats>span{min-width:70px}
- .stats b{font-size:20px}
- .calendar-scroll{margin:0;overflow:visible}
- .calendar{min-width:0;padding-bottom:2mm}
- .time-axis,.time-head{position:relative;left:auto}
- .day-head{height:10mm}
- .day-head b{font-size:11px}
- .day-head small{font-size:8px}
- :root .meeting,:root[data-theme=dark] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 45%,#fff);--block-edge:color-mix(in srgb,var(--event-color) 60%,#14161b);background:var(--block-fill);color:var(--event-on,var(--text))}
- .meeting{padding:1.2mm;overflow:hidden;transform:none!important;opacity:1!important;box-shadow:none!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ .meeting{transform:none!important;opacity:1!important;box-shadow:none!important}
  .meeting.course-highlight,.meeting.trace{outline:none!important}
- .meeting strong{font-size:9px;line-height:1.25}
- .meeting .event-time,.meeting .event-room{font-size:8px;line-height:1.4}
- .meeting .event-teacher{display:none}
- .legend-bar{margin:0;padding:0;border:0}
- .legend{font-size:9px;gap:4px}
- .legend-item .color-swatch{width:12px;height:12px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
  *{transition:none!important;animation:none!important}
 }

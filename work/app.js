@@ -109,11 +109,8 @@ function fitCalendar(){
  if(panel.classList.contains('notes-aside')!==aside){panel.classList.toggle('notes-aside',aside);if(aside)$('checks').open=true;}
  panel.style.removeProperty('--print-scale');
  panel.style.removeProperty('--print-width');
- if(printing){
-  // Lay out full titles first, then shrink the complete panel to the A4 sheet.
-  const lanes=Number(calendar.style.getPropertyValue('--lane-total'))||5;
-  panel.style.setProperty('--print-width',Math.max(sheet.clientWidth,46+lanes*90)+'px');
- }
+ // Print starts at least as wide as the week's own minimum (time axis + 150px per lane + gutters), so no day is cut off.
+ if(printing)panel.style.setProperty('--print-width',Math.max(sheet.clientWidth,100+(Number(calendar.style.getPropertyValue('--lane-total'))||5)*150)+'px');
  calendar.style.removeProperty('--hour');
  if(!wrap.hidden){
   const hours=Number(calendar.style.getPropertyValue('--hours'));
@@ -129,16 +126,16 @@ function fitCalendar(){
   calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
   calendar.classList.remove('measuring');
   if(printing){
-   const rest=panel.offsetHeight-calendar.querySelector('.day-column').offsetHeight;
-   // Never below what the blocks' text needs; the zoom below absorbs any remainder.
-   calendar.style.setProperty('--hour',Math.ceil(Math.max(need,Math.min(hour,(sheet.clientHeight-rest)/hours)))+'px');
+   // Match the page's shape before zooming: a short week grows its hours, a tall one widens the sheet.
+   // The hour never drops below what the blocks' text needs.
+   calendar.style.setProperty('--hour',Math.ceil(need)+'px');
+   const ratio=sheet.clientHeight/sheet.clientWidth,rest=panel.offsetHeight-calendar.querySelector('.day-column').offsetHeight,target=panel.offsetWidth*ratio;
+   if(panel.offsetHeight<target)calendar.style.setProperty('--hour',Math.floor((target-rest)/hours)+'px');
+   else panel.style.setProperty('--print-width',Math.ceil(panel.offsetHeight/ratio)+'px');
   }
  }
  $('calendarHint').hidden=wrap.hidden||wrap.scrollWidth<=wrap.clientWidth+1;
  if(printing){
-  // Widen the sheet by the height-driven zoom so the zoomed week still spans the page width.
-  const fitHeight=Math.min(1,sheet.clientHeight/panel.offsetHeight);
-  if(fitHeight<1)panel.style.setProperty('--print-width',panel.offsetWidth/fitHeight+'px');
   const scale=Math.min(1,sheet.clientWidth/panel.offsetWidth,sheet.clientHeight/panel.offsetHeight);
   panel.style.setProperty('--print-scale',String(Math.floor(scale*100000)/100000));
  }
