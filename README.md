@@ -141,3 +141,7 @@ Design decisions live in [`DESIGN.md`](DESIGN.md) and [`PRODUCT.md`](PRODUCT.md)
 - [Three.js](https://threejs.org/) (MIT, notice at the end of `assets/week3d.js`), [Lenis](https://github.com/darkroomengineering/lenis) (MIT) and [Tabler Icons](https://tabler.io/icons) (MIT).
 
 This is an unofficial tool. The official course declaration is made in the university's Electronic Secretariat (Ηλεκτρονική Γραμματεία).
+
+## License
+
+The planner's own code is released under the [MIT License](LICENSE). The timetable and catalogue data belong to the department, and the fonts and libraries above keep their own licenses.
