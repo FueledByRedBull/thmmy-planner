@@ -1,0 +1,48 @@
+# Nightly refresh of the timetable data from the official ΤΗΜΜΥ pages (scripts/refresh-data.mjs).
+# Commits only when the data changed; visitors then get it with the "Τι άλλαξε" report on their next visit.
+name: Refresh timetable data
+
+on:
+  schedule:
+    # 02:17 UTC: 04:17 or 05:17 in Greece, off the top of the hour when scheduled runs queue up.
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Fetch and parse the official pages
+        id: refresh
+        run: node scripts/refresh-data.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          SUMMARY_FILE: ${{ runner.temp }}/summary.txt
+
+      - name: Commit and publish the new data
+        if: steps.refresh.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/courses.json index.html
+          git commit -m 'Refresh timetable data from e-ce.uth.gr' -m "$(cat "$RUNNER_TEMP/summary.txt")"
+          git push
+          # Commits pushed with GITHUB_TOKEN do not start a Pages build for a branch-published site; request one.
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"

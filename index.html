@@ -31,7 +31,7 @@ systemTheme.addEventListener('change',applyTheme);
      URLs and versions must match their uses below. -->
 <link rel="preload" href="./data/courses.json?v=f3e6a7eefa89" as="fetch" crossorigin>
 <link rel="preload" href="./data/guide.json?v=5020198886fc" as="fetch" crossorigin>
-<link rel="preload" href="./assets/app.js?v=sw1" as="script">
+<link rel="preload" href="./assets/app.js?v=data1" as="script">
 <script src="./assets/vendor/lenis.min.js?v=1.3.26" defer></script>
 <script src="./assets/motion.js?v=skel1" defer></script>
 </head>
@@ -100,7 +100,7 @@ systemTheme.addEventListener('change',applyTheme);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
   // The preloads make the app ready before the first frame; let the hero paint first (or 100ms, for background tabs).
   await Promise.race([new Promise(r=>requestAnimationFrame(()=>setTimeout(r))),new Promise(r=>setTimeout(r,100))]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=sw1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=data1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
   const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
  }catch(error){document.documentElement.classList.remove('is-loading');document.getElementById('emptyState').hidden=false;notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}

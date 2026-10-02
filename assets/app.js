@@ -567,7 +567,20 @@ for(const type of ['pointerover','pointerout','focusin','focusout'])$('calendar'
 reducedMotion.addEventListener('change',()=>{if(reducedMotion.matches)document.getAnimations().forEach(a=>a.cancel());});
 renderGuide();
 $('guideContent').insertAdjacentHTML('beforeend','<details><summary>Αναλυτικές σημειώσεις οδηγού και παραπομπές</summary><ul>'+(GUIDE.rules||[]).map(r=>`<li>${esc(r.text)} <small>(σ. ${esc(r.pages.join(', '))})</small></li>`).join('')+'</ul></details>');
+// A published snapshot newer than the saved data (the nightly refresh, .github/workflows/refresh-data.yml) is taken in
+// the way a manual refresh is: meeting choices are remapped, selected courses that left the catalog are kept, and the
+// report lists what changed. Data the visitor refreshed more recently than the snapshot stays.
+const fetchedAt=d=>Math.max(...[d.catalogFetchedAt,d.fall?.fetchedAt,d.spring?.fetchedAt].map(t=>Date.parse(t)||0));
+let snapshot=null;
+if(data!==initialData&&fetchedAt(initialData)>fetchedAt(data)){
+ const next=structuredClone(initialData);next.catalog=preserveCatalog(next.catalog);
+ snapshot=replaceSources(next);persist();
+}
 render();if(storageWarning)notify(storageWarning,true);
+if(snapshot?.changes.length){
+ notify('Το ωρολόγιο ενημερώθηκε αυτόματα από την επίσημη πηγή. Οι επιλογές μαθημάτων διατηρήθηκαν.'+(snapshot.unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),snapshot.unresolved>0);
+ showUpdateReport(snapshot.changes);
+}
 
 let calendarWidth=0;
 new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width!==calendarWidth){calendarWidth=width;fitCalendar();}}).observe($('calendarWrap'));
