@@ -291,7 +291,7 @@ function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();rende
 function resetMeetings(id){const prefix=state.season+'|'+id+'|';for(const key of ['labs','excluded'])state[key]=state[key].filter(value=>!value.startsWith(prefix));persist();render();renderDetail(id);}
 function renderDetail(id){
  const c=course(id);if(!c)return;detailId=id;const g=guideCourse(id),pre=prerequisites(c),list=meetings(id);
- $('detailCode').textContent=`${c.id} · ${c.semester}ο εξάμηνο · ${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}${ects(c)!==null?' · '+ects(c)+' ECTS':''}`;$('detailName').textContent=c.name;
+ $('detailCode').innerHTML=[c.id,`${c.semester}ο εξάμηνο`,mandatory(c)?'Υποχρεωτικό':'Επιλογής',...(ects(c)!==null?[ects(c)+' ECTS']:[])].map(part=>`<span>${esc(part)}</span>`).join('');$('detailName').textContent=c.name;
  let html=`<div class="detail-actions"><button class="primary" data-toggle="${esc(id)}">${chosen().includes(id)?icon('minus')+'Αφαίρεση από πρόγραμμα':icon('plus')+'Προσθήκη στο πρόγραμμα'}</button><label class="check-label"><input type="checkbox" data-passed="${esc(id)}" ${state.passed.includes(id)?'checked':''}>Το έχω περάσει</label></div>`;
  html+=`<label class="check-label"><input type="checkbox" data-review="${esc(id)}" ${state.review.includes(id)?'checked':''}>Προς έλεγχο: στο ωρολόγιο, εκτός σχεδίου δήλωσης</label>`;
  if(!mandatory(c)&&c.semester>=5){const options=creditOptions(c);html+=`<label style="margin-top:15px">Χρέωση μαθήματος στο εξάμηνο<select data-credit="${esc(id)}"><option value="" ${credited(c)===null?'selected':''}>Δεν έχει οριστεί</option>${options.map(s=>`<option value="${s}" ${credited(c)===s?'selected':''}>${s}ο εξάμηνο</option>`).join('')}</select></label><p class="subtle">${practice(c)?'Η Πρακτική Άσκηση καλύπτει αποκλειστικά μία θέση επιλογής του 8ου εξαμήνου, σύμφωνα με την τρέχουσα ρύθμιση του Τμήματος.':special(c)?'Τα «Ειδικά Θέματα - Εργασίες» χρεώνονται στο 7ο/9ο για χειμερινά ή στο 6ο/8ο για εαρινά.':'Όρισε το εξάμηνο που καλύπτει στο πτυχίο σου, όχι αυτό του καταλόγου. Π.χ. επιλογής του 5ου ή 9ου μπορεί να χρεωθεί στο 7ο (οδηγός σ. 21).'} Η χρέωση ισχύει και για περασμένα· τα οφειλόμενα υποχρεωτικά κρατούν το δικό τους εξάμηνο.</p>${invalidCredit(c)?`<p role="alert">Η αποθηκευμένη χρέωση στο ${esc(state.creditTo[id])}ο δεν είναι έγκυρη και δεν προσμετράται. Επίλεξε ένα επιτρεπτό εξάμηνο.</p>`:''}`;}
@@ -571,15 +571,15 @@ $('guideContent').insertAdjacentHTML('beforeend','<details><summary>Αναλυτ
 // the way a manual refresh is: meeting choices are remapped, selected courses that left the catalog are kept, and the
 // report lists what changed. Data the visitor refreshed more recently than the snapshot stays.
 const fetchedAt=d=>Math.max(...[d.catalogFetchedAt,d.fall?.fetchedAt,d.spring?.fetchedAt].map(t=>Date.parse(t)||0));
-let snapshot=null;
+let adopted=null;
 if(data!==initialData&&fetchedAt(initialData)>fetchedAt(data)){
  const next=structuredClone(initialData);next.catalog=preserveCatalog(next.catalog);
- snapshot=replaceSources(next);persist();
+ adopted=replaceSources(next);persist();
 }
 render();if(storageWarning)notify(storageWarning,true);
-if(snapshot?.changes.length){
- notify('Το ωρολόγιο ενημερώθηκε αυτόματα από την επίσημη πηγή. Οι επιλογές μαθημάτων διατηρήθηκαν.'+(snapshot.unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),snapshot.unresolved>0);
- showUpdateReport(snapshot.changes);
+if(adopted?.changes.length){
+ notify('Το ωρολόγιο ενημερώθηκε αυτόματα από την επίσημη πηγή. Οι επιλογές μαθημάτων διατηρήθηκαν.'+(adopted.unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),adopted.unresolved>0);
+ showUpdateReport(adopted.changes);
 }
 
 let calendarWidth=0;

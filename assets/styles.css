@@ -623,6 +623,11 @@ dialog[open]::backdrop{animation:fade .3s ease-out}
 .dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
 .dialog-head h2{font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-.03em}
 .dialog-meta{margin:6px 0 0;color:var(--text-3);font-size:12.5px;font-weight:500}
+/* Parts split by hairlines, not middle dots. Each part after the first carries its hairline in front, and the row is
+   pulled left by one hairline's width with that strip clipped, so a part that wraps to a new line never leaves a hairline behind. */
+.meta-parts{display:flex;flex-wrap:wrap;row-gap:2px;margin-left:-21px;clip-path:inset(0 0 0 21px)}
+.meta-parts>span{display:inline-flex;align-items:center}
+.meta-parts>span::before{content:'';width:1px;height:10px;margin:0 10px;background:var(--line-strong)}
 .dialog-head>button{width:38px;min-height:38px;padding:0;flex-shrink:0}
 dialog h3{margin:24px 0 8px;font-size:15px;font-weight:600}
 dialog p,dialog li{font-size:13.5px;line-height:1.65}
