@@ -29,7 +29,7 @@ systemTheme.addEventListener('change',applyTheme);
 <!-- Fetch the data and the app at once instead of in a chain; assets/motion.js fetches the 3D week once the stylesheet
      is in. Fonts are not preloaded on purpose: Chrome holds the first paint for preloaded fonts.
      URLs and versions must match their uses below. -->
-<link rel="preload" href="./data/courses.json?v=f3e6a7eefa89" as="fetch" crossorigin>
+<link rel="preload" href="./data/courses.json?v=ecaf080875da" as="fetch" crossorigin>
 <link rel="preload" href="./data/guide.json?v=5020198886fc" as="fetch" crossorigin>
 <link rel="preload" href="./assets/app.js?v=data1" as="script">
 <script src="./assets/vendor/lenis.min.js?v=1.3.26" defer></script>
@@ -95,7 +95,7 @@ systemTheme.addEventListener('change',applyTheme);
  try{
   if(location.protocol==='file:')throw Error('Άνοιξε το αυτοτελές THMMY-programma.html για χρήση χωρίς server ή χρησιμοποίησε την έκδοση GitHub Pages.');
   if(!globalThis.SourceParser)throw Error('Δεν φορτώθηκε ο αναγνώστης του ωρολογίου.');
-  const files=await Promise.all(["./data/courses.json?v=f3e6a7eefa89","./data/guide.json?v=5020198886fc"].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return r.json();}));
+  const files=await Promise.all(["./data/courses.json?v=ecaf080875da","./data/guide.json?v=5020198886fc"].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return r.json();}));
   document.getElementById('initial-data').textContent=JSON.stringify(files[0]);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
   // The preloads make the app ready before the first frame; let the hero paint first (or 100ms, for background tabs).
