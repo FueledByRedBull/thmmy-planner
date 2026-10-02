@@ -6,10 +6,10 @@
 //   npm i three@0.186.1 esbuild
 //   npx esbuild src/week3d.js --bundle --minify --format=esm --legal-comments=eof --outfile=assets/week3d.js
 import {
- CanvasTexture, Color, DirectionalLight, EdgesGeometry, ExtrudeGeometry, Group, HemisphereLight,
- LineBasicMaterial, LineSegments, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, NeutralToneMapping,
- PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, Quaternion, Raycaster, SRGBColorSpace, Scene,
- ShadowMaterial, Shape, Vector2, Vector3, WebGLRenderer
+ BackSide, BoxGeometry, CanvasTexture, Color, DirectionalLight, EdgesGeometry, ExtrudeGeometry, Group, HemisphereLight,
+ LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial,
+ NeutralToneMapping, NoToneMapping, PCFShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, Quaternion,
+ Raycaster, SRGBColorSpace, Scene, ShadowMaterial, Shape, Vector2, Vector3, WebGLRenderer
 } from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
@@ -35,14 +35,28 @@ renderer.setClearColor(0,0);
 renderer.debug.checkShaderErrors=false;
 renderer.toneMapping=NeutralToneMapping;
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=PCFSoftShadowMap;
+// PCF by name: three 0.186 dropped PCFSoftShadowMap and swaps PCF in at the first shadow pass, which would make every
+// shader compiled ahead of time (see the startup below) compile again, synchronously, in the first frames.
+renderer.shadowMap.type=PCFShadowMap;
 let pixelRatio=Math.min(devicePixelRatio,coarse.matches?1.5:1.75);
 renderer.setPixelRatio(pixelRatio);
 
 const scene=new Scene(),camera=new PerspectiveCamera(24,1,.5,200),week=new Group();
 // The studio reflection is baked once at startup (see start below); the generator and room are freed after.
-function environment(){
- const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment();
+// The bake's shaders (the room, its background, the blur and the GGX filter) first compile in parallel, so the bake
+// itself only renders instead of stalling the page on each compile. This reaches into PMREMGenerator internals
+// (three 0.186.1; recheck on upgrade): the targets and filter materials are made up front, in the render state the
+// bake uses (a half-float target, no tone mapping), and the bake then reuses them.
+async function environment(){
+ const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment(),eye=new PerspectiveCamera(90,1,.1,100),tone=renderer.toneMapping;
+ pmrem._setSize(256);
+ const target=pmrem._allocateTargets(),plane=pmrem._lodMeshes[0].geometry;
+ const box=pmrem._backgroundBox=new Mesh(new BoxGeometry(),new MeshBasicMaterial({name:'PMREM.Background',side:BackSide,depthWrite:false,depthTest:false}));
+ renderer.setRenderTarget(target);renderer.toneMapping=NoToneMapping;
+ const ready=[room,box,new Mesh(plane,pmrem._blurMaterial),new Mesh(plane,pmrem._ggxMaterial)].map(o=>renderer.compileAsync(o,eye));
+ renderer.setRenderTarget(null);renderer.toneMapping=tone;
+ await Promise.all(ready);
+ target.dispose();
  scene.environment=pmrem.fromScene(room,.04).texture;
  room.dispose();pmrem.dispose();
 }
@@ -824,22 +838,26 @@ function step(now){
  return moving;
 }
 
-// Frame-time governor: drop resolution, then shadows, if the scene cannot hold ~50 fps.
+// Frame-time governor: drop resolution if the GPU cannot keep up with the display (aiming no higher than 144 Hz, so a
+// 240 Hz screen does not cost sharpness), and shadows if the scene cannot hold ~35 fps at all. The display's own frame
+// interval is the fastest tenth of the samples. Fewer pixels only help a GPU that is behind: when the frame's own CPU
+// work fills the interval, the resolution stays.
 let samples=[];
-function govern(ms){
+function govern(ms,work){
  if(!samples||ms>100)return;
- samples.push(ms);
+ samples.push([ms,work]);
  if(samples.length<120)return;
- const median=samples.slice(30).sort((a,b)=>a-b)[45];
+ const sorted=k=>samples.slice(30).map(s=>s[k]).sort((a,b)=>a-b),intervals=sorted(0),median=intervals[45],target=Math.max(intervals[9],1000/144),cpu=sorted(1)[45];
  samples=null;
- if(median>20&&pixelRatio>1){pixelRatio=1;renderer.setPixelRatio(1);resize();}
+ if(median>target*1.3&&cpu<target*.75&&pixelRatio>1){pixelRatio=1;renderer.setPixelRatio(1);resize();}
  if(median>28){renderer.shadowMap.enabled=false;key.castShadow=false;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}
 }
 
 // Idle: when nothing moves but the slow drift and conflict pulse (no spring, scroll, pointer or drag), 30 fps looks
-// identical to the display rate at a fraction of the GPU. Any of those wakes full rate on the very next frame.
+// identical to the display rate at a fraction of the GPU, and the page sleeps between those frames instead of waking at
+// every display refresh. Any of those wakes full rate on the very next frame.
 const IDLE=1000/30;
-let compiled=false,busy=true,lastP=-1;
+let compiled=false,busy=true,chain=false,lastP=-1,idle=0;
 function loop(now){
  raf=0;
  if(!compiled)return;
@@ -850,17 +868,21 @@ function loop(now){
  // Docked also re-arms the throw to the sky for the next way back up, and seats any tile still in the air.
  if(docked){clearTarget();last=now;if(p>=1){armed=true;prevP=p;}if(airborne().length)settleAll();return;}
  if(p!==lastP){lastP=p;busy=true;}
- if(!busy&&!still&&now-was<IDLE){raf=requestAnimationFrame(loop);return;}
- const full=busy;
- busy=!!step(now);
+ // Only back-to-back full-rate frames measure the GPU: idle frames and the first frame after them are slow on purpose.
+ const steady=chain,t0=performance.now();
+ busy=chain=!!step(now);
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
- // Only frames drawn at full rate measure the GPU; idle frames are slow on purpose.
- if(was&&full)govern(now-was);
- if(!still)raf=requestAnimationFrame(loop);
+ if(was&&steady)govern(now-was,performance.now()-t0);
+ // Next frame, unless something in this one (a resize from the governor, say) already asked for it: one loop only.
+ if(still||raf)return;
+ if(busy)raf=requestAnimationFrame(loop);
+ // Idle: the timer ends a little early, so the frame lands on the display refresh nearest 30 fps.
+ else idle=setTimeout(()=>{idle=0;if(!raf)raf=requestAnimationFrame(loop);},IDLE-4-(performance.now()-now));
 }
 function wake(){
  busy=true;
+ if(idle){clearTimeout(idle);idle=0;}
  if(!raf)raf=requestAnimationFrame(loop);
 }
 function stillMode(){
@@ -931,10 +953,13 @@ hero.addEventListener('click',event=>{
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
-canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);raf=-1;});
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);clearTimeout(idle);raf=-1;});
 document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
+// Waker for the idle sleep: a scroll moves the board at once, not at the next idle frame. (Under reduced motion the
+// board is a still picture that scrolling does not change.)
+addEventListener('scroll',()=>{if(!docked&&!reduce.matches)wake();},{passive:true});
 // Wakers for the docked sleep: scrolling back up (the dock marker, see dockMark), and the drawer that hides the stage
 // closing.
 new IntersectionObserver(entries=>{if(docked&&entries.some(e=>e.isIntersecting))wake();}).observe(dockMark);
@@ -959,7 +984,7 @@ stillMode();
 // Shaders compile in parallel where the browser can, and the first frame waits for them instead of stalling.
 const task=()=>new Promise(r=>setTimeout(r));
 (async()=>{
- await task();environment();
+ await task();await environment();
  await task();build();resize();
  await task();
  try{await renderer.compileAsync(scene,camera);}catch{}

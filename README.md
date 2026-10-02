@@ -77,7 +77,7 @@ Measured in headless Chrome with the CPU slowed 4× and a fast-4G connection:
 | 3D week ready | ~0.9 s | ~0.6 s |
 | Transferred | ~272 KB (157 KB of it the 3D week) | 0 KB |
 
-The 3D week loads after the page is ready, compiles its shaders off the critical path, draws at 30 fps when only its slow drift moves, and sleeps entirely once you scroll to the planner.
+The 3D week loads after the page is ready and compiles its shaders, the studio reflection's included, in parallel off the main thread. It draws at 30 fps and sleeps between frames when only its slow drift moves, smooth scrolling runs only while a scroll is easing, and nothing runs at all once you scroll to the planner.
 
 ## Project structure
 
