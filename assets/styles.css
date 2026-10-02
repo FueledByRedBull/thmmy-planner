@@ -232,6 +232,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --shadow-md:0 12px 28px -12px #0e0e0e2e,0 2px 6px -2px #0e0e0e14;
  --shadow-lg:0 32px 64px -24px #0e0e0e40,0 6px 16px -6px #0e0e0e17;
  --highlight:inset 0 1px 0 #ffffffcc;
+ /* Liquid glass for surfaces floating over the hero, approximated in plain CSS (true refraction needs SVG filters in
+    backdrop-filter, which only Chromium supports): light catches the upper-left rim and leaves through the
+    lower-right, the edge glows where the glass thickens, its underside darkens like a lens, and a sheen lies along
+    the top like on the event blocks. */
+ --glass-rim:inset 1px 1px 0 #ffffff,inset -1px -1px 0 #ffffff40,inset 0 -10px 16px -12px #0e0e0e14,inset 0 0 14px -6px #ffffffb3;
+ --glass-sheen:linear-gradient(180deg,#ffffff66,#ffffff00 46%);
+ /* The header pill's fill; clearer in light so the sheen and the lit top edge read against it. */
+ --glass-fill:color-mix(in srgb,var(--surface) 64%,transparent);
  /* Shapes: everything you press is a pill; surfaces are soft rectangles. */
  --pill:999px;--r-sheet:28px;--r-lg:20px;--r-md:14px;--r-sm:10px;--r-block:12px;
  --ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.16,1,.3,1);
@@ -255,6 +263,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --shadow-md:0 14px 30px -14px #000d,0 2px 6px -2px #0009;
  --shadow-lg:0 36px 72px -28px #000,0 6px 16px -6px #000a;
  --highlight:inset 0 1px 0 #ffffff12;
+ --glass-rim:inset 1px 1px 0 #ffffff47,inset -1px -1px 0 #ffffff1a,inset 0 -10px 16px -12px #00000066,inset 0 0 14px -6px #ffffff1f;
+ --glass-sheen:linear-gradient(180deg,#ffffff26,#ffffff00 46%);
+ --glass-fill:color-mix(in srgb,var(--surface) 72%,transparent);
  --studio:#040404;--studio-glow:#1e1e1e;
 }
 /* Raised surfaces lean on soft elevation; on ink, where shadows vanish, a hairline marks the edge instead. */
@@ -305,7 +316,7 @@ select option{background:var(--surface);color:var(--text)}
 
 /* ---------- Header: a floating pill over the hero that docks onto a solid bar over the planner ---------- */
 .masthead{position:fixed;top:0;left:0;right:0;z-index:50;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:20px;height:var(--bar);padding:10px calc(max(12px,(100% - 1600px)/2) + 10px)}
-.masthead::before{content:'';position:absolute;inset:10px max(12px,calc((100% - 1600px)/2));z-index:-1;border:1px solid color-mix(in srgb,var(--line-strong) 60%,transparent);border-radius:var(--pill);background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 12px 32px -20px #0e0e0e59,var(--highlight)}
+.masthead::before{content:'';position:absolute;inset:10px max(12px,calc((100% - 1600px)/2));z-index:-1;border:1px solid color-mix(in srgb,var(--line-strong) 60%,transparent);border-radius:var(--pill);background:var(--glass-sheen),var(--glass-fill);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);box-shadow:0 12px 32px -20px #0e0e0e59,var(--glass-rim)}
 .masthead::after{content:'';position:absolute;inset:0;z-index:-2;background:var(--sheet);border-bottom:1px solid var(--line);opacity:0}
 @supports (animation-timeline:scroll()){
  .masthead::after{animation:dock linear both;animation-timeline:scroll(root);animation-range:calc(var(--dock) - var(--bar) - 160px) calc(var(--dock) - var(--bar) - 20px)}
@@ -343,7 +354,7 @@ select option{background:var(--surface);color:var(--text)}
 .hero-stage.still{position:absolute;bottom:auto;height:max(100svh,600px)}
 .hero-stage canvas{display:block;width:100%;height:100%;opacity:0;transition:opacity 1.4s var(--ease)}
 .hero-stage.live canvas{opacity:1}
-.hero-tip{position:absolute;left:0;top:0;z-index:1;display:grid;gap:2px;max-width:260px;padding:9px 14px 10px;border:1px solid transparent;border-radius:var(--r-md);background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow-md),var(--highlight);color:var(--text-2);font-size:12px;line-height:1.4;pointer-events:none;opacity:0;transition:opacity .18s}
+.hero-tip{position:absolute;left:0;top:0;z-index:1;display:grid;gap:2px;max-width:260px;padding:9px 14px 10px;border:1px solid transparent;border-radius:var(--r-md);background:var(--glass-sheen),color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(12px) saturate(1.8);-webkit-backdrop-filter:blur(12px) saturate(1.8);box-shadow:var(--shadow-md),var(--glass-rim);color:var(--text-2);font-size:12px;line-height:1.4;pointer-events:none;opacity:0;transition:opacity .18s}
 .hero-tip.on{opacity:1}
 .hero-tip b{color:var(--text);font-size:13px;font-weight:600}
 .hero-copy{position:absolute;left:max(24px,4vw);bottom:calc(13svh + 44px);max-width:min(46rem,50vw);pointer-events:none}
@@ -791,7 +802,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
  @keyframes sheet-up{from{transform:translateY(100%)}}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
-@media(prefers-reduced-transparency:reduce){.masthead::before{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(prefers-reduced-transparency:reduce){.masthead::before,.hero-tip{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}}
 
 /* ---------- Print: one A4 landscape sheet; fitCalendar() sets --print-width and --print-scale ---------- */
 @page{size:A4 landscape;margin:0}

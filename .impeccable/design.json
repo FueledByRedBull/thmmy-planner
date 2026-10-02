@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-02T00:37:04.839Z",
+  "generatedAt": "2026-10-02T16:42:04.959Z",
   "title": "Design System: Η εβδομάδα μου · ΤΗΜΜΥ",
   "extensions": {
     "colorMeta": {
@@ -941,14 +941,32 @@
         "purpose": "Top-edge highlight paired with lifted and floating surfaces."
       },
       {
+        "name": "glass-rim",
+        "value": "inset 1px 1px 0 #ffffff,inset -1px -1px 0 #ffffff40,inset 0 -10px 16px -12px #0e0e0e14,inset 0 0 14px -6px #ffffffb3",
+        "dark": "inset 1px 1px 0 #ffffff47,inset -1px -1px 0 #ffffff1a,inset 0 -10px 16px -12px #00000066,inset 0 0 14px -6px #ffffff1f",
+        "purpose": "Liquid-glass rim lit from the upper left (plain-CSS approximation; no SVG refraction). Header pill and hero tooltip only, in place of the highlight."
+      },
+      {
+        "name": "glass-sheen",
+        "value": "linear-gradient(180deg,#ffffff66,#ffffff00 46%)",
+        "dark": "linear-gradient(180deg,#ffffff26,#ffffff00 46%)",
+        "purpose": "Top sheen layered over the glass fill on the header pill and hero tooltip; same stop as the event blocks' sheen."
+      },
+      {
+        "name": "glass-fill",
+        "value": "color-mix(in srgb,var(--surface) 64%,transparent)",
+        "dark": "color-mix(in srgb,var(--surface) 72%,transparent)",
+        "purpose": "Header pill fill under the sheen (the hero tooltip keeps 86% surface). Solid surface, no backdrop-filter, under reduced transparency."
+      },
+      {
         "name": "sheet-rise",
         "value": "0 -1px 0 color-mix(in srgb,var(--line-strong) 50%,transparent),0 -30px 60px -34px #0e0e0e59",
         "purpose": "Planner sheet top edge over the hero."
       },
       {
         "name": "header-pill",
-        "value": "0 12px 32px -20px #0e0e0e59,var(--highlight)",
-        "purpose": "Floating frosted header pill (with blur(20px) saturate(1.5))."
+        "value": "0 12px 32px -20px #0e0e0e59,var(--glass-rim)",
+        "purpose": "Floating liquid-glass header pill (over var(--glass-sheen),var(--glass-fill) with blur(20px) saturate(1.8))."
       }
     ],
     "motion": [
@@ -1151,7 +1169,7 @@
       "refersTo": "button-quiet",
       "description": "Frosted pill header floating over the hero; docks onto a solid bar over the planner.",
       "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">ΗΜ<br>ΜΥ</span><span class=\"ds-nav-brand\">Πανεπιστήμιο Θεσσαλίας<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span><nav><a href=\"#\">Το προφίλ σπουδών μου</a><a href=\"#\">Δεδομένα</a><a href=\"#\">Εκτύπωση</a></nav></header>",
-      "css": ".ds-nav{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--line-strong) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 12px 32px -20px #0e0e0e59,var(--highlight)}.ds-nav-mark{display:grid;place-content:center;width:38px;height:38px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:11px;font-weight:700;line-height:1;text-align:center}.ds-nav-brand{font-size:13px;font-weight:600;line-height:1.25;color:var(--text)}.ds-nav-brand small{display:block;color:var(--text-3);font-size:12px;font-weight:400}.ds-nav nav{display:flex;gap:2px;margin-left:auto}.ds-nav a{padding:9px 14px;border-radius:999px;color:var(--text);font-size:13px;font-weight:550;text-decoration:none;transition:background-color .18s}.ds-nav a:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}.ds-nav a:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+      "css": ".ds-nav{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--line-strong) 60%,transparent);border-radius:999px;background:var(--glass-sheen),var(--glass-fill);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);box-shadow:0 12px 32px -20px #0e0e0e59,var(--glass-rim)}.ds-nav-mark{display:grid;place-content:center;width:38px;height:38px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:11px;font-weight:700;line-height:1;text-align:center}.ds-nav-brand{font-size:13px;font-weight:600;line-height:1.25;color:var(--text)}.ds-nav-brand small{display:block;color:var(--text-3);font-size:12px;font-weight:400}.ds-nav nav{display:flex;gap:2px;margin-left:auto}.ds-nav a{padding:9px 14px;border-radius:999px;color:var(--text);font-size:13px;font-weight:550;text-decoration:none;transition:background-color .18s}.ds-nav a:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}.ds-nav a:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
     },
     {
       "name": "Tags and Badges",
@@ -1207,7 +1225,7 @@
       },
       {
         "name": "The Colour Is the Course Rule",
-        "body": "Saturation belongs to the course palette. Chrome stays grey and ink; no course is ever grey, and no course hue is pure green, amber or red, so courses can never be mistaken for a state.",
+        "body": "Saturation belongs to the course palette. Chrome stays grey and ink; no course is ever grey, and no course hue is pure green, amber or red, so courses can never be mistaken for a state. One exception, accepted by the user: the liquid glass on the header pill and the hero tooltip saturates what lies beneath it (1.8), so a course passing under the frost reads as slightly richer colour, never as chrome colour. Over a cobalt slab the tooltip shows a faint blue with legible text; a coloured slab under the header pill is untested.",
         "section": "colors"
       },
       {
