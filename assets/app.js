@@ -101,8 +101,8 @@ function renderList(){
  highlightCourse();
 }
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-// The strong ease-out of styles.css (--ease), for exits.
-const EASE='cubic-bezier(.16,1,.3,1)';
+// The strong ease-out, read from styles.css (--ease) so the JS exits never drift from the CSS ones.
+const EASE=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();
 // Spring curve for entrances and moves; older engines fall back to the ease-out.
 const SPRING=CSS.supports('animation-timing-function','linear(0, 1)')?'linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)':EASE;
 let justToggled='',renderedSeason='';
