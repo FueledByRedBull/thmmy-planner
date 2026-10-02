@@ -101,9 +101,17 @@ function renderList(){
  highlightCourse();
 }
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-// Spring curve for entrances and moves; older engines fall back to an overshooting bezier.
-const SPRING=CSS.supports('animation-timing-function','linear(0, 1)')?'linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)':'cubic-bezier(.16,1,.3,1)';
-let justToggled='';
+// The strong ease-out of styles.css (--ease), for exits.
+const EASE='cubic-bezier(.16,1,.3,1)';
+// Spring curve for entrances and moves; older engines fall back to the ease-out.
+const SPRING=CSS.supports('animation-timing-function','linear(0, 1)')?'linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)':EASE;
+let justToggled='',renderedSeason='';
+// Leave the way it came in, then hide; instant under reduced motion. The fill holds the last frame until hidden.
+function exit(el,to,hide,duration=160){
+ if(reducedMotion.matches){hide();return;}
+ const leaving=el.animate(to,{duration,easing:EASE,fill:'forwards'}),done=()=>{hide();leaving.cancel();};
+ leaving.finished.then(done,done);
+}
 // Stat values roll like an odometer: every digit is a column that springs to its new value.
 function countTo(el,value,suffix=''){
  const to=Number(value),text=(Number.isInteger(to)?to:Math.round(to*10)/10).toLocaleString('el-GR')+suffix,shape=text.replace(/\d/g,'0');
@@ -129,7 +137,7 @@ function fly(block,delay){
  const visible=r=>r.width>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;
  if(!visible(from)||!visible(to)||to.left<view.left-1||to.right>view.right+1)return false;
  const ghost=document.createElement('div'),shape=document.createElement('i');
- ghost.className='flight';ghost.setAttribute('aria-hidden','true');
+ ghost.className='flight';ghost.setAttribute('aria-hidden','true');ghost.dataset.course=block.dataset.detail;ghost.dataset.season=state.season;
  ghost.style.cssText=`left:${to.left}px;top:${to.top}px;width:${to.width}px;height:${to.height}px;--event-color:${block.style.getPropertyValue('--event-color')}`;
  ghost.append(shape);document.body.append(ghost);
  const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:660,delay,fill:'backwards'};
@@ -138,6 +146,20 @@ function fly(block,delay){
  shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
  block.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'none'}],{duration:420,delay:delay+580,easing:SPRING,fill:'backwards'});
  return true;
+}
+// A removed block fades out where it stood. It is the detached block itself, so it looks exactly as it did.
+function leave(block,rect){
+ if(!rect?.width)return;
+ const ghost=document.createElement('div');
+ ghost.className='leaving';ghost.inert=true;
+ ghost.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px`;
+ // Important, to beat the phone agenda's auto-sized blocks.
+ for(const [key,value] of Object.entries({top:'0',left:'0',width:'100%',height:'100%'}))block.style.setProperty(key,value,'important');
+ ghost.append(block);document.body.append(ghost);
+ // The fade runs on a plain ease so it stays readable; on the ease-out it would be gone in two frames.
+ const fade=ghost.animate({opacity:0},{duration:180,easing:'ease',fill:'forwards'});
+ ghost.animate({transform:'scale(.97)'},{duration:180,easing:EASE,fill:'forwards'});
+ fade.finished.then(()=>ghost.remove(),()=>ghost.remove());
 }
 // Course details grow out of the block or title that opened them.
 function morphOpen(trigger,id){
@@ -196,8 +218,13 @@ function fitCalendar(){
  }
 }
 function renderSchedule(){
+ // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
+ for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
  const animate=!reducedMotion.matches&&!printLayoutActive&&!matchMedia('print').matches;
- const previous=new Map(animate?[...$('calendar').querySelectorAll('.meeting')].map(b=>[b.dataset.event,b.getBoundingClientRect()]):[]);
+ // Within a season, removed blocks fade out and new overlaps pulse; a season switch has its own transition.
+ const sameSeason=renderedSeason===state.season;renderedSeason=state.season;
+ const blocks=animate?[...$('calendar').querySelectorAll('.meeting')]:[];
+ const previous=new Map(blocks.map(b=>[b.dataset.event,b.getBoundingClientRect()])),wasConflict=new Set(blocks.filter(b=>b.classList.contains('conflict')).map(b=>b.dataset.event));
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
  countTo($('countStat'),chosen().length);countTo($('hoursStat'),Math.round(contactMinutes(events)/6)/10);countTo($('conflictStat'),pairs.length);$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
  const reviewCount=chosen().filter(id=>state.review.includes(id)).length,passedCount=chosen().filter(id=>state.passed.includes(id)&&!state.review.includes(id)).length;
@@ -227,17 +254,30 @@ function renderSchedule(){
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
  window.weekModel={season:state.season,min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),ects:ects(c)??5,conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
- let entering=0;
+ // landing: when the last newcomer arrives (a flight lands at ~600ms, a spring settles at ~150ms past its stagger).
+ let entering=0,landing=150;const clashing=[],placed=[];
  if(animate)for(const block of $('calendar').querySelectorAll('.meeting')){
   const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
+  placed.push(now);
   if(old&&now.width&&now.height){
    const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
    if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`},{transform:'none'}],{duration:520,easing:SPRING});
+   if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
    // New blocks settle in on a spring, staggered across the week.
-   const delay=Math.min(entering++,12)*45;
-   if(!(block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay)))block.animate([{opacity:0,transform:'translateY(10px) scale(.94)'},{opacity:1,transform:'none'}],{duration:640,delay,easing:SPRING,fill:'backwards'});
+   const delay=Math.min(entering++,12)*45,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
+   if(!flew)block.animate([{opacity:0,transform:'translateY(10px) scale(.94)'},{opacity:1,transform:'none'}],{duration:640,delay,easing:SPRING,fill:'backwards'});
+   landing=Math.max(landing,delay+(flew?600:150));
   }
+ }
+ // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
+ for(const block of clashing)block.animate([{outlineOffset:'-2px'},{outlineOffset:'-6px'},{outlineOffset:'-2px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
+ // Removed blocks fade where they stood, unless something moves into that spot (the phone agenda closing the gap,
+ // a neighbour widening into a freed lane): the fade would double-expose over it.
+ if(animate&&sameSeason&&events.length&&!phone.matches){
+  const kept=new Set([...$('calendar').querySelectorAll('.meeting')].map(b=>b.dataset.event));
+  const covered=r=>placed.some(p=>p.left<r.right-2&&p.right>r.left+2&&p.top<r.bottom-2&&p.bottom>r.top+2);
+  for(const b of blocks){const r=previous.get(b.dataset.event);if(!kept.has(b.dataset.event)&&!covered(r))leave(b,r);}
  }
 }
 function renderChecks(pairs){
@@ -305,6 +345,13 @@ function renderDetail(id){
  $('detailBody').innerHTML=html;
 }
 function openDetail(id){renderDetail(id);if(!$('courseDialog').open)$('courseDialog').showModal();}
+// Dialogs fade and drop on close (phone sheets slide back down) instead of vanishing.
+function closeDialog(dialog){
+ if(!dialog.open||dialog.classList.contains('closing'))return;
+ dialog.classList.add('closing');
+ const sheet=phone.matches;
+ exit(dialog,sheet?{transform:'translateY(100%)'}:{opacity:0,transform:'translateY(8px) scale(.98)'},()=>{dialog.close();dialog.classList.remove('closing');},sheet?200:160);
+}
 function renderSources(){const labels={fall:'Χειμερινό ωρολόγιο ανά έτος',spring:'Εαρινό ωρολόγιο ανά έτος',catalog:'Πλήρης κατάλογος μαθημάτων'};$('sourceLinks').innerHTML=Object.entries(SOURCES).map(([kind,url])=>`<div><a href="${url}" target="_blank" rel="noopener noreferrer">${labels[kind]}${icon('ext')}</a><small>Ανακτήθηκε ${dateText(kind==='catalog'?data.catalogFetchedAt:data[kind].fetchedAt)}</small></div>`).join('');}
 function renderGuide(){
  $('guideContent').innerHTML=`<p>Οι παρακάτω έλεγχοι βασίζονται στον οδηγό <b>2024-25</b> που δόθηκε με την εφαρμογή. Η σημερινή προσφορά μαθημάτων και οι ώρες προκύπτουν από τα επίσημα ωρολόγια.</p><div class="guide-rule"><p><b>Προαπαιτούμενα · σ. 21, 25</b><br>Πρέπει να έχουν περαστεί σε προηγούμενο εξάμηνο. Η εφαρμογή συγκρίνει τους κωδικούς του οδηγού με όσα έχεις σημειώσει περασμένα.</p></div><div class="guide-rule"><p><b>Για εισαγωγή από το 2023-24 · σ. 20-21</b><br>Έως 9 μαθήματα με ECTS ανά περίοδο, πέρα από διπλωματική. Προτεραιότητα στα διαθέσιμα υποχρεωτικά και σειρά εξαμήνων. Δηλώνεται και το οφειλόμενο μάθημα Αγγλικών της αντίστοιχης περιόδου. Οι τρέχοντες <a href="https://www.e-ce.uth.gr/studies/undergraduate/" target="_blank" rel="noopener noreferrer">μεταβατικοί κανόνες του Τμήματος</a> το αναφέρουν με 2 ECTS, σε αντίθεση με τα 0 ECTS του οδηγού 2024-25· για εισαγωγή από 2023-24 η εφαρμογή το μετρά στο όριο των 9.</p></div><div class="guide-rule"><p><b>Επιλογής · σ. 21</b><br>Στο 5ο, 7ο και 9ο μπορούν να χρεωθούν επιλογής από τα 5ο/7ο/9ο. Στο 6ο και 8ο, από τα 6ο/8ο. Ορίζεις τη χρέωση στις λεπτομέρειες. Χωρίς ρητή χρέωση, η εφαρμογή δεν χρησιμοποιεί το εξάμηνο του καταλόγου ως εξάμηνο πτυχίου. Τα οφειλόμενα υποχρεωτικά προηγούμενων εξαμήνων μετρούν στο συνολικό όριο δήλωσης, όχι στις πέντε θέσεις επιλογής του 7ου. Έως δύο «Ειδικά Θέματα - Εργασίες» συνολικά, με έγκριση επιβλέποντα και την επίσημη διαδικασία αιτήσεων.</p></div><div class="guide-rule"><p><b>Διπλωματική · σ. 25</b><br>Τουλάχιστον 180 περασμένα ECTS και έγκριση του Τμήματος. Δεν δημιουργούνται πλασματικές εβδομαδιαίες ώρες για διπλωματική ή πρακτική.</p></div><p>Τα «προς έλεγχο» και τα ήδη περασμένα παραμένουν στο ωρολόγιο, αλλά δεν προσμετρώνται στο σχέδιο δήλωσης ή στα ECTS της δήλωσης. Τα περασμένα εξακολουθούν να καλύπτουν τις αντίστοιχες θέσεις πτυχίου και τα προαπαιτούμενα. Οι δοκιμαστικές επιλογές δεν καλύπτουν υποχρεώσεις δήλωσης. Αφαίρεσε τη σήμανση όταν αποφασίσεις να τα δηλώσεις.</p><h3>Τι ελέγχεται αυτόματα</h3><p>Επικαλύψεις ενεργών συναντήσεων, προαπαιτούμενα που λείπουν από τα περασμένα, απουσία από το ωρολόγιο, όριο 9 μαθημάτων για το αντίστοιχο έτος εισαγωγής, Αγγλικά, διαθέσιμα υποχρεωτικά που παραλείφθηκαν, πάνω από 5 μαθήματα χρεωμένα ανά εξάμηνο, πάνω από 2 επιλογής στο 5ο/6ο ή 5 επιλογής στο 7ο/8ο/9ο, ενδείξεις ακάλυπτων προηγούμενων θέσεων επιλογής και πάνω από 2 ειδικά θέματα-εργασίες. Οι ασαφείς ή ελλιπείς χρεώσεις επισημαίνονται χωρίς να θεωρούνται βέβαια κενά. Η Πρακτική Άσκηση χρεώνεται μόνο στο 8ο, σύμφωνα με την τρέχουσα ρύθμιση του Τμήματος.</p><h3>Τι χρειάζεται επιβεβαίωση</h3><p>Κανόνες εισαγωγής πριν το 2023-24, μεταβατικές διατάξεις, μερική φοίτηση, πλήρης σειρά δηλώσεων επιλογής, απαιτήσεις γνωστικών τομέων/αποφοίτησης, αλλαγές μετά το 2024-25 και εγκρίσεις διπλωματικής ή ειδικών θεμάτων. Η λίστα περασμένων δεν είναι αναλυτική βαθμολογία και οι προειδοποιήσεις δεν αποκλείουν την προσθήκη μαθημάτων.</p><p class="subtle">Ο ενσωματωμένος οδηγός περιλαμβάνει ${GUIDE.courses?.length||0} καταχωρίσεις μαθημάτων. Όταν ένα μάθημα δεν καλύπτεται, εμφανίζεται «δεν υπάρχουν επαληθευμένα στοιχεία», όχι «κανένα προαπαιτούμενο».</p>`;
@@ -383,7 +430,7 @@ async function refresh(){
 }
 async function importHtml(){
  const file=$('importFile').files[0];if(!file)return;$('importStatus').textContent='Ανάγνωση αρχείου…';
- try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const {unresolved,changes}=replaceSources(next);persist();render();$('importStatus').textContent='';$('sourcesDialog').close();notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);showUpdateReport(changes);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+error.message+' Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
+ try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const {unresolved,changes}=replaceSources(next);persist();render();$('importStatus').textContent='';closeDialog($('sourcesDialog'));notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);showUpdateReport(changes);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+error.message+' Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
 }
 async function downloadCopy(){
  $('saveCopy').disabled=true;
@@ -498,7 +545,7 @@ function restoreTransfer(){
  try{localStorage.setItem(STORE,JSON.stringify({version:1,data:next.data,state:nextState}));}catch{$('transferStatus').textContent='Η αποθήκευση απέτυχε. Δεν άλλαξαν τα δεδομένα σου. Έλεγξε τον διαθέσιμο χώρο και τις ρυθμίσεις αποθήκευσης του browser.';return;}
  data=next.data;state=nextState;themePreference=next.theme;applyTheme();$('theme').value=themePreference;
  let themeSaved=true;try{localStorage.setItem('thmmy-planner-theme',themePreference);}catch{themeSaved=false;}
- $('search').value='';$('semesterFilter').value='';$('listFilter').value='offered';render();$('transferDialog').close();
+ $('search').value='';$('semesterFilter').value='';$('listFilter').value='offered';render();closeDialog($('transferDialog'));
  notify('Το αντίγραφο επαναφέρθηκε και αποθηκεύτηκε σε αυτόν τον browser.'+(themeSaved?'':' Το θέμα εφαρμόστηκε, αλλά δεν μπόρεσε να αποθηκευτεί η προτίμησή του.'),!themeSaved);
 }
 $('transferButton').onclick=()=>{resetTransferPreview();$('importCode').value='';$('transferFile').value='';$('exportCode').value='';$('exportTransfer').hidden=true;$('exportStatus').textContent='';$('transferDialog').showModal();};
@@ -521,11 +568,13 @@ $('theme').onchange=()=>{
  try{localStorage.setItem('thmmy-planner-theme',themePreference);}catch{notify('Το θέμα άλλαξε, αλλά ο browser δεν μπόρεσε να αποθηκεύσει την προτίμησή σου.',true);}
 };
 for(let i=1;i<=10;i++)$('semesterFilter').add(new Option(`${i}ο εξάμηνο`,i));for(let i=1;i<=16;i++)$('studySemester').add(new Option(i===16?'16ο ή μεταγενέστερο':`${i}ο εξάμηνο`,i));
-document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail)morphOpen(b,b.dataset.detail);else if(b.dataset.toggle)toggleCourse(b.dataset.toggle);else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)$(b.dataset.close).close();else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;const go=()=>{state.season=next;persist();render();};const root=document.documentElement;root.dataset.slide=next==='spring'?'next':'prev';if(document.startViewTransition&&!reducedMotion.matches){root.dataset.vt='season';document.startViewTransition(go).finished.finally(()=>{if(root.dataset.vt==='season')delete root.dataset.vt;});}else go();}});
+document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail)morphOpen(b,b.dataset.detail);else if(b.dataset.toggle)toggleCourse(b.dataset.toggle);else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;const go=()=>{state.season=next;persist();render();};const root=document.documentElement;root.dataset.slide=next==='spring'?'next':'prev';if(document.startViewTransition&&!reducedMotion.matches){root.dataset.vt='season';document.startViewTransition(go).finished.finally(()=>{if(root.dataset.vt==='season')delete root.dataset.vt;});}else go();}});
+// Escape closes through the same exit. The browser only lets the page delay it after a click or key that opened it.
+for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('cancel',event=>{if(!event.cancelable)return;event.preventDefault();closeDialog(dialog);});
 document.addEventListener('change',event=>{const e=event.target;if(e.dataset.passed)setPassed(e.dataset.passed,e.checked);if(e.dataset.review){state.review=setIn(state.review,e.dataset.review,e.checked);persist();renderSchedule();}if(e.dataset.meeting){const m=allMeetings().find(m=>m.id===e.dataset.meeting);if(m){if(isLab(m))state.labs=setIn(state.labs,m.id,e.checked);else state.excluded=setIn(state.excluded,m.id,!e.checked);persist();renderList();renderSchedule();}}if(e.dataset.credit){const id=e.dataset.credit;if(e.value)state.creditTo[id]=Number(e.value);else delete state.creditTo[id];persist();renderSchedule();if(detailId===id&&$('courseDialog').open){renderDetail(id);$('detailBody').querySelector('[data-credit]')?.focus();}}if(e.dataset.color){state.colors[e.dataset.color]=e.value;persist();renderList();renderSchedule();}});
 $('search').addEventListener('input',renderList);$('semesterFilter').addEventListener('change',renderList);$('listFilter').addEventListener('change',renderList);$('colorMode').addEventListener('change',e=>{state.colorMode=e.target.value;persist();renderList();renderSchedule();});
 $('profileButton').onclick=()=>{$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;$('profileDialog').showModal();};
-$('saveProfile').onclick=()=>{state.entryYear=$('entryYear').value;state.studySemester=$('studySemester').value;state.passedComplete=$('passedComplete').checked;persist();render();$('profileDialog').close();};
+$('saveProfile').onclick=()=>{state.entryYear=$('entryYear').value;state.studySemester=$('studySemester').value;state.passedComplete=$('passedComplete').checked;persist();render();closeDialog($('profileDialog'));};
 $('sourcesButton').onclick=()=>$('sourcesDialog').showModal();$('guideButton').onclick=()=>$('guideDialog').showModal();$('provider').onchange=e=>{state.provider=e.target.value;persist();};$('refresh').onclick=refresh;$('importFile').onchange=importHtml;$('saveCopy').onclick=downloadCopy;$('printButton').onclick=()=>window.print();
 // The course rail: docked beside the week on wide screens; up to 1180px a drawer (side panel on tablets,
 // bottom sheet on phones). The floating button reaches it from anywhere in a long week.
@@ -619,7 +668,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   if(registration?.waiting){taking=true;registration.waiting.postMessage('skip-waiting');}
   else location.reload();
  };
- $('updateClose').onclick=()=>{toast.hidden=true;};
+ $('updateClose').onclick=()=>exit(toast,{opacity:0,transform:'translate(-50%,-10px) scale(.96)'},()=>{toast.hidden=true;},200);
  const check=()=>{registration?.update().catch(()=>{});sw.controller?.postMessage('check');};
  const start=async()=>{
   try{registration=await sw.register('./sw.js',{updateViaCache:'none'});}catch{return;}

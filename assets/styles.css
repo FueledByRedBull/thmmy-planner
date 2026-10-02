@@ -342,7 +342,7 @@ select option{background:var(--surface);color:var(--text)}
 .data-menu-actions{position:absolute;right:0;top:calc(100% + 12px);z-index:60;width:300px;max-width:calc(100vw - 32px);padding:8px;background:var(--surface);border:1px solid transparent;border-radius:var(--r-lg);box-shadow:var(--shadow-lg),var(--highlight);transform-origin:top right}
 .data-menu-actions button{display:flex;justify-content:flex-start;width:100%;border:0;box-shadow:none;background:none;border-radius:var(--r-sm);font-weight:500;text-align:left;white-space:normal}
 .data-menu-actions button:hover{background:var(--surface-2)}
-.data-menu[open] .data-menu-actions{animation:pop-in .32s var(--ease)}
+.data-menu[open] .data-menu-actions{animation:pop-in .2s var(--ease)}
 
 /* ---------- Hero: the 3D week in a studio light, then the planner sheet rises over it ---------- */
 /* touch-action: horizontal swipes spin the 3D board (free view); vertical swipes and pinch stay native. */
@@ -391,7 +391,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 #syncMeta{color:var(--text-3);font-size:12px}
 .notice{display:flex;gap:10px;margin:0 0 16px;padding:13px 18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);font-size:13px;line-height:1.55;animation:pop-in .4s var(--ease)}
 /* A new version is ready (sw.js already has its files, so the reload is instant): a pill floating under the header. */
-.update-toast{position:fixed;left:50%;top:calc(var(--bar) + 10px);z-index:49;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 24px);padding:5px 5px 5px 18px;border-radius:var(--pill);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13.5px;font-weight:550;white-space:nowrap;transform:translateX(-50%);animation:toast-in .55s var(--ease) both}
+.update-toast{position:fixed;left:50%;top:calc(var(--bar) + 10px);z-index:49;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 24px);padding:5px 5px 5px 18px;border-radius:var(--pill);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13.5px;font-weight:550;white-space:nowrap;transform:translateX(-50%);animation:toast-in .4s var(--ease) both}
 .update-toast[hidden]{display:none}
 .update-toast span{margin-right:6px}
 @keyframes toast-in{from{opacity:0;transform:translate(-50%,-10px) scale(.96)}}
@@ -527,7 +527,7 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;transform-origin:center top;
  transition:transform .25s var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
 :root[data-theme=dark] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface));background:linear-gradient(180deg,#ffffff26,transparent 46%) var(--block-fill);box-shadow:var(--shadow-sm),inset 0 0 0 1px #ffffff17}
-.meeting:hover{background-color:var(--block-fill);z-index:3;transform:translateY(-2px);box-shadow:var(--shadow-md)}
+@media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;transform:translateY(-2px);box-shadow:var(--shadow-md)}}
 .meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:9px 11px;overflow:hidden}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .calendar.measuring .meeting-content{flex-grow:0}
@@ -700,9 +700,15 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 @keyframes sheet-in{from{transform:translateY(9svh)}}
 @keyframes turn-out{to{opacity:0;transform:perspective(1600px) translateX(-5%) rotateY(16deg) scale(.95);filter:blur(3px)}}
 @keyframes turn-in{from{opacity:0;transform:perspective(1600px) translateX(5%) rotateY(-16deg) scale(.95);filter:blur(3px)}}
+@keyframes turn-out-prev{to{opacity:0;transform:perspective(1600px) translateX(5%) rotateY(-16deg) scale(.95);filter:blur(3px)}}
+@keyframes turn-in-prev{from{opacity:0;transform:perspective(1600px) translateX(-5%) rotateY(16deg) scale(.95);filter:blur(3px)}}
 /* A course added from the list flies into its slot (fly() in app.js). */
 .flight{position:fixed;z-index:80;pointer-events:none}
 .flight i{display:block;width:100%;height:100%;border-radius:var(--r-block);background:var(--event-color);box-shadow:var(--shadow-md)}
+/* A removed block fades out where it stood (leave() in app.js); below the header and the course drawer. */
+.leaving{position:fixed;z-index:2;pointer-events:none}
+/* A dialog's exit (closeDialog() in app.js) takes its backdrop with it. */
+dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 /* Entry once the catalog arrives: header, then the two panels settle in. */
 .is-intro .intro,.is-intro .sidebar{animation:fade .6s .05s ease-out both}
 .is-intro .schedule-panel{animation:rise .9s .12s var(--ease) both}
@@ -711,13 +717,14 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 /* Season switch: the week turns on its vertical axis toward the direction of travel. */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.25s}
 :root:not([data-vt=season]) .schedule-panel{view-transition-name:none}
-:root[data-vt=season]::view-transition-old(sheet){animation:turn-out .3s cubic-bezier(.4,0,1,1) both}
-:root[data-vt=season]::view-transition-new(sheet){animation:turn-in .7s var(--ease) both}
-:root[data-vt=season][data-slide=prev]::view-transition-old(sheet){animation-name:turn-in;animation-direction:reverse}
-:root[data-vt=season][data-slide=prev]::view-transition-new(sheet){animation-name:turn-out;animation-direction:reverse}
+:root[data-vt=season]::view-transition-old(sheet){animation:turn-out .2s var(--ease) both}
+:root[data-vt=season]::view-transition-new(sheet){animation:turn-in .45s var(--ease) both}
+/* Mirrored keyframes, not animation-direction:reverse, which would also reverse the ease-out into an ease-in. */
+:root[data-vt=season][data-slide=prev]::view-transition-old(sheet){animation-name:turn-out-prev}
+:root[data-vt=season][data-slide=prev]::view-transition-new(sheet){animation-name:turn-in-prev}
 /* Course details grow out of the block or title that opened them. */
 :root[data-vt=detail] dialog[open]{animation:none}
-::view-transition-group(course-detail){animation-duration:.52s;animation-timing-function:var(--ease)}
+::view-transition-group(course-detail){animation-duration:.4s;animation-timing-function:var(--ease)}
 ::view-transition-old(course-detail){height:100%;object-fit:cover;animation:fade-out .2s ease-in both}
 ::view-transition-new(course-detail){height:100%;object-fit:cover;object-position:top;animation:fade .32s .05s ease-out both}
 
@@ -789,7 +796,6 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
  .day-column.today{background:none}
  .meeting{position:static;width:auto!important;height:auto!important;min-height:64px}
  .meeting-content{padding:12px 14px}
- .meeting:hover{transform:none}
  .schedule-panel{width:100%;padding-left:0;border-left:0}
  .schedule-top{gap:14px;padding:18px 0 14px}
  .stats{grid-template-columns:1fr 1fr;row-gap:12px}
@@ -818,7 +824,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ .sprite,.hero,.hero-stage,.flight,.leaving,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */

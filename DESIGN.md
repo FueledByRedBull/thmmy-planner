@@ -259,7 +259,7 @@ components:
 
 The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.
 
-Below the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Every one of these collapses to an instant, static path under reduced motion.
+Below the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block fades where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.
 
 The world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course "premium product app" world set in Commissioner with 16/10 radii.
 
@@ -271,7 +271,7 @@ The world is modelled on butter.video, chosen by the user. Rejected and not to r
 - Pill controls, soft rectangles for surfaces, 12px for event blocks.
 - Soft layered shadows in light mode; hairlines take over in dark mode.
 - The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.
-- Spring motion with a ~5% overshoot; everything static under reduced motion.
+- Three curves: the spring (~5% overshoot) for things that land, the ease-out for transitions and exits, the there-and-back in-out for one-shot pulses; everything static under reduced motion.
 
 ## Colors
 
@@ -360,7 +360,7 @@ A hybrid: soft, layered ambient shadows plus a 1px top highlight on raised surfa
 - **Sheet rise** (`0 -30px 60px -34px #0e0e0e59`): under the planner sheet's top edge where it overlaps the hero.
 
 ### Named Rules
-**The Press, Don't Lift Rule.** Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (2px) on hover, because they are objects on the board.
+**The Press, Don't Lift Rule.** Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (2px) on hover, because they are objects on the board, and only where a fine pointer can hover ((hover: hover) and (pointer: fine)), so a tap never leaves a block stuck raised.
 
 **The Rings Inside Rule.** State and highlight outlines on event blocks sit inside the block (negative offset), never outside it.
 
@@ -392,7 +392,8 @@ Pills that press, never lift.
 - **Shadow Strategy:** floating plus highlight for raised surfaces (see Elevation).
 - **Border:** transparent in light, hairline in dark; warning and danger callouts use a 24-30% tinted border on the soft fill.
 - **Internal Padding:** 28px dialogs, 11-16px callouts.
-- **Update toast:** when a new version is published (sw.js has already cached its files), a pill on `surface` with the lifted shadow floats 10px under the header: "Υπάρχει νέα έκδοση." with a primary "Ανανέωση" and a quiet close. It springs in from above; print and the HTML backup leave it out.
+- **Dialogs in motion:** they rise in on the ease-out (450ms; phone bottom sheets slide up in 500ms). Closing, whether by a close button, Escape or a finished action, runs back the way they came: a fade with an 8px drop and 0.98 scale over 160ms on the ease-out, the frosted backdrop fading with it; phone bottom sheets slide back down (200ms). Instant under reduced motion.
+- **Update toast:** when a new version is published (sw.js has already cached its files), a pill on `surface` with the lifted shadow floats 10px under the header: "Υπάρχει νέα έκδοση." with a primary "Ανανέωση" and a quiet close. It eases in from above (400ms on the ease-out, from 10px higher at 0.96 scale) and, when closed, leaves upward the way it came (200ms); print and the HTML backup leave it out.
 - **Update report:** after a refresh or an import, a collapsed "Τι άλλαξε · N αλλαγές" card on `surface` sits right under the notice and lists what changed against the previous data, grouped as changed, added and removed meetings and catalog changes (season, code and name in ink, the detail in ink-2). The next notice hides it; print and the HTML backup leave it out.
 
 ### Inputs / Fields
@@ -402,13 +403,13 @@ Pills that press, never lift.
 
 ### Navigation
 - **Header:** a fixed frosted pill floating 10px inside the viewport over the hero (brand mark, quiet profile, theme control, data menu, print). The theme control is one quiet pill: a leading icon that follows the choice (sun, moon, or sun-moon for system), the label and an inline chevron. As the sheet reaches it, a scroll-linked solid sheet-coloured bar fades in beneath it and it docks. On phones labels drop to 40px icon pills.
-- **Season switch:** a segmented pill track whose ink thumb springs under the active season; switching turns the week on its vertical axis with a view transition.
+- **Season switch:** a segmented pill track whose ink thumb springs under the active season; switching turns the week on its vertical axis with a view transition, 200ms out and 450ms in, both on the ease-out. Going back to winter uses mirrored keyframes, so the turn keeps its ease-out in both directions.
 
 ### Event Block (signature)
-The course as an object: a 12px block filled with the full course hue, a white top sheen, a 1px inner ink edge and the rest shadow; time on top (11px 600), title, then room and teacher at reduced opacity. Hover lifts 2px to the lifted shadow. Every ring is drawn inside the block's edge, so packed lanes never overlap their neighbours: review is a 2px dashed amber ring plus a hatch; conflict is a 2px red ring with a light inner band in the sheet colour, plus a warning icon. Hovering a rail row rings every block of that course with a 3px ink ring. The conflict trace pulses its red ring inward. Clicking grows the course dialog out of the block.
+The course as an object: a 12px block filled with the full course hue, a white top sheen, a 1px inner ink edge and the rest shadow; time on top (11px 600), title, then room and teacher at reduced opacity. Where a fine pointer can hover, hover lifts 2px to the lifted shadow; touch never lifts. Every ring is drawn inside the block's edge, so packed lanes never overlap their neighbours: review is a 2px dashed amber ring plus a hatch; conflict is a 2px red ring with a light inner band in the sheet colour, plus a warning icon. Hovering a rail row rings every block of that course with a 3px ink ring. The conflict trace pulses its red ring inward. When an added course creates a clash, only the block that was already on the week pulses, once and inward (ring offset -2px to -6px and back over 400ms on the there-and-back curve), timed to the newcomer's landing (600ms plus stagger after a flight, 150ms plus stagger after a spring entrance); the newcomer never pulses. A removed block fades where it stood (180ms: opacity on a plain ease so it stays readable, a 0.97 scale on the ease-out), on the desktop grid only, and not when a neighbour widens into its lane, when the week becomes empty, or across a season switch. Clicking grows the course dialog out of the block (400ms on the ease-out).
 
 ### Course Rail Row
-A three-column row (12px state swatch, title and meta, 32px round add button) divided by hairlines. Adding a course flashes the row pink, pops the swatch, and flies a block on an arc from the swatch into each new slot of the week.
+A three-column row (12px state swatch, title and meta, 32px round add button) divided by hairlines. Adding a course flashes the row pink, pops the swatch, and flies a block on an arc from the swatch into each new slot of the week; a flight whose course is removed, or whose season is left, before it lands is dropped.
 
 ### Stats
 Four cells divided by hairlines, a 12.5px label over a stat-scale odometer number whose digits spring to their new value with a 40ms stagger; overlaps turn the label and number danger red.
@@ -434,7 +435,8 @@ Free view lives only at the top of the page (scroll progress at most 0.002): gra
 - **Do** let free-view interactions (orbit, zoom) yield to scroll and to the copy: plain wheel scrolls, the board springs home on scroll, and it never covers the headline.
 - **Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.
 - **Do** pair every success, warning and danger state with an icon, dashes or an outline.
-- **Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, and make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.
+- **Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, the ease-out (cubic-bezier(.16,1,.3,1)) for exits, and the there-and-back curve (cubic-bezier(.77,0,.175,1)) only for one-shot pulses that return to rest; make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.
+- **Do** make exits shorter than their entrances (160-200ms) and send things out the way they came in, on the ease-out; the one exception is a removed block, whose opacity runs on the CSS `ease` keyword so the fade stays readable while its scale stays on the ease-out. For the opposite direction use mirrored keyframes, never `animation-direction: reverse`, which turns the ease-out into an ease-in.
 - **Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.
 - **Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.
 - **Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.

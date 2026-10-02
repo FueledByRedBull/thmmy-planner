@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-02T16:42:04.959Z",
+  "generatedAt": "2026-10-02T18:12:52.000Z",
   "title": "Design System: Η εβδομάδα μου · ΤΗΜΜΥ",
   "extensions": {
     "colorMeta": {
@@ -973,12 +973,17 @@
       {
         "name": "ease",
         "value": "cubic-bezier(.16,1,.3,1)",
-        "purpose": "Default expo-out for transitions, entrances, drawers, dialogs."
+        "purpose": "Default expo-out for transitions, entrances, drawers, dialogs, and every exit (exit() in app.js, the EASE constant)."
       },
       {
         "name": "spring",
         "value": "linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)",
         "purpose": "~5% overshoot for things that land: odometer digits, season thumb, landed blocks. Falls back to the ease curve."
+      },
+      {
+        "name": "there-and-back",
+        "value": "cubic-bezier(.77,0,.175,1)",
+        "purpose": "In-out curve for one-shot pulses that leave rest and return to it: the clash pulse. Never for entrances or exits."
       },
       {
         "name": "control-state",
@@ -993,17 +998,42 @@
       {
         "name": "flight",
         "value": "660ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
-        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block settles with the spring at +580ms. The 3px is a motion detail, not a radius token."
+        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block settles with the spring at +580ms. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
       },
       {
         "name": "season-turn",
-        "value": "out .3s cubic-bezier(.4,0,1,1), in .7s ease; rotateY 16deg, perspective 1600px",
-        "purpose": "Season switch turns the week via view transition, direction-aware."
+        "value": "out .2s var(--ease) cubic-bezier(.16,1,.3,1), in .45s var(--ease) cubic-bezier(.16,1,.3,1); rotateY 16deg, perspective 1600px; winter direction on mirrored keyframes turn-out-prev / turn-in-prev",
+        "purpose": "Season switch turns the week via view transition, direction-aware. Mirrored keyframes, not animation-direction: reverse, which would reverse the ease-out into an ease-in."
       },
       {
         "name": "detail-morph",
-        "value": ".52s ease view transition",
+        "value": ".4s var(--ease) cubic-bezier(.16,1,.3,1) view transition (group)",
         "purpose": "Course dialog grows out of the clicked block or title (morphOpen())."
+      },
+      {
+        "name": "pop-in",
+        "value": "scale(.96) translateY(-4px) to rest; data menu .2s var(--ease) cubic-bezier(.16,1,.3,1), notices .4s var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "Menus and notices popping in."
+      },
+      {
+        "name": "dialog-exit",
+        "value": "desktop: opacity 0, translateY(8px) scale(.98), 160ms var(--ease) cubic-bezier(.16,1,.3,1); phone sheets: translateY(100%), 200ms var(--ease) cubic-bezier(.16,1,.3,1); backdrop opacity .16s var(--ease) cubic-bezier(.16,1,.3,1) (dialog.closing::backdrop)",
+        "purpose": "closeDialog() via exit(): every close path (buttons, Escape through the cancel event, finished actions) animates out, then closes. Entry stays dialog-in .45s / sheet-up .5s."
+      },
+      {
+        "name": "block-leave",
+        "value": "180ms; opacity on the CSS ease keyword cubic-bezier(.25,.1,.25,1) (readable fade; the ease-out would empty it in about two frames), scale(.97) on var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "A removed block fades where it stood (leave()). Desktop grid only; skipped where another block moves into the freed rect, when the week becomes empty, and across a season switch."
+      },
+      {
+        "name": "clash-pulse",
+        "value": "outline-offset -2px -> -6px -> -2px, 400ms there-and-back, once; delay = landing (600ms + stagger after a flight, 150ms + stagger after a spring entrance)",
+        "purpose": "Only a block already on the week that has just become conflicting pulses; the newcomer never does. Same season only."
+      },
+      {
+        "name": "toast",
+        "value": "in: toast-in .4s var(--ease) cubic-bezier(.16,1,.3,1) from translate(-50%,-10px) scale(.96); out: same transform with opacity 0, 200ms var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "Update toast eases in from above and leaves upward the way it came."
       },
       {
         "name": "hero-reveal",
@@ -1068,7 +1098,7 @@
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
-        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
+        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; exits (dialogs, toast) are instant, and the block fade-out and clash pulse are skipped; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
       }
     ],
     "breakpoints": [
@@ -1183,9 +1213,9 @@
       "name": "Event Block",
       "kind": "custom",
       "refersTo": "event-block",
-      "description": "A course on the week: full course hue, white sheen, ink or white text by contrast; review and conflict rings sit inside the block.",
+      "description": "A course on the week: full course hue, white sheen, ink or white text by contrast; review and conflict rings sit inside the block. Hover lift only on fine hovering pointers.",
       "html": "<div class=\"ds-week\"><button class=\"ds-event\" style=\"--c:#8f5cff;--on:#ffffff\"><small>09:00-11:00</small><strong>Γραμμική Άλγεβρα</strong><span>Διάλεξη · Αμφ. Ηλία Χούστη</span></button><button class=\"ds-event ds-conflict\" style=\"--c:#1fd1c1;--on:#0e0e0e\"><small>11:00-13:00 ⚠</small><strong>Συστήματα Βάσεων Δεδομένων Ι</strong><span>Διάλεξη · Αμφ. 3</span></button><button class=\"ds-event ds-review\" style=\"--c:#ffd43b;--on:#0e0e0e\"><small>14:00</small><strong>ECE121</strong></button></div>",
-      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffffff40,transparent 46%) var(--c);color:var(--on);box-shadow:var(--shadow-sm),inset 0 0 0 1px #0e0e0e14;text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:11px;font-weight:600;opacity:.84}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:11px;opacity:.86}.ds-event:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}.ds-event:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,currentColor 16%,transparent) 7px 9px)}"
+      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffffff40,transparent 46%) var(--c);color:var(--on);box-shadow:var(--shadow-sm),inset 0 0 0 1px #0e0e0e14;text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:11px;font-weight:600;opacity:.84}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:11px;opacity:.86}@media (hover:hover) and (pointer:fine){.ds-event:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}}.ds-event:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,currentColor 16%,transparent) 7px 9px)}"
     },
     {
       "name": "Stat Odometer",
@@ -1199,14 +1229,14 @@
       "name": "Dialog Card",
       "kind": "card",
       "refersTo": "dialog",
-      "description": "Raised 28px surface with floating shadow and highlight; hairline edge in dark mode.",
+      "description": "Raised 28px surface with floating shadow and highlight; hairline edge in dark mode. Exits back the way it came (see motion dialog-exit).",
       "html": "<div class=\"ds-dialog\"><h2>Γραμμική Άλγεβρα</h2><p class=\"ds-dialog-meta\">ECE117 · 1ο εξάμηνο · 6 ECTS</p><div class=\"ds-dialog-row\">Δευτέρα 09:00-11:00 · Αμφ. Ηλία Χούστη</div></div>",
       "css": ".ds-dialog{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:420px;padding:28px;border:1px solid transparent;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-lg),var(--highlight)}.ds-dialog h2{margin:0;font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-.03em}.ds-dialog-meta{margin:6px 0 18px;color:var(--text-3);font-size:12.5px;font-weight:500}.ds-dialog-row{padding:11px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);font-size:13.5px}"
     }
   ],
   "narrative": {
     "northStar": "The Week in the Studio",
-    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
+    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block fades where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
     "keyCharacteristics": [
       "Neutral studio greys with an off-white (light) or ink (dark) planner sheet; no tinted neutrals.",
       "Ink is the primary action colour; hot pink is a single neon note, never a fill for large surfaces.",
@@ -1215,7 +1245,7 @@
       "Pill controls, soft rectangles for surfaces, 12px for event blocks.",
       "Soft layered shadows in light mode; hairlines take over in dark mode.",
       "The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.",
-      "Spring motion with a ~5% overshoot; everything static under reduced motion."
+      "Three curves: the spring (~5% overshoot) for things that land, the ease-out for transitions and exits, the there-and-back in-out for one-shot pulses; everything static under reduced motion."
     ],
     "rules": [
       {
@@ -1255,7 +1285,7 @@
       },
       {
         "name": "The Press, Don't Lift Rule",
-        "body": "Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (2px) on hover, because they are objects on the board.",
+        "body": "Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (2px) on hover, because they are objects on the board, and only where a fine pointer can hover ((hover: hover) and (pointer: fine)), so a tap never leaves a block stuck raised.",
         "section": "elevation"
       },
       {
@@ -1275,7 +1305,8 @@
       "**Do** let free-view interactions (orbit, zoom) yield to scroll and to the copy: plain wheel scrolls, the board springs home on scroll, and it never covers the headline.",
       "**Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.",
       "**Do** pair every success, warning and danger state with an icon, dashes or an outline.",
-      "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, and make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
+      "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, the ease-out (cubic-bezier(.16,1,.3,1)) for exits, and the there-and-back curve (cubic-bezier(.77,0,.175,1)) only for one-shot pulses that return to rest; make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
+      "**Do** make exits shorter than their entrances (160-200ms) and send things out the way they came in, on the ease-out; the one exception is a removed block, whose opacity runs on the CSS `ease` keyword so the fade stays readable while its scale stays on the ease-out. For the opposite direction use mirrored keyframes, never `animation-direction: reverse`, which turns the ease-out into an ease-in.",
       "**Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.",
       "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
       "**Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.",
