@@ -468,7 +468,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 .no-results{padding:36px 8px;text-align:center;color:var(--text-3);font-size:13px}
 
 /* ---------- The week ---------- */
-.schedule-panel{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;padding-left:28px;border-left:1px solid var(--line);view-transition-name:sheet}
+.schedule-panel{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;padding-left:28px;border-left:1px solid var(--line)}
 .sheet-main{min-width:0}
 .schedule-panel.notes-aside{grid-template-columns:minmax(0,1fr) 320px}
 .schedule-top{display:grid;gap:18px;padding:22px 0 22px}
@@ -493,7 +493,8 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 #calendarWrap{--chrome:1;--blocks:1}
 .calendar .day-head,.calendar .time-axis,.calendar .hour-rule{opacity:var(--chrome)}
 .calendar .day-column{border-left-color:color-mix(in srgb,var(--line) calc(var(--chrome) * 100%),transparent)}
-.calendar .meeting{opacity:var(--blocks)}
+/* A block a 3D tile has just been dealt onto shows on its own, ahead of the rest (stamp() in week3d.js). */
+.calendar .meeting{opacity:max(var(--blocks),var(--dealt,0))}
 /* Keyboard focus always reveals the real week, even mid-morph. */
 #calendarWrap:focus-within{--chrome:1!important;--blocks:1!important}
 body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
@@ -680,7 +681,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
    Only with html.has-3d (set where the 3D can load, cleared if it cannot), so it never waits forever. */
 .hero-skeleton{display:none;position:absolute;inset:13% 1% 20% 44%;place-items:center;perspective:1800px;pointer-events:none;transition:opacity .9s var(--ease)}
 .has-3d .hero-skeleton{display:grid}
-.hs-board{width:min(88%,calc(62svh * 1.3));aspect-ratio:1.3;padding:8% 3% 4% 10%;border-radius:26px;background:color-mix(in srgb,var(--surface) 72%,transparent);transform:rotateX(55deg) rotateZ(-33deg)}
+.hs-board{width:min(88%,calc(62svh * 1.3));aspect-ratio:1.3;padding:8% 3% 4% 10%;border-radius:var(--r-sheet);background:color-mix(in srgb,var(--surface) 72%,transparent);transform:rotateX(55deg) rotateZ(-33deg)}
 .hs-field{position:relative;height:100%;background:linear-gradient(color-mix(in srgb,var(--line-strong) 55%,transparent) 1px,transparent 1px) 0 0/100% 12.5%}
 .hs-field b{position:absolute;left:calc((var(--d) - 1) * 20% + 3px);top:var(--t);width:calc(20% - 6px);height:var(--h);border-radius:10px;animation-delay:calc(var(--d) * 90ms)}
 .hero:has(~.hero-stage.live) .hero-skeleton{opacity:0}
@@ -698,15 +699,13 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 @keyframes line-in{from{transform:translateY(110%)}}
 @keyframes fade-up{from{opacity:0;transform:translateY(16px)}}
 @keyframes sheet-in{from{transform:translateY(9svh)}}
-@keyframes turn-out{to{opacity:0;transform:perspective(1600px) translateX(-5%) rotateY(16deg) scale(.95);filter:blur(3px)}}
-@keyframes turn-in{from{opacity:0;transform:perspective(1600px) translateX(5%) rotateY(-16deg) scale(.95);filter:blur(3px)}}
-@keyframes turn-out-prev{to{opacity:0;transform:perspective(1600px) translateX(5%) rotateY(-16deg) scale(.95);filter:blur(3px)}}
-@keyframes turn-in-prev{from{opacity:0;transform:perspective(1600px) translateX(-5%) rotateY(16deg) scale(.95);filter:blur(3px)}}
 /* A course added from the list flies into its slot (fly() in app.js). */
 .flight{position:fixed;z-index:80;pointer-events:none}
 .flight i{display:block;width:100%;height:100%;border-radius:var(--r-block);background:var(--event-color);box-shadow:var(--shadow-md)}
 /* A removed block fades out where it stood (leave() in app.js); below the header and the course drawer. */
 .leaving{position:fixed;z-index:2;pointer-events:none}
+/* Wakes the docked 3D week when the page scrolls back up (week3d.js). */
+.dock-mark{position:absolute;left:0;width:1px;height:1px;pointer-events:none}
 /* A dialog's exit (closeDialog() in app.js) takes its backdrop with it. */
 dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 /* Entry once the catalog arrives: header, then the two panels settle in. */
@@ -714,15 +713,8 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 .is-intro .schedule-panel{animation:rise .9s .12s var(--ease) both}
 .is-intro .course{animation:rise .5s var(--ease) both}
 .is-intro .course:nth-child(1){animation-delay:.22s}.is-intro .course:nth-child(2){animation-delay:.25s}.is-intro .course:nth-child(3){animation-delay:.28s}.is-intro .course:nth-child(4){animation-delay:.31s}.is-intro .course:nth-child(5){animation-delay:.34s}.is-intro .course:nth-child(6){animation-delay:.37s}.is-intro .course:nth-child(7){animation-delay:.4s}.is-intro .course:nth-child(n+8){animation-delay:.43s}
-/* Season switch: the week turns on its vertical axis toward the direction of travel. */
+/* Course details grow out of the block or title that opened them; the rest of the page crossfades quickly around it. */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.25s}
-:root:not([data-vt=season]) .schedule-panel{view-transition-name:none}
-:root[data-vt=season]::view-transition-old(sheet){animation:turn-out .2s var(--ease) both}
-:root[data-vt=season]::view-transition-new(sheet){animation:turn-in .45s var(--ease) both}
-/* Mirrored keyframes, not animation-direction:reverse, which would also reverse the ease-out into an ease-in. */
-:root[data-vt=season][data-slide=prev]::view-transition-old(sheet){animation-name:turn-out-prev}
-:root[data-vt=season][data-slide=prev]::view-transition-new(sheet){animation-name:turn-in-prev}
-/* Course details grow out of the block or title that opened them. */
 :root[data-vt=detail] dialog[open]{animation:none}
 ::view-transition-group(course-detail){animation-duration:.4s;animation-timing-function:var(--ease)}
 ::view-transition-old(course-detail){height:100%;object-fit:cover;animation:fade-out .2s ease-in both}
@@ -824,7 +816,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.leaving,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ .sprite,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */

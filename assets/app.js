@@ -144,11 +144,18 @@ function fly(block,delay){
  // Horizontal and vertical travel run on different curves, so the path bends into an arc.
  ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
  shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
- block.animate([{opacity:0,transform:'scale(.97)'},{opacity:1,transform:'none'}],{duration:420,delay:delay+580,easing:SPRING,fill:'backwards'});
+ stampIn(block,delay+600);
  return true;
 }
-// A removed block fades out where it stood. It is the detached block itself, so it looks exactly as it did.
-function leave(block,rect){
+// One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
+// above, a block arrives a touch larger and presses down to size. Blocks are dealt Monday to Friday, DEAL ms apart.
+const DEAL=40;
+// From the block's centre (blocks keep their transform origin at the top for the hover lift).
+// It comes down from the lifted shadow to its own rest shadow, so it reads as landing rather than zooming.
+function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.06)',transformOrigin:'center',boxShadow:'var(--shadow-md)'},{opacity:1,transform:'none',transformOrigin:'center'}],{duration:220,delay,easing:EASE,fill:'backwards'});}
+// A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
+// itself, so it looks exactly as it did.
+function leave(block,rect,delay=0){
  if(!rect?.width)return;
  const ghost=document.createElement('div');
  ghost.className='leaving';ghost.inert=true;
@@ -157,8 +164,8 @@ function leave(block,rect){
  for(const [key,value] of Object.entries({top:'0',left:'0',width:'100%',height:'100%'}))block.style.setProperty(key,value,'important');
  ghost.append(block);document.body.append(ghost);
  // The fade runs on a plain ease so it stays readable; on the ease-out it would be gone in two frames.
- const fade=ghost.animate({opacity:0},{duration:180,easing:'ease',fill:'forwards'});
- ghost.animate({transform:'scale(.97)'},{duration:180,easing:EASE,fill:'forwards'});
+ const fade=ghost.animate({opacity:0},{duration:180,delay,easing:'ease',fill:'forwards'});
+ ghost.animate({transform:'scale(1.04)'},{duration:180,delay,easing:EASE,fill:'forwards'});
  fade.finished.then(()=>ghost.remove(),()=>ghost.remove());
 }
 // Course details grow out of the block or title that opened them.
@@ -220,9 +227,13 @@ function fitCalendar(){
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
- const animate=!reducedMotion.matches&&!printLayoutActive&&!matchMedia('print').matches;
- // Within a season, removed blocks fade out and new overlaps pulse; a season switch has its own transition.
- const sameSeason=renderedSeason===state.season;renderedSeason=state.season;
+ // While the 3D week stands in for the planner's blocks (mid-scroll, week3d.js holds --blocks below 1), the change
+ // lands in 3D alone: the hidden 2D blocks do not animate too.
+ const wrap=$('calendarWrap'),covered3d=parseFloat(getComputedStyle(wrap).getPropertyValue('--blocks'))<1&&!wrap.matches(':focus-within');
+ const animate=!reducedMotion.matches&&!printLayoutActive&&!matchMedia('print').matches&&!covered3d;
+ // Within a season, removed blocks lift away and new overlaps pulse. A season switch re-deals the week: the old blocks
+ // lift away together, then the new season's are dealt in, the whole deal held to about half a second.
+ const was=renderedSeason,sameSeason=was===state.season,swap=animate&&was!==''&&!sameSeason;renderedSeason=state.season;
  const blocks=animate?[...$('calendar').querySelectorAll('.meeting')]:[];
  const previous=new Map(blocks.map(b=>[b.dataset.event,b.getBoundingClientRect()])),wasConflict=new Set(blocks.filter(b=>b.classList.contains('conflict')).map(b=>b.dataset.event));
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
@@ -240,7 +251,7 @@ function renderSchedule(){
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events),partners=new Map();
  for(const [a,b] of pairs){partners.set(a.id,[...(partners.get(a.id)||[]),b.id]);partners.set(b.id,[...(partners.get(b.id)||[]),a.id]);}
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)}, ${c.name}, ${e.type}, ${e.room}, ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
@@ -254,9 +265,10 @@ function renderSchedule(){
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
  window.weekModel={season:state.season,min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),ects:ects(c)??5,conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
- // landing: when the last newcomer arrives (a flight lands at ~600ms, a spring settles at ~150ms past its stagger).
+ // landing: when the last newcomer arrives (a flight lands at ~600ms, a dealt block at ~150ms past its stagger).
+ const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
  let entering=0,landing=150;const clashing=[],placed=[];
- if(animate)for(const block of $('calendar').querySelectorAll('.meeting')){
+ if(animate)for(const block of all){
   const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
   placed.push(now);
   if(old&&now.width&&now.height){
@@ -264,15 +276,16 @@ function renderSchedule(){
    if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`},{transform:'none'}],{duration:520,easing:SPRING});
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
-   // New blocks settle in on a spring, staggered across the week.
-   const delay=Math.min(entering++,12)*45,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
-   if(!flew)block.animate([{opacity:0,transform:'translateY(10px) scale(.94)'},{opacity:1,transform:'none'}],{duration:640,delay,easing:SPRING,fill:'backwards'});
+   // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
+   const delay=swap?120+entering++*step:Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
+   if(!flew)stampIn(block,delay);
    landing=Math.max(landing,delay+(flew?600:150));
   }
  }
+ if(swap&&!phone.matches)blocks.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
  for(const block of clashing)block.animate([{outlineOffset:'-2px'},{outlineOffset:'-6px'},{outlineOffset:'-2px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
- // Removed blocks fade where they stood, unless something moves into that spot (the phone agenda closing the gap,
+ // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,
  // a neighbour widening into a freed lane): the fade would double-expose over it.
  if(animate&&sameSeason&&events.length&&!phone.matches){
   const kept=new Set([...$('calendar').querySelectorAll('.meeting')].map(b=>b.dataset.event));
@@ -368,7 +381,7 @@ function sourceChanges(before,after,replacements){
  const changes=[],catalog=new Map([...before.catalog,...after.catalog].map(c=>[c.id,c]));
  const title=id=>catalog.get(id)?.name||id;
  const slot=e=>`${DAYS[e.day]} ${time(e.start)}-${time(e.end)}`;
- const meeting=e=>`${slot(e)} · ${e.type}${e.room?' · '+e.room:''}`;
+ const meeting=e=>`${slot(e)}, ${e.type}${e.room?', '+e.room:''}`;
  for(const season of ['fall','spring']){
   const next=new Map(after[season].events.map(e=>[e.id,e])),matched=new Set();
   for(const old of before[season].events){
@@ -436,7 +449,7 @@ async function downloadCopy(){
  $('saveCopy').disabled=true;
  try{
  const root=document.documentElement.cloneNode(true),json=v=>JSON.stringify(v).replace(/</g,'\\u003c');root.querySelector('#initial-data').textContent=json(data);root.querySelector('#guide-data').textContent=json(GUIDE);root.querySelector('#initial-state').textContent=json({...state,storageId:crypto.randomUUID()});root.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));root.querySelector('#notice').hidden=true;root.querySelector('#updateReport').hidden=true;root.querySelector('#refresh').disabled=false;
- root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
+ root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelector('.dock-mark')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
  const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status);return response;};
  await Promise.all([
   ...[...root.querySelectorAll('script[src]')].map(async script=>{const code=await(await fetchAsset(new URL(script.getAttribute('src'),document.baseURI))).text();script.removeAttribute('src');script.textContent=code;}),
@@ -534,7 +547,7 @@ async function inspectTransfer(){
  try{
   const decoded=await decodeTransfer($('importCode').value);if(attempt!==transferAttempt)return;pendingTransfer=decoded;
   const s=decoded.state,review=ids=>ids.filter(id=>s.review.includes(id)).length;
-  $('transferSummary').textContent=`${s.passed.length} περασμένα · ${s.selected.fall.length} χειμερινά (${review(s.selected.fall)} προς έλεγχο) · ${s.selected.spring.length} εαρινά (${review(s.selected.spring)} προς έλεγχο). ${Object.keys(s.creditTo).length} χρεώσεις εξαμήνων · ${s.labs.length} εργαστηριακές επιλογές · ${s.excluded.length} κρυμμένες συναντήσεις. Προφίλ: ${s.studySemester?s.studySemester+'ο εξάμηνο':'χωρίς εξάμηνο'}, ${s.passedComplete?'πλήρης λίστα περασμένων':'μη επιβεβαιωμένη λίστα περασμένων'}. Χειμερινή πηγή: ${dateText(decoded.data.fall.fetchedAt)} · εαρινή πηγή: ${dateText(decoded.data.spring.fetchedAt)}.${decoded.dropped?` ${decoded.dropped} στοιχεία δεν υπάρχουν στο τρέχον ωρολόγιο και παραλείπονται.`:''}`;
+  $('transferSummary').textContent=`${s.passed.length} περασμένα, ${s.selected.fall.length} χειμερινά (${review(s.selected.fall)} προς έλεγχο), ${s.selected.spring.length} εαρινά (${review(s.selected.spring)} προς έλεγχο). ${Object.keys(s.creditTo).length} χρεώσεις εξαμήνων, ${s.labs.length} εργαστηριακές επιλογές, ${s.excluded.length} κρυμμένες συναντήσεις. Προφίλ: ${s.studySemester?s.studySemester+'ο εξάμηνο':'χωρίς εξάμηνο'}, ${s.passedComplete?'πλήρης λίστα περασμένων':'μη επιβεβαιωμένη λίστα περασμένων'}. Χειμερινή πηγή: ${dateText(decoded.data.fall.fetchedAt)}, εαρινή πηγή: ${dateText(decoded.data.spring.fetchedAt)}.${decoded.dropped?` ${decoded.dropped} στοιχεία δεν υπάρχουν στο τρέχον ωρολόγιο και παραλείπονται.`:''}`;
   $('transferPreview').hidden=false;$('restoreTransfer').disabled=false;$('transferStatus').textContent='Ο κωδικός είναι έγκυρος. Δεν έχει αλλάξει τίποτα ακόμα.';
  }catch(error){if(attempt===transferAttempt)$('transferStatus').textContent=error.message;}finally{if(attempt===transferAttempt)$('inspectTransfer').disabled=false;}
 }
@@ -568,7 +581,7 @@ $('theme').onchange=()=>{
  try{localStorage.setItem('thmmy-planner-theme',themePreference);}catch{notify('Το θέμα άλλαξε, αλλά ο browser δεν μπόρεσε να αποθηκεύσει την προτίμησή σου.',true);}
 };
 for(let i=1;i<=10;i++)$('semesterFilter').add(new Option(`${i}ο εξάμηνο`,i));for(let i=1;i<=16;i++)$('studySemester').add(new Option(i===16?'16ο ή μεταγενέστερο':`${i}ο εξάμηνο`,i));
-document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail)morphOpen(b,b.dataset.detail);else if(b.dataset.toggle)toggleCourse(b.dataset.toggle);else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;const go=()=>{state.season=next;persist();render();};const root=document.documentElement;root.dataset.slide=next==='spring'?'next':'prev';if(document.startViewTransition&&!reducedMotion.matches){root.dataset.vt='season';document.startViewTransition(go).finished.finally(()=>{if(root.dataset.vt==='season')delete root.dataset.vt;});}else go();}});
+document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail)morphOpen(b,b.dataset.detail);else if(b.dataset.toggle)toggleCourse(b.dataset.toggle);else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;state.season=next;persist();render();}});
 // Escape closes through the same exit. The browser only lets the page delay it after a click or key that opened it.
 for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('cancel',event=>{if(!event.cancelable)return;event.preventDefault();closeDialog(dialog);});
 document.addEventListener('change',event=>{const e=event.target;if(e.dataset.passed)setPassed(e.dataset.passed,e.checked);if(e.dataset.review){state.review=setIn(state.review,e.dataset.review,e.checked);persist();renderSchedule();}if(e.dataset.meeting){const m=allMeetings().find(m=>m.id===e.dataset.meeting);if(m){if(isLab(m))state.labs=setIn(state.labs,m.id,e.checked);else state.excluded=setIn(state.excluded,m.id,!e.checked);persist();renderList();renderSchedule();}}if(e.dataset.credit){const id=e.dataset.credit;if(e.value)state.creditTo[id]=Number(e.value);else delete state.creditTo[id];persist();renderSchedule();if(detailId===id&&$('courseDialog').open){renderDetail(id);$('detailBody').querySelector('[data-credit]')?.focus();}}if(e.dataset.color){state.colors[e.dataset.color]=e.value;persist();renderList();renderSchedule();}});

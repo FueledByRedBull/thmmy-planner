@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-02T18:12:52.000Z",
+  "generatedAt": "2026-10-03T18:00:00Z",
   "title": "Design System: Η εβδομάδα μου · ΤΗΜΜΥ",
   "extensions": {
     "colorMeta": {
@@ -978,7 +978,7 @@
       {
         "name": "spring",
         "value": "linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)",
-        "purpose": "~5% overshoot for things that land: odometer digits, season thumb, landed blocks. Falls back to the ease curve."
+        "purpose": "~5% overshoot for things that settle into a new value or slot: odometer digits, season thumb, a block shifting to a new slot (520ms). Falls back to the ease curve."
       },
       {
         "name": "there-and-back",
@@ -998,12 +998,12 @@
       {
         "name": "flight",
         "value": "660ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
-        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block settles with the spring at +580ms. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
+        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block is revealed with the press-in (block-deal) at +600ms, the flight's landing. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
       },
       {
-        "name": "season-turn",
-        "value": "out .2s var(--ease) cubic-bezier(.16,1,.3,1), in .45s var(--ease) cubic-bezier(.16,1,.3,1); rotateY 16deg, perspective 1600px; winter direction on mirrored keyframes turn-out-prev / turn-in-prev",
-        "purpose": "Season switch turns the week via view transition, direction-aware. Mirrored keyframes, not animation-direction: reverse, which would reverse the ease-out into an ease-in."
+        "name": "season-redeal",
+        "value": "old blocks: block-leave, 8ms apart, capped at 120ms (not on the phone agenda); new blocks: block-deal from 120ms, min(40, 360/n)ms apart by day (about .5s in all); 3D: old slabs shrink away, new slabs fall in with the squash, 40ms apart (tile-deal)",
+        "purpose": "Season switch re-deals the week; it replaces the 3D page-turn view transition, now removed. While the 3D week stands in for the blocks it lands in 3D alone. Instant under reduced motion."
       },
       {
         "name": "detail-morph",
@@ -1022,12 +1022,12 @@
       },
       {
         "name": "block-leave",
-        "value": "180ms; opacity on the CSS ease keyword cubic-bezier(.25,.1,.25,1) (readable fade; the ease-out would empty it in about two frames), scale(.97) on var(--ease) cubic-bezier(.16,1,.3,1)",
-        "purpose": "A removed block fades where it stood (leave()). Desktop grid only; skipped where another block moves into the freed rect, when the week becomes empty, and across a season switch."
+        "value": "180ms; opacity on the CSS ease keyword cubic-bezier(.25,.1,.25,1) (readable fade; the ease-out would empty it in about two frames), scale(1.04) on var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "A removed block lifts away where it stood (leave()). Desktop grid only; skipped where another block moves into the freed rect and when the week becomes empty. A season switch lifts every old block away this way (season-redeal)."
       },
       {
         "name": "clash-pulse",
-        "value": "outline-offset -2px -> -6px -> -2px, 400ms there-and-back, once; delay = landing (600ms + stagger after a flight, 150ms + stagger after a spring entrance)",
+        "value": "outline-offset -2px -> -6px -> -2px, 400ms there-and-back, once; delay = landing (600ms + stagger after a flight, 150ms + stagger after a dealt block)",
         "purpose": "Only a block already on the week that has just become conflicting pulses; the newcomer never does. Same season only."
       },
       {
@@ -1047,8 +1047,8 @@
       },
       {
         "name": "scroll-morph",
-        "value": "e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks)",
-        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns; slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
+        "value": "e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks), held at 0 while a deal or throw runs (a dealt block shows on its own via --dealt)",
+        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns; slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
       },
       {
         "name": "free-view",
@@ -1098,7 +1098,27 @@
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
-        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; exits (dialogs, toast) are instant, and the block fade-out and clash pulse are skipped; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
+        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; exits (dialogs, toast) are instant, and the block lift-away, the deals and the clash pulse are skipped; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
+      },
+      {
+        "name": "tile-fling",
+        "value": "grip 600 on ω²·(r+1.5)·(1+0.8h), only while held and spun (drag moved, |ω| > 3), held over it for SLIP .25s; gravity 22; one floor bounce; hop back 420-560ms, 40ms stagger by day (18ms when the page scrolls)",
+        "purpose": "Spinning the hero board too fast by hand flings slabs onto the studio floor, in a layer that turns with the camera; a flick or a released throw never spills (about 800px/s keeps every slab, about 1400px/s held .25s spills the rim, a full-width hard swipe clears the board); once the spin calms they hop back to their slots, Monday to Friday, landing with a squash. Not under reduced motion."
+      },
+      {
+        "name": "tile-throw",
+        "value": "fires once p < .9, once per planner visit; up to the top edge in ~0.3s; fall 300ms each, 40ms stagger by day (10ms heading back down)",
+        "purpose": "Leaving the docked planner upward throws the slabs off the top of the screen once per visit, only once the scroll is below 90% so overshooting the planner's top never throws the week; they fall back onto the board when the scroll rests 160ms, the board nears the hero (p < .25) or the page heads back down. Desktop and tablet only; not under reduced motion."
+      },
+      {
+        "name": "tile-deal",
+        "value": "DEAL 40ms per tile, by day then start time; landing: gravity 22 from above, squash .22 (spring 260/16), no overshoot; intro from 520ms, at most 16 steps; scroll down: lift once p > .05 (intro tiles come along: falling ones lifted where they are, unshown ones keep their moment and arrive from above into the hover), 12ms apart, hover .55 units (spring 240, damping exp(-28·dt)), dealt at e >= .995 (or scroll rest 200ms, scroll up, back at the top), gap min(40, 360/n)ms (about .5s in all), fall 200ms on u·(.35+.65u), then hand-over: tile hides, block --dealt: 1, scale(1.06) -> none from its centre, box-shadow var(--shadow-md) -> rest, 180ms var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "One landing for the 3D tiles: the intro, rebuilds, the hop back after a spin and the fall from the sky all land this way. The first committed scroll down from the top (a jiggle never does) lifts the tiles, taking any still in the intro along, and deals them onto the landed planner, each handing over to its own block; the canvas stays on, other blocks stay hidden and the stage does not dock until the deal ends; handed-over tiles come back if the board leaves the landed pose. Desktop and tablet only; not under reduced motion."
+      },
+      {
+        "name": "block-deal",
+        "value": "opacity 0 -> 1, scale(1.06) -> none from the centre (transform-origin center; blocks keep a top origin for the hover lift), box-shadow var(--shadow-md) -> rest, 220ms var(--ease) cubic-bezier(.16,1,.3,1), fill backwards (stampIn()); DEAL 40ms stagger, at most 12 steps",
+        "purpose": "One landing for the 2D week's blocks, the echo of the 3D deal: new blocks arrive a touch larger and press down to size, Monday to Friday. A course flying in from the list is revealed this way at the flight's landing. Skipped, like every 2D block animation (lift-away, flight, clash pulse), while the 3D week stands in for the blocks (--blocks below 1, no focus in #calendarWrap): one landing per change. Not under reduced motion."
       }
     ],
     "breakpoints": [
@@ -1236,7 +1256,7 @@
   ],
   "narrative": {
     "northStar": "The Week in the Studio",
-    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block fades where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
+    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. The tiles are objects and the board is their tray: whenever the week changes place or content, the tiles leave the tray and are dealt back Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second, with one landing. In 3D a tile falls, accelerating under gravity, and squashes as it lands; on the 2D week a block arrives a touch larger and presses down to size. The intro, the hop back after a spin, the fall back from the sky, the scroll down onto the planner, new blocks and the season switch all deal this way. Elsewhere motion is physical and springy: digits roll, the season thumb and blocks moving to a new slot settle with a small overshoot, and a course flies on an arc into its slot. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block lifts away where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
     "keyCharacteristics": [
       "Neutral studio greys with an off-white (light) or ink (dark) planner sheet; no tinted neutrals.",
       "Ink is the primary action colour; hot pink is a single neon note, never a fill for large surfaces.",
@@ -1245,7 +1265,8 @@
       "Pill controls, soft rectangles for surfaces, 12px for event blocks.",
       "Soft layered shadows in light mode; hairlines take over in dark mode.",
       "The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.",
-      "Three curves: the spring (~5% overshoot) for things that land, the ease-out for transitions and exits, the there-and-back in-out for one-shot pulses; everything static under reduced motion."
+      "One landing: tiles and blocks are dealt Monday to Friday, 40ms apart, the whole deal held to about half a second; a 3D tile falls under gravity and squashes, a 2D block presses from 1.06 to size.",
+      "Three curves: the spring (~5% overshoot) for things that settle into a new value or slot, the ease-out for transitions, presses and exits, the there-and-back in-out for one-shot pulses; everything static under reduced motion."
     ],
     "rules": [
       {
@@ -1305,7 +1326,8 @@
       "**Do** let free-view interactions (orbit, zoom) yield to scroll and to the copy: plain wheel scrolls, the board springs home on scroll, and it never covers the headline.",
       "**Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.",
       "**Do** pair every success, warning and danger state with an icon, dashes or an outline.",
-      "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, the ease-out (cubic-bezier(.16,1,.3,1)) for exits, and the there-and-back curve (cubic-bezier(.77,0,.175,1)) only for one-shot pulses that return to rest; make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
+      "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that settle into a new value or slot (digits, the season thumb, a block shifting lanes), the ease-out (cubic-bezier(.16,1,.3,1)) for the 2D press-in and for exits, and the there-and-back curve (cubic-bezier(.77,0,.175,1)) only for one-shot pulses that return to rest; make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
+      "**Do** deal tiles and blocks onto the week Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second (bigger weeks close the gap), with one landing per change: in 3D a fall that accelerates under gravity and ends in a squash, never a spring that overshoots into the board; in 2D a press from scale 1.06 to size about the block's centre, with a fade and the lifted shadow coming down to rest (220ms on the ease-out). While the 3D week stands in for the planner's blocks, the change lands in 3D alone.",
       "**Do** make exits shorter than their entrances (160-200ms) and send things out the way they came in, on the ease-out; the one exception is a removed block, whose opacity runs on the CSS `ease` keyword so the fade stays readable while its scale stays on the ease-out. For the opposite direction use mirrored keyframes, never `animation-direction: reverse`, which turns the ease-out into an ease-in.",
       "**Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.",
       "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
