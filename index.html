@@ -3,8 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data: blob:; font-src 'self' data:; connect-src 'self' https://r.jina.ai https://allorigins.hexlet.app https://www.e-ce.uth.gr; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; font-src 'self' data:; connect-src 'self' https://r.jina.ai https://allorigins.hexlet.app https://www.e-ce.uth.gr; base-uri 'none'; form-action 'none'">
 <title>Η εβδομάδα μου · ΤΗΜΜΥ</title>
+<meta name="description" content="Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.">
+<meta name="theme-color" content="#ededed">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
 <script>
 const systemTheme=matchMedia('(prefers-color-scheme: dark)');
 let themePreference=document.documentElement.dataset.themePreference||'system';
@@ -12,6 +16,8 @@ try{const saved=localStorage.getItem('thmmy-planner-theme');if(['system','light'
 function applyTheme(){
  document.documentElement.dataset.theme=themePreference==='system'?(systemTheme.matches?'dark':'light'):themePreference;
  document.documentElement.dataset.themePreference=themePreference;
+ // The browser bar (and an installed app's title bar) takes the page background.
+ document.querySelector('meta[name=theme-color]').content=document.documentElement.dataset.theme==='dark'?'#0b0b0b':'#ededed';
 }
 applyTheme();
 // The hero shows a skeleton of the 3D week until it is ready; only where it can load (assets/motion.js clears this
@@ -19,13 +25,13 @@ applyTheme();
 document.documentElement.classList.toggle('has-3d','WebGL2RenderingContext' in window);
 systemTheme.addEventListener('change',applyTheme);
 </script>
-<link rel="stylesheet" href="./assets/styles.css?v=report1">
+<link rel="stylesheet" href="./assets/styles.css?v=sw1">
 <!-- Fetch the data and the app at once instead of in a chain; assets/motion.js fetches the 3D week once the stylesheet
      is in. Fonts are not preloaded on purpose: Chrome holds the first paint for preloaded fonts.
      URLs and versions must match their uses below. -->
 <link rel="preload" href="./data/courses.json?v=f3e6a7eefa89" as="fetch" crossorigin>
 <link rel="preload" href="./data/guide.json?v=5020198886fc" as="fetch" crossorigin>
-<link rel="preload" href="./assets/app.js?v=report1" as="script">
+<link rel="preload" href="./assets/app.js?v=sw1" as="script">
 <script src="./assets/vendor/lenis.min.js?v=1.3.26" defer></script>
 <script src="./assets/motion.js?v=skel1" defer></script>
 </head>
@@ -63,6 +69,7 @@ systemTheme.addEventListener('change',applyTheme);
 </div><footer><span>ΤΗΜΜΥ · Η εβδομάδα μου</span><span>Ωρολόγιο από e-ce.uth.gr · Κανόνες: οδηγός σπουδών 2024-25</span><button class="link-button" id="guideButton">Πώς λειτουργούν οι έλεγχοι;</button></footer>
 </main>
 <button id="railFab" class="rail-fab" aria-controls="courseSidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span>Μαθήματα</span><span id="railFabCount" class="rail-fab-count" hidden></span></button>
+<div id="updateToast" class="update-toast" role="status" aria-live="polite" hidden><span>Υπάρχει νέα έκδοση.</span><button type="button" id="updateReload" class="primary">Ανανέωση</button><button type="button" id="updateClose" class="quiet icon-btn" aria-label="Κλείσιμο"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
 <dialog id="courseDialog"><div class="dialog-head"><div><h2 id="detailName"></h2><div id="detailCode" class="dialog-meta"></div></div><button data-close="courseDialog" aria-label="Κλείσιμο"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><div id="detailBody"></div></dialog>
 <dialog id="profileDialog"><div class="dialog-head"><div><h2>Το προφίλ σπουδών μου</h2></div><button data-close="profileDialog" aria-label="Κλείσιμο"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><div class="form-grid"><label>Έτος εισαγωγής<select id="entryYear"><option value="">Δεν έχει οριστεί</option><option value="new">2023-24 ή αργότερα</option><option value="old">Πριν από το 2023-24</option></select></label><label>Τρέχον εξάμηνο φοίτησης<select id="studySemester"><option value="">Δεν έχει οριστεί</option></select></label></div><p class="subtle">Σημείωσε τα περασμένα μαθήματα στον κατάλογο ή στις λεπτομέρειες κάθε μαθήματος. Η επιλογή ενός προαπαιτούμενου στο ίδιο πρόγραμμα δεν ισοδυναμεί με επιτυχή εξέταση.</p><label class="check-label"><input id="passedComplete" type="checkbox">Έχω καταχωρίσει όλα τα περασμένα μου μαθήματα.</label><p class="subtle">Το προφίλ και τα περασμένα παραμένουν στον browser σου. Για μεταφορά σε άλλο browser ή υπολογιστή χρησιμοποίησε «Μεταφορά δεδομένων».</p><button id="saveProfile" class="primary">Αποθήκευση προφίλ</button></dialog>
 <dialog id="sourcesDialog"><div class="dialog-head"><div><h2>Από την πηγή, στο πρόγραμμά σου.</h2></div><button data-close="sourcesDialog" aria-label="Κλείσιμο"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><p>Η διαθεσιμότητα και οι ώρες προκύπτουν από τα επίσημα ωρολόγια. Ο γενικός κατάλογος περιλαμβάνει και μαθήματα χωρίς δημοσιευμένες ώρες.</p><div id="sourceLinks" class="source-links"></div><label>Υπηρεσία ανανέωσης<select id="provider"><option value="jina">Jina Reader · δωρεάν, χωρίς λογαριασμό</option><option value="allorigins">AllOrigins (Hexlet) · εναλλακτική υπηρεσία</option><option value="direct">Απευθείας από ΤΗΜΜΥ (αν επιτρέπεται CORS)</option></select></label><p class="subtle">Η υπηρεσία λαμβάνει μόνο τα URL των δημόσιων σελίδων και τη σύνδεσή σου, όχι επιλογές, προφίλ ή περασμένα. Ενδέχεται να έχει όρια χρήσης. Σε αποτυχία κρατούνται τα προηγούμενα δεδομένα και εμφανίζεται μήνυμα. Ο οδηγός 2024-25 δεν ενημερώνεται από αυτό το κουμπί.</p><hr><h3>Εισαγωγή επίσημης σελίδας</h3><p class="subtle">Άνοιξε την αντίστοιχη πηγή, αποθήκευσέ τη από τον browser ως HTML και διάλεξε το αρχείο εδώ. Το περιεχόμενο διαβάζεται ως δεδομένα.</p><div class="form-grid"><label>Τύπος σελίδας<select id="importKind"><option value="fall">Χειμερινό ωρολόγιο</option><option value="spring">Εαρινό ωρολόγιο</option><option value="catalog">Κατάλογος μαθημάτων</option></select></label><label>Αρχείο HTML<input id="importFile" type="file" accept=".html,.htm,text/html"></label></div><p id="importStatus" role="status" class="subtle"></p></dialog>
@@ -93,7 +100,7 @@ systemTheme.addEventListener('change',applyTheme);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
   // The preloads make the app ready before the first frame; let the hero paint first (or 100ms, for background tabs).
   await Promise.race([new Promise(r=>requestAnimationFrame(()=>setTimeout(r))),new Promise(r=>setTimeout(r,100))]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=report1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=sw1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
   const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
  }catch(error){document.documentElement.classList.remove('is-loading');document.getElementById('emptyState').hidden=false;notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}

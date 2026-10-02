@@ -379,6 +379,11 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 #refresh:disabled .icon{animation:spin .9s linear infinite}
 #syncMeta{color:var(--text-3);font-size:12px}
 .notice{display:flex;gap:10px;margin:0 0 16px;padding:13px 18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);font-size:13px;line-height:1.55;animation:pop-in .4s var(--ease)}
+/* A new version is ready (sw.js already has its files, so the reload is instant): a pill floating under the header. */
+.update-toast{position:fixed;left:50%;top:calc(var(--bar) + 10px);z-index:49;display:flex;align-items:center;gap:6px;max-width:calc(100vw - 24px);padding:5px 5px 5px 18px;border-radius:var(--pill);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13.5px;font-weight:550;white-space:nowrap;transform:translateX(-50%);animation:toast-in .55s var(--ease) both}
+.update-toast[hidden]{display:none}
+.update-toast span{margin-right:6px}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,-10px) scale(.96)}}
 /* After a refresh or an import: what changed against the previous data, collapsed right under the notice. */
 .update-report{margin:-6px 0 16px;padding:0 18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:13px;line-height:1.55;animation:pop-in .4s var(--ease)}
 .update-report summary{display:flex;align-items:center;gap:10px;padding:13px 0;list-style:none;font-weight:600;cursor:pointer}
@@ -797,7 +802,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */

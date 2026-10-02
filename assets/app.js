@@ -389,7 +389,7 @@ async function downloadCopy(){
  $('saveCopy').disabled=true;
  try{
  const root=document.documentElement.cloneNode(true),json=v=>JSON.stringify(v).replace(/</g,'\\u003c');root.querySelector('#initial-data').textContent=json(data);root.querySelector('#guide-data').textContent=json(GUIDE);root.querySelector('#initial-state').textContent=json({...state,storageId:crypto.randomUUID()});root.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));root.querySelector('#notice').hidden=true;root.querySelector('#updateReport').hidden=true;root.querySelector('#refresh').disabled=false;
- root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload]').forEach(link=>link.remove());root.querySelector('#dataMenu')?.removeAttribute('open');
+ root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
  const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status);return response;};
  await Promise.all([
   ...[...root.querySelectorAll('script[src]')].map(async script=>{const code=await(await fetchAsset(new URL(script.getAttribute('src'),document.baseURI))).text();script.removeAttribute('src');script.textContent=code;}),
@@ -592,3 +592,31 @@ window.addEventListener('afterprint',()=>{
  printLayoutActive=false;
  fitCalendar();
 });
+
+// Offline and instant loads through the service worker (sw.js). It is asked to check for a new version when the page
+// loads, when it comes back into view and every half hour; a new version shows the update toast. Not in an HTML backup.
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+ const sw=navigator.serviceWorker,toast=$('updateToast');
+ let registration=null,taking=false;
+ const offer=()=>{toast.hidden=false;};
+ sw.addEventListener('message',event=>{if(event.data==='update')offer();});
+ // A new service worker took over (after "Ανανέωση"): load the page it serves.
+ sw.addEventListener('controllerchange',()=>{if(taking)location.reload();});
+ $('updateReload').onclick=()=>{
+  if(registration?.waiting){taking=true;registration.waiting.postMessage('skip-waiting');}
+  else location.reload();
+ };
+ $('updateClose').onclick=()=>{toast.hidden=true;};
+ const check=()=>{registration?.update().catch(()=>{});sw.controller?.postMessage('check');};
+ const start=async()=>{
+  try{registration=await sw.register('./sw.js',{updateViaCache:'none'});}catch{return;}
+  // A new service worker waiting behind the current one is a new version too.
+  const waiting=()=>{if(registration.waiting&&sw.controller)offer();};
+  waiting();
+  registration.addEventListener('updatefound',()=>{const next=registration.installing;next?.addEventListener('statechange',()=>{if(next.state==='installed')waiting();});});
+  check();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
+  setInterval(()=>{if(document.visibilityState==='visible')check();},30*60*1000);
+ };
+ if(document.readyState==='complete')start();else addEventListener('load',start,{once:true});
+}

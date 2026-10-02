@@ -391,6 +391,7 @@ Pills that press, never lift.
 - **Shadow Strategy:** floating plus highlight for raised surfaces (see Elevation).
 - **Border:** transparent in light, hairline in dark; warning and danger callouts use a 24-30% tinted border on the soft fill.
 - **Internal Padding:** 28px dialogs, 11-16px callouts.
+- **Update toast:** when a new version is published (sw.js has already cached its files), a pill on `surface` with the lifted shadow floats 10px under the header: "Υπάρχει νέα έκδοση." with a primary "Ανανέωση" and a quiet close. It springs in from above; print and the HTML backup leave it out.
 - **Update report:** after a refresh or an import, a collapsed "Τι άλλαξε · N αλλαγές" card on `surface` sits right under the notice and lists what changed against the previous data, grouped as changed, added and removed meetings and catalog changes (season, code and name in ink, the detail in ink-2). The next notice hides it; print and the HTML backup leave it out.
 
 ### Inputs / Fields
