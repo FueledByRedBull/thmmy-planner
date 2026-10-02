@@ -1,13 +1,7 @@
 node_modules/
 outputs/
 tmp/
-work/*
-!work/app.js
-!work/app.css
-!work/template.html
-!work/build.mjs
-!work/source-parser.js
-!work/source-seed.json
-!work/guide-rules.json
-!work/fonts.css
-!work/font-licenses.txt
+.claude/
+.impeccable/review/
+.impeccable/questions/
+THMMY-programma.html

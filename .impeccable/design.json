@@ -1,0 +1,1266 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T00:37:04.839Z",
+  "title": "Design System: Η εβδομάδα μου · ΤΗΜΜΥ",
+  "extensions": {
+    "colorMeta": {
+      "studio-grey": {
+        "role": "neutral",
+        "displayName": "Studio Grey",
+        "canonical": "#ededed",
+        "oklch": "oklch(94.6% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "planner-sheet": {
+        "role": "neutral",
+        "displayName": "Planner Sheet",
+        "canonical": "#f6f6f6",
+        "oklch": "oklch(97.3% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Surface 2",
+        "canonical": "#ececec",
+        "oklch": "oklch(94.3% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Surface 3",
+        "canonical": "#e0e0e0",
+        "oklch": "oklch(90.7% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#dedede",
+        "oklch": "oklch(90.1% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#c6c6c6",
+        "oklch": "oklch(82.7% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0e0e0e",
+        "oklch": "oklch(16.4% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#3b3b3b",
+        "oklch": "oklch(35.2% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "#636363",
+        "oklch": "oklch(50.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "neon-pink": {
+        "role": "primary",
+        "displayName": "Neon Pink",
+        "canonical": "#ef1a84",
+        "oklch": "oklch(62.4% 0.244 359.0)",
+        "tonalRamp": [
+          "#1d000b",
+          "#480023",
+          "#77013e",
+          "#aa035b",
+          "#e6007d",
+          "#ff67a2",
+          "#ffb1c9",
+          "#fee8ee"
+        ]
+      },
+      "neon-pink-hover": {
+        "role": "primary",
+        "displayName": "Neon Pink Hover",
+        "canonical": "#d40f72",
+        "oklch": "oklch(56.7% 0.225 359.7)",
+        "tonalRamp": [
+          "#1d000a",
+          "#480022",
+          "#77023d",
+          "#ab005a",
+          "#e0247c",
+          "#ff68a0",
+          "#feb1c8",
+          "#ffe7ee"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Accent",
+        "canonical": "#0e0e0e",
+        "oklch": "oklch(16.4% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Accent Soft",
+        "canonical": "#ef1a8414",
+        "oklch": "oklch(62.4% 0.244 359.0)",
+        "tonalRamp": [
+          "#1d000b",
+          "#480023",
+          "#77013e",
+          "#aa035b",
+          "#e6007d",
+          "#ff67a2",
+          "#ffb1c9",
+          "#fee8ee"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "canonical": "#0f7a3d",
+        "oklch": "oklch(50.9% 0.130 151.5)",
+        "tonalRamp": [
+          "#001004",
+          "#012d12",
+          "#004e23",
+          "#047136",
+          "#379657",
+          "#5fbc7a",
+          "#86e39f",
+          "#c7ffd4"
+        ]
+      },
+      "success-soft": {
+        "role": "semantic",
+        "displayName": "Success Soft",
+        "canonical": "#0f7a3d14",
+        "oklch": "oklch(50.9% 0.130 151.5)",
+        "tonalRamp": [
+          "#001004",
+          "#012d12",
+          "#004e23",
+          "#047136",
+          "#379657",
+          "#5fbc7a",
+          "#86e39f",
+          "#c7ffd4"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "canonical": "#985200",
+        "oklch": "oklch(51.2% 0.121 59.0)",
+        "tonalRamp": [
+          "#160700",
+          "#391b00",
+          "#613201",
+          "#8b4b01",
+          "#b46c2a",
+          "#dc9151",
+          "#ffba82",
+          "#feeadc"
+        ]
+      },
+      "warning-soft": {
+        "role": "semantic",
+        "displayName": "Warning Soft",
+        "canonical": "#e8890c1a",
+        "oklch": "oklch(71.6% 0.161 63.0)",
+        "tonalRamp": [
+          "#150700",
+          "#371c00",
+          "#5e3402",
+          "#884d01",
+          "#b76b07",
+          "#e98a10",
+          "#ffba7b",
+          "#feebda"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "canonical": "#d61f3a",
+        "oklch": "oklch(56.5% 0.212 21.2)",
+        "tonalRamp": [
+          "#1e0002",
+          "#4a000b",
+          "#7b011a",
+          "#b00229",
+          "#e33044",
+          "#ff7074",
+          "#feb5b2",
+          "#ffe9e7"
+        ]
+      },
+      "danger-soft": {
+        "role": "semantic",
+        "displayName": "Danger Soft",
+        "canonical": "#d61f3a12",
+        "oklch": "oklch(56.5% 0.212 21.2)",
+        "tonalRamp": [
+          "#1e0002",
+          "#4a000b",
+          "#7b011a",
+          "#b00229",
+          "#e33044",
+          "#ff7074",
+          "#feb5b2",
+          "#ffe9e7"
+        ]
+      },
+      "studio-floor": {
+        "role": "neutral",
+        "displayName": "Studio Floor",
+        "canonical": "#e1e1e1",
+        "oklch": "oklch(91.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "studio-glow": {
+        "role": "neutral",
+        "displayName": "Studio Glow",
+        "canonical": "#fcfcfc",
+        "oklch": "oklch(99.1% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-studio-grey": {
+        "role": "neutral",
+        "displayName": "Dark studio Grey",
+        "canonical": "#0b0b0b",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-planner-sheet": {
+        "role": "neutral",
+        "displayName": "Dark planner Sheet",
+        "canonical": "#111111",
+        "oklch": "oklch(17.8% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark surface",
+        "canonical": "#181818",
+        "oklch": "oklch(20.9% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-surface-2": {
+        "role": "neutral",
+        "displayName": "Dark surface 2",
+        "canonical": "#1e1e1e",
+        "oklch": "oklch(23.5% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-surface-3": {
+        "role": "neutral",
+        "displayName": "Dark surface 3",
+        "canonical": "#282828",
+        "oklch": "oklch(27.7% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-hairline": {
+        "role": "neutral",
+        "displayName": "Dark hairline",
+        "canonical": "#242424",
+        "oklch": "oklch(26.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-hairline-strong": {
+        "role": "neutral",
+        "displayName": "Dark hairline Strong",
+        "canonical": "#363636",
+        "oklch": "oklch(33.3% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark ink",
+        "canonical": "#f2f2f2",
+        "oklch": "oklch(96.1% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-ink-2": {
+        "role": "neutral",
+        "displayName": "Dark ink 2",
+        "canonical": "#bdbdbd",
+        "oklch": "oklch(79.8% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-ink-3": {
+        "role": "neutral",
+        "displayName": "Dark ink 3",
+        "canonical": "#8f8f8f",
+        "oklch": "oklch(65.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-neon-pink": {
+        "role": "primary",
+        "displayName": "Dark neon Pink",
+        "canonical": "#ff4fa8",
+        "oklch": "oklch(69.7% 0.225 353.5)",
+        "tonalRamp": [
+          "#1d000d",
+          "#470028",
+          "#750246",
+          "#a80266",
+          "#dc288a",
+          "#ff64ae",
+          "#feb0cf",
+          "#fee7f0"
+        ]
+      },
+      "dark-neon-pink-hover": {
+        "role": "primary",
+        "displayName": "Dark neon Pink Hover",
+        "canonical": "#ff73ba",
+        "oklch": "oklch(74.3% 0.186 350.9)",
+        "tonalRamp": [
+          "#1d000e",
+          "#46002a",
+          "#75004a",
+          "#a3176a",
+          "#cd458e",
+          "#f76cb3",
+          "#ffafd3",
+          "#fee7f1"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Dark accent Soft",
+        "canonical": "#ff4fa81f",
+        "oklch": "oklch(69.7% 0.225 353.5)",
+        "tonalRamp": [
+          "#1d000d",
+          "#470028",
+          "#750246",
+          "#a80266",
+          "#dc288a",
+          "#ff64ae",
+          "#feb0cf",
+          "#fee7f0"
+        ]
+      },
+      "dark-success": {
+        "role": "semantic",
+        "displayName": "Dark success",
+        "canonical": "#4ade80",
+        "oklch": "oklch(80.0% 0.182 151.7)",
+        "tonalRamp": [
+          "#001004",
+          "#012d12",
+          "#004e23",
+          "#037137",
+          "#039a4d",
+          "#22c367",
+          "#5aeb8c",
+          "#c7ffd4"
+        ]
+      },
+      "dark-success-soft": {
+        "role": "semantic",
+        "displayName": "Dark success Soft",
+        "canonical": "#4ade801a",
+        "oklch": "oklch(80.0% 0.182 151.7)",
+        "tonalRamp": [
+          "#001004",
+          "#012d12",
+          "#004e23",
+          "#037137",
+          "#039a4d",
+          "#22c367",
+          "#5aeb8c",
+          "#c7ffd4"
+        ]
+      },
+      "dark-warning": {
+        "role": "semantic",
+        "displayName": "Dark warning",
+        "canonical": "#fbbf24",
+        "oklch": "oklch(83.7% 0.164 84.4)",
+        "tonalRamp": [
+          "#110a00",
+          "#302101",
+          "#523c02",
+          "#775800",
+          "#a27903",
+          "#cf9b07",
+          "#fcc026",
+          "#feedc9"
+        ]
+      },
+      "dark-warning-soft": {
+        "role": "semantic",
+        "displayName": "Dark warning Soft",
+        "canonical": "#fbbf241a",
+        "oklch": "oklch(83.7% 0.164 84.4)",
+        "tonalRamp": [
+          "#110a00",
+          "#302101",
+          "#523c02",
+          "#775800",
+          "#a27903",
+          "#cf9b07",
+          "#fcc026",
+          "#feedc9"
+        ]
+      },
+      "dark-danger": {
+        "role": "semantic",
+        "displayName": "Dark danger",
+        "canonical": "#ff5c6c",
+        "oklch": "oklch(69.4% 0.198 18.3)",
+        "tonalRamp": [
+          "#1f0003",
+          "#4a000f",
+          "#7b011f",
+          "#b00231",
+          "#dd3b51",
+          "#fe707a",
+          "#ffb4b5",
+          "#fee9e8"
+        ]
+      },
+      "dark-danger-soft": {
+        "role": "semantic",
+        "displayName": "Dark danger Soft",
+        "canonical": "#ff5c6c1c",
+        "oklch": "oklch(69.4% 0.198 18.3)",
+        "tonalRamp": [
+          "#1f0003",
+          "#4a000f",
+          "#7b011f",
+          "#b00231",
+          "#dd3b51",
+          "#fe707a",
+          "#ffb4b5",
+          "#fee9e8"
+        ]
+      },
+      "dark-studio-floor": {
+        "role": "neutral",
+        "displayName": "Dark studio Floor",
+        "canonical": "#040404",
+        "oklch": "oklch(10.7% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "dark-studio-glow": {
+        "role": "neutral",
+        "displayName": "Dark studio Glow",
+        "canonical": "#1e1e1e",
+        "oklch": "oklch(23.5% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
+      },
+      "course-cobalt": {
+        "role": "course",
+        "displayName": "Course Cobalt",
+        "canonical": "#3b5bff",
+        "oklch": "oklch(55.6% 0.244 268.3)",
+        "tonalRamp": [
+          "#020034",
+          "#0c0175",
+          "#1a03bd",
+          "#2a3fe4",
+          "#4b70ff",
+          "#7e9fff",
+          "#b5c9ff",
+          "#e8eefe"
+        ]
+      },
+      "course-hot-pink": {
+        "role": "course",
+        "displayName": "Course Hot Pink",
+        "canonical": "#ff4fa8",
+        "oklch": "oklch(69.7% 0.225 353.5)",
+        "tonalRamp": [
+          "#1d000d",
+          "#470028",
+          "#750246",
+          "#a80266",
+          "#dc288a",
+          "#ff64ae",
+          "#feb0cf",
+          "#fee7f0"
+        ]
+      },
+      "course-tangerine": {
+        "role": "course",
+        "displayName": "Course Tangerine",
+        "canonical": "#ff7b2e",
+        "oklch": "oklch(72.6% 0.182 46.6)",
+        "tonalRamp": [
+          "#190500",
+          "#3f1600",
+          "#692a01",
+          "#973f00",
+          "#cc5804",
+          "#fd792b",
+          "#feb896",
+          "#feeae0"
+        ]
+      },
+      "course-violet": {
+        "role": "course",
+        "displayName": "Course Violet",
+        "canonical": "#8f5cff",
+        "oklch": "oklch(61.6% 0.229 292.8)",
+        "tonalRamp": [
+          "#0f002a",
+          "#2b0161",
+          "#4b009f",
+          "#692acf",
+          "#8a57f9",
+          "#a98fff",
+          "#ccc1fe",
+          "#efecff"
+        ]
+      },
+      "course-aqua": {
+        "role": "course",
+        "displayName": "Course Aqua",
+        "canonical": "#1fd1c1",
+        "oklch": "oklch(77.6% 0.133 184.9)",
+        "tonalRamp": [
+          "#000f0d",
+          "#022b27",
+          "#024b44",
+          "#006d64",
+          "#089488",
+          "#04beaf",
+          "#45e6d6",
+          "#b9fff5"
+        ]
+      },
+      "course-lemon": {
+        "role": "course",
+        "displayName": "Course Lemon",
+        "canonical": "#ffd43b",
+        "oklch": "oklch(88.3% 0.165 92.2)",
+        "tonalRamp": [
+          "#100b00",
+          "#2d2300",
+          "#4e3e01",
+          "#715b04",
+          "#9a7d08",
+          "#c5a103",
+          "#f1c624",
+          "#ffeeba"
+        ]
+      },
+      "course-sky": {
+        "role": "course",
+        "displayName": "Course Sky",
+        "canonical": "#3ab8ff",
+        "oklch": "oklch(74.6% 0.148 238.7)",
+        "tonalRamp": [
+          "#000d18",
+          "#00273d",
+          "#024566",
+          "#056492",
+          "#0389c7",
+          "#2eb0f6",
+          "#93d3ff",
+          "#dff1fe"
+        ]
+      },
+      "course-orchid": {
+        "role": "course",
+        "displayName": "Course Orchid",
+        "canonical": "#d34df0",
+        "oklch": "oklch(66.6% 0.250 319.9)",
+        "tonalRamp": [
+          "#18001e",
+          "#3c0148",
+          "#650078",
+          "#9202ab",
+          "#bd33d9",
+          "#e366fe",
+          "#efaffe",
+          "#fae7ff"
+        ]
+      },
+      "course-periwinkle": {
+        "role": "course",
+        "displayName": "Course Periwinkle",
+        "canonical": "#9db4ff",
+        "oklch": "oklch(78.1% 0.111 270.6)",
+        "tonalRamp": [
+          "#040033",
+          "#121a58",
+          "#2b3979",
+          "#46589c",
+          "#677cc2",
+          "#8aa1ea",
+          "#b7c9ff",
+          "#e9eefe"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Two-line hero headline only; line-mask reveal."
+      },
+      "display-phone": {
+        "displayName": "Display (phone)",
+        "purpose": "Hero headline at 860px and below."
+      },
+      "stat": {
+        "displayName": "Stat",
+        "purpose": "Week totals as odometer digits."
+      },
+      "stat-phone": {
+        "displayName": "Stat (phone)",
+        "purpose": "Week totals at 860px and below."
+      },
+      "title-lg": {
+        "displayName": "Title Large",
+        "purpose": "Empty-state title."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "Checks summary and dialog subheads."
+      },
+      "print-title": {
+        "displayName": "Print Title",
+        "purpose": "Print only: schedule heading."
+      },
+      "print-stat": {
+        "displayName": "Print Stat",
+        "purpose": "Print only: week totals."
+      },
+      "print-day": {
+        "displayName": "Print Day",
+        "purpose": "Print only: day names."
+      },
+      "print-event": {
+        "displayName": "Print Event",
+        "purpose": "Print only: course names in blocks."
+      },
+      "print-meta": {
+        "displayName": "Print Meta",
+        "purpose": "Print only: event times, rooms, day meta."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Dialog titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel headings: course rail, weekly schedule."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Hero sub-sentence, max 31ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text, tabular figures; paragraphs at 1.6 line height."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons, selects, menu items, season switch."
+      },
+      "event-title": {
+        "displayName": "Event Title",
+        "purpose": "Course names inside event blocks."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Course meta, sync time, footer, tooltips."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Tags, badges, counters; sentence case."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px #0e0e0e12,0 1px 1px #0e0e0e0a",
+        "dark": "0 1px 2px #0008",
+        "purpose": "Default buttons and event blocks."
+      },
+      {
+        "name": "lifted",
+        "value": "0 12px 28px -12px #0e0e0e2e,0 2px 6px -2px #0e0e0e14",
+        "dark": "0 14px 30px -14px #000d,0 2px 6px -2px #0009",
+        "purpose": "Ink pills, season thumb, hovered event blocks, tooltips."
+      },
+      {
+        "name": "floating",
+        "value": "0 32px 64px -24px #0e0e0e40,0 6px 16px -6px #0e0e0e17",
+        "dark": "0 36px 72px -28px #000,0 6px 16px -6px #000a",
+        "purpose": "Dialogs, menus, rail drawer, rail button."
+      },
+      {
+        "name": "highlight",
+        "value": "inset 0 1px 0 #ffffffcc",
+        "dark": "inset 0 1px 0 #ffffff12",
+        "purpose": "Top-edge highlight paired with lifted and floating surfaces."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "0 -1px 0 color-mix(in srgb,var(--line-strong) 50%,transparent),0 -30px 60px -34px #0e0e0e59",
+        "purpose": "Planner sheet top edge over the hero."
+      },
+      {
+        "name": "header-pill",
+        "value": "0 12px 32px -20px #0e0e0e59,var(--highlight)",
+        "purpose": "Floating frosted header pill (with blur(20px) saturate(1.5))."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Default expo-out for transitions, entrances, drawers, dialogs."
+      },
+      {
+        "name": "spring",
+        "value": "linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)",
+        "purpose": "~5% overshoot for things that land: odometer digits, season thumb, landed blocks. Falls back to the ease curve."
+      },
+      {
+        "name": "control-state",
+        "value": ".18s",
+        "purpose": "Colour, border and press transitions on controls; press is scale(.96)."
+      },
+      {
+        "name": "odometer",
+        "value": ".9s spring, 40ms per-digit stagger",
+        "purpose": "Stat digits roll to new values (countTo)."
+      },
+      {
+        "name": "flight",
+        "value": "660ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
+        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block settles with the spring at +580ms. The 3px is a motion detail, not a radius token."
+      },
+      {
+        "name": "season-turn",
+        "value": "out .3s cubic-bezier(.4,0,1,1), in .7s ease; rotateY 16deg, perspective 1600px",
+        "purpose": "Season switch turns the week via view transition, direction-aware."
+      },
+      {
+        "name": "detail-morph",
+        "value": ".52s ease view transition",
+        "purpose": "Course dialog grows out of the clicked block or title (morphOpen())."
+      },
+      {
+        "name": "hero-reveal",
+        "value": "line-in 1.2s ease, .1s/.19s stagger; sub and CTA fade-up at .42s/.54s; sheet-in 1.2s at .36s",
+        "purpose": "First-viewport entrance."
+      },
+      {
+        "name": "scroll-linked",
+        "value": "animation-timeline: scroll(root)",
+        "purpose": "Hero copy lifts away over 60svh, header docks onto a solid bar, rail button rises as the sheet docks."
+      },
+      {
+        "name": "scroll-morph",
+        "value": "e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks)",
+        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns; slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
+      },
+      {
+        "name": "free-view",
+        "value": "pointerdown catches (aim = current pose); held: yaw/pitch spring to aim (170/19); throw keeps spring velocity soft-limited by m*tanh(v/m) (m 12 yaw, 2.8 pitch; 0 under reduced motion), then drag exp(-dt*3.2) plus constant grip 2.6 rad/s^2 (flick 3 rad/s -> 32deg in .48s, 8 -> 95deg .70s, 16 -> 153deg .82s, 30 -> 177deg .87s); a thrown tilt stays within the same .1 rubber stretch (peak .098), never reaching the elevation clamp; yaw free; pitch [-.4, .86] on a .56 rad base, rubber band past it (STRETCH .1, asymptotic) with spring-back 160/18; camera elevation clamped [.06, pi/2-.04]; zoom eases to aim (120/18); zoom [.8, 1.6] by pinch or Ctrl+wheel; 5px drag threshold; double-click resets",
+        "purpose": "Hero board free view. Touch: horizontal swipes spin, vertical swipes scroll (.hero touch-action: pan-y pinch-zoom). Orbit springs home once scroll progress > 0 and its offsets scale by (1 - e), so the landing stays exact."
+      },
+      {
+        "name": "free-view-feel",
+        "value": "lift .24 while dragging (95/15), one small settle on release (150/13); bank from yaw velocity (clamp .16) and nod from pitch velocity (clamp .12), 110/13; jelly lean rx/rz per slab 170/14 scaled by slab height and distance from centre; squash scale.y from lift velocity (clamp .14); all times calm (1 - e)",
+        "purpose": "Pseudo-physics weight on the hero board. Reduced motion: drag sets the pose directly, no throw, lift, settle or jelly."
+      },
+      {
+        "name": "drawer-handoff",
+        "value": "body.rail-open",
+        "purpose": "Open tablet drawer or phone sheet: 3D stage hidden and not rendered (treated as docked); planner forced fully in (--chrome:1, --blocks:1, empty state opaque) so the fixed layer never draws over the drawer."
+      },
+      {
+        "name": "copy-clearance",
+        "value": "spring pan; board quad >= 4px right of the copy box (12px above on phones); fades out as e rises",
+        "purpose": "Keeps headline, sub and CTA in front at any orbit or zoom; the home pose needs no pan."
+      },
+      {
+        "name": "slab-height",
+        "value": "h = .18 + (min(5, n) - 1) * .22 world units",
+        "purpose": "Slab height encodes weekly meetings n: once is nearly flat, three or more clearly tall."
+      },
+      {
+        "name": "ring-trace",
+        "value": ".8s ease infinite alternate, outline-offset -3px to -6px",
+        "purpose": "Conflict trace pulses its red ring inward inside the block."
+      },
+      {
+        "name": "smooth-scroll",
+        "value": "Lenis lerp .085",
+        "purpose": "Page smooth scroll; nested scrollers and dialogs stay native."
+      },
+      {
+        "name": "drawer",
+        "value": "transform .5s ease",
+        "purpose": "Rail side drawer and phone bottom sheet; dialogs rise as sheets on phones."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "860px",
+        "purpose": "max-width: vertical day agenda, rail as bottom sheet with scrim, dialogs as bottom sheets, 24px sheet radius, 3D tilt-away instead of the scroll morph."
+      },
+      {
+        "name": "tablet",
+        "value": "861px-1180px",
+        "purpose": "Full-width week, rail as side drawer."
+      },
+      {
+        "name": "desktop",
+        "value": "1181px",
+        "purpose": "min-width: docked 340px rail beside the week."
+      },
+      {
+        "name": "lane-time-code",
+        "value": "112px (container, screen)",
+        "purpose": "Narrow lane: start time plus course code."
+      },
+      {
+        "name": "lane-code",
+        "value": "60px (container)",
+        "purpose": "Narrower lane: course code only."
+      },
+      {
+        "name": "lane-number",
+        "value": "50px (container)",
+        "purpose": "Four or more parallel lessons: the shared ECE prefix hides, the course number stays."
+      },
+      {
+        "name": "print",
+        "value": "A4 landscape",
+        "purpose": "Dedicated one-sheet print layout."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Surface pill with hairline border; the default control.",
+      "html": "<button class=\"ds-btn\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4\"/><path d=\"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/></svg>Ανανέωση</button>",
+      "css": ".ds-btn{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm);font-size:13px;font-weight:550;line-height:1.3;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn:hover{background:var(--surface-2)}.ds-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink pill for the main action; hover mixes 20% neon pink into the ink.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4\"/><path d=\"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/></svg>Ανανέωση από ΤΗΜΜΥ</button>",
+      "css": ".ds-btn-primary{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 20px;border:1px solid transparent;border-radius:999px;background:var(--text);color:var(--sheet);box-shadow:var(--shadow-md);font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}.ds-btn-primary:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Borderless pill for header and menu actions; hover is a 7% ink wash.",
+      "html": "<button class=\"ds-btn-quiet\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2\"/><path d=\"M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4\"/><path d=\"M7 15a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z\"/></svg>Εκτύπωση</button>",
+      "css": ".ds-btn-quiet{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--text);font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn-quiet:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}.ds-btn-quiet:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Pill well on surface-2; focus turns the border ink with a soft ring.",
+      "html": "<label class=\"ds-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a7 7 0 1 0 14 0 7 7 0 1 0-14 0\"/><path d=\"m21 21-6-6\"/></svg><input type=\"search\" placeholder=\"Τίτλος ή κωδικός μαθήματος\"></label>",
+      "css": ".ds-search{position:relative;display:flex;align-items:center;width:300px}.ds-search svg{position:absolute;left:16px;color:var(--text-3);pointer-events:none}.ds-search input{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:100%;height:44px;padding:0 16px 0 42px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--text);font-size:13px;appearance:none;transition:border-color .18s,box-shadow .18s,background-color .18s}.ds-search input::placeholder{color:var(--text-3)}.ds-search input:hover{border-color:var(--line-strong)}.ds-search input:focus-visible{outline:0;border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--text) 14%,transparent);background:var(--surface)}"
+    },
+    {
+      "name": "Theme Control",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "One quiet pill: icon follows the choice (sun, moon, sun-moon), inline chevron.",
+      "html": "<label class=\"ds-theme\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 12a4 4 0 1 0 8 0 4 4 0 1 0-8 0\"/><path d=\"M3 12h1m8-9v1m8 8h1m-9 8v1m-6.4-15.4.7.7m12.1-.7-.7.7m0 11.4.7.7m-12.1-.7-.7.7\"/></svg><select aria-label=\"Θέμα εμφάνισης\"><option>Φωτεινό</option><option>Σκοτεινό</option><option>Σύστημα</option></select><svg class=\"ds-chev\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></label>",
+      "css": ".ds-theme{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;display:inline-flex;align-items:center;color:var(--text)}.ds-theme>svg{position:absolute;left:13px;pointer-events:none;color:var(--text-3)}.ds-theme .ds-chev{left:auto;right:12px}.ds-theme select{font:inherit;height:38px;padding:0 32px 0 36px;appearance:none;border:1px solid transparent;border-radius:999px;background:transparent;color:inherit;font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s}.ds-theme select:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}.ds-theme select:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+    },
+    {
+      "name": "Season Switch",
+      "kind": "nav",
+      "refersTo": "button",
+      "description": "Segmented pill track with an ink thumb that springs under the active season.",
+      "html": "<div class=\"ds-season\"><button aria-pressed=\"true\">Χειμερινό</button><button aria-pressed=\"false\">Εαρινό</button></div>",
+      "css": ".ds-season{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;isolation:isolate;display:inline-flex;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2)}.ds-season::before{content:'';position:absolute;top:4px;bottom:4px;left:4px;z-index:-1;width:calc(50% - 4px);border-radius:999px;background:var(--text);box-shadow:var(--shadow-md);transition:transform .5s var(--spring)}.ds-season:has(button:last-child[aria-pressed=true])::before{transform:translateX(100%)}.ds-season button{font:inherit;min-width:116px;min-height:38px;border:0;border-radius:999px;background:none;color:var(--text-3);font-size:13px;font-weight:550;cursor:pointer;transition:color .3s}.ds-season button:hover{color:var(--text)}.ds-season button[aria-pressed=true]{color:var(--sheet)}.ds-season button:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+    },
+    {
+      "name": "Floating Header",
+      "kind": "nav",
+      "refersTo": "button-quiet",
+      "description": "Frosted pill header floating over the hero; docks onto a solid bar over the planner.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">ΗΜ<br>ΜΥ</span><span class=\"ds-nav-brand\">Πανεπιστήμιο Θεσσαλίας<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span><nav><a href=\"#\">Το προφίλ σπουδών μου</a><a href=\"#\">Δεδομένα</a><a href=\"#\">Εκτύπωση</a></nav></header>",
+      "css": ".ds-nav{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--line-strong) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 12px 32px -20px #0e0e0e59,var(--highlight)}.ds-nav-mark{display:grid;place-content:center;width:38px;height:38px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:11px;font-weight:700;line-height:1;text-align:center}.ds-nav-brand{font-size:13px;font-weight:600;line-height:1.25;color:var(--text)}.ds-nav-brand small{display:block;color:var(--text-3);font-size:12px;font-weight:400}.ds-nav nav{display:flex;gap:2px;margin-left:auto}.ds-nav a{padding:9px 14px;border-radius:999px;color:var(--text);font-size:13px;font-weight:550;text-decoration:none;transition:background-color .18s}.ds-nav a:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}.ds-nav a:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+    },
+    {
+      "name": "Tags and Badges",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Pill tags; semantic tones always carry an icon; ECTS credits are an ink pill; today is the one pink pill.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag\">1ο εξ.</span><span class=\"ds-tag ds-ok\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 5 5L20 7\"/></svg>Περασμένο</span><span class=\"ds-tag ds-warn\">Έλεγχος</span><span class=\"ds-credit\">6 ECTS</span><span class=\"ds-today\">Παρασκευή</span></div>",
+      "css": ".ds-tags{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ds-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:var(--surface-3);color:var(--text-2);font-size:11.5px;font-weight:600;line-height:1.5}.ds-ok{background:var(--success-soft);color:var(--success)}.ds-warn{background:var(--warning-soft);color:var(--warning)}.ds-credit{padding:1px 8px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:11px;font-weight:600}.ds-today{padding:1px 10px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:14.5px;font-weight:600}"
+    },
+    {
+      "name": "Event Block",
+      "kind": "custom",
+      "refersTo": "event-block",
+      "description": "A course on the week: full course hue, white sheen, ink or white text by contrast; review and conflict rings sit inside the block.",
+      "html": "<div class=\"ds-week\"><button class=\"ds-event\" style=\"--c:#8f5cff;--on:#ffffff\"><small>09:00-11:00</small><strong>Γραμμική Άλγεβρα</strong><span>Διάλεξη · Αμφ. Ηλία Χούστη</span></button><button class=\"ds-event ds-conflict\" style=\"--c:#1fd1c1;--on:#0e0e0e\"><small>11:00-13:00 ⚠</small><strong>Συστήματα Βάσεων Δεδομένων Ι</strong><span>Διάλεξη · Αμφ. 3</span></button><button class=\"ds-event ds-review\" style=\"--c:#ffd43b;--on:#0e0e0e\"><small>14:00</small><strong>ECE121</strong></button></div>",
+      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffffff40,transparent 46%) var(--c);color:var(--on);box-shadow:var(--shadow-sm),inset 0 0 0 1px #0e0e0e14;text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:11px;font-weight:600;opacity:.84}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:11px;opacity:.86}.ds-event:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}.ds-event:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,currentColor 16%,transparent) 7px 9px)}"
+    },
+    {
+      "name": "Stat Odometer",
+      "kind": "custom",
+      "refersTo": "button",
+      "description": "Week totals at display scale in hairline-divided cells; overlaps turn red.",
+      "html": "<div class=\"ds-stats\"><span><small>Μαθήματα</small><b>22</b></span><span><small>Ώρες</small><b>53</b></span><span class=\"ds-bad\"><small>Επικαλύψεις</small><b>27</b></span><span><small>ECTS</small><b>126</b></span></div>",
+      "css": ".ds-stats{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--text)}.ds-stats>span{display:flex;flex-direction:column;gap:2px;padding:2px 22px 4px;border-left:1px solid var(--line)}.ds-stats>span:first-child{padding-left:0;border-left:0}.ds-stats small{color:var(--text-3);font-size:12.5px;font-weight:500}.ds-stats b{font-size:clamp(40px,4.4vw,66px);font-weight:560;line-height:1.2;letter-spacing:-.04em}.ds-bad small,.ds-bad b{color:var(--danger)}"
+    },
+    {
+      "name": "Dialog Card",
+      "kind": "card",
+      "refersTo": "dialog",
+      "description": "Raised 28px surface with floating shadow and highlight; hairline edge in dark mode.",
+      "html": "<div class=\"ds-dialog\"><h2>Γραμμική Άλγεβρα</h2><p class=\"ds-dialog-meta\">ECE117 · 1ο εξάμηνο · 6 ECTS</p><div class=\"ds-dialog-row\">Δευτέρα 09:00-11:00 · Αμφ. Ηλία Χούστη</div></div>",
+      "css": ".ds-dialog{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:420px;padding:28px;border:1px solid transparent;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-lg),var(--highlight)}.ds-dialog h2{margin:0;font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-.03em}.ds-dialog-meta{margin:6px 0 18px;color:var(--text-3);font-size:12.5px;font-weight:500}.ds-dialog-row{padding:11px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);font-size:13.5px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Week in the Studio",
+    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. Elsewhere motion is physical and springy: things land with a small overshoot, digits roll, a course flies on an arc into its slot, and the season switch turns the week in 3D. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
+    "keyCharacteristics": [
+      "Neutral studio greys with an off-white (light) or ink (dark) planner sheet; no tinted neutrals.",
+      "Ink is the primary action colour; hot pink is a single neon note, never a fill for large surfaces.",
+      "Nine vivid course hues, full-strength on event blocks, with ink or white text chosen by contrast.",
+      "Geologica everywhere, tabular figures by default, display sizes with tight negative tracking.",
+      "Pill controls, soft rectangles for surfaces, 12px for event blocks.",
+      "Soft layered shadows in light mode; hairlines take over in dark mode.",
+      "The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.",
+      "Spring motion with a ~5% overshoot; everything static under reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "The One Neon Rule",
+        "body": "Hot pink is the only accent and it appears as small marks (a full stop, a day pill, a count, a hover), never as a button fill or a section background. Primary actions are ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Colour Is the Course Rule",
+        "body": "Saturation belongs to the course palette. Chrome stays grey and ink; no course is ever grey, and no course hue is pure green, amber or red, so courses can never be mistaken for a state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never Colour Alone Rule",
+        "body": "Every semantic state carries a second signal: passed is a filled green swatch plus a check icon; review is a dashed amber outline plus a hatch; overlap is a solid red outline plus a warning icon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numbers Are the Headline Rule",
+        "body": "Figures are tabular everywhere, and the week's totals are set at display scale, not tucked into small chips.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Geologica carries every role; hierarchy comes from size, weight and tracking, never from a second display face.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Sideways Week Rule",
+        "body": "The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog.",
+        "section": "layout"
+      },
+      {
+        "name": "The Print Is Its Own Layout Rule",
+        "body": "Print is one A4 landscape sheet: chrome hidden, blocks at a 45% tint on white with ink text, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off.",
+        "section": "layout"
+      },
+      {
+        "name": "The Press, Don't Lift Rule",
+        "body": "Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (2px) on hover, because they are objects on the board.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Rings Inside Rule",
+        "body": "State and highlight outlines on event blocks sit inside the block (negative offset), never outside it.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Hairline in the Dark Rule",
+        "body": "In dark mode every raised surface (dialog, menu, tooltip, drawer, sheet) gets a 1px hairline edge, since shadows cannot read on ink.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** make primary actions ink pills; keep hot pink to small marks (full stop, today, counts, hover).",
+      "**Do** give every pressable thing a full pill shape and the 0.96 press.",
+      "**Do** let free-view interactions (orbit, zoom) yield to scroll and to the copy: plain wheel scrolls, the board springs home on scroll, and it never covers the headline.",
+      "**Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.",
+      "**Do** pair every success, warning and danger state with an icon, dashes or an outline.",
+      "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, and make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
+      "**Do** keep five equal day columns and step narrow lanes down (time and code, code, number) rather than widening a busy day.",
+      "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
+      "**Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.",
+      "**Do** use tabular figures and display-scale numerals for the week's totals."
+    ],
+    "donts": [
+      "**Don't** add a second accent colour or fill buttons, panels or headers with neon pink.",
+      "**Don't** use grey, pure green, amber or red as a course colour.",
+      "**Don't** introduce a second typeface or uppercase tracked labels; Geologica in sentence case carries every role.",
+      "**Don't** use square or small-radius buttons; nothing pressable sits between pill and rectangle.",
+      "**Don't** lift controls on hover or use hard offset shadows; controls press, only event blocks lift.",
+      "**Don't** draw state or highlight rings outside an event block.",
+      "**Don't** tint the neutrals cool or warm; the studio greys are neutral."
+    ]
+  }
+}
