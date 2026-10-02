@@ -12,7 +12,7 @@
  reduce.addEventListener('change',sync);
  const start=()=>{
   if(!document.getElementById('week3d')||!('WebGL2RenderingContext' in window))return;
-  import('./week3d.js?v=heavy2').catch(()=>{});
+  import('./week3d.js?v=engrave2').catch(()=>{});
  };
  addEventListener('load',()=>'requestIdleCallback' in window?requestIdleCallback(start,{timeout:900}):setTimeout(start,200),{once:true});
 })();

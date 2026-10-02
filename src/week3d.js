@@ -80,13 +80,16 @@ function clearance(){
 // Free view: drag the hero board to orbit it (pinch or Ctrl+wheel zooms), double-click to reset. It glides home as soon
 // as the page scrolls, so the landing on the planner always starts from the hero pose. Offsets from the hero pose:
 const orbit={yaw:{x:0,v:0},pitch:{x:0,v:0},zoom:{x:1,v:0},aim:{yaw:0,pitch:0,zoom:1},drag:null,home:false};
+// Free view (orbit, zoom, reset) only with the page at the top: once it scrolls, the morph owns the board, and a hand
+// still holding it lets go to the homing spring rather than spinning a board that is flying onto the planner.
+const FREE=.002;
 const PITCH=[-.4,.86],ZOOM=[.8,1.6];
 const clampPitch=x=>Math.min(PITCH[1],Math.max(PITCH[0],x));
 // Past its limits, pitch meets a rubber band (at most .1 rad further) instead of a wall.
 const STRETCH=.1,rubber=x=>x<PITCH[0]?PITCH[0]-STRETCH*(1-1/((PITCH[0]-x)/STRETCH+1)):x>PITCH[1]?PITCH[1]+STRETCH*(1-1/((x-PITCH[1])/STRETCH+1)):x;
 // Physical feel: the board lifts while held and drops back with a bounce, banks into its spin and nods with its tilt.
 const feel={lift:{x:0,v:0},bank:{x:0,v:0},nod:{x:0,v:0}};
-let suppressClick=false;
+let suppressClick=false,down=null;
 
 function palette(){
  const dark=root.dataset.theme==='dark';
@@ -117,6 +120,7 @@ function slabGeometry(w,d,h,r){
  // Extrusion runs along +z; turn it upright so the slab stands on y=0.
  g.rotateX(-Math.PI/2);
  g.translate(0,bevel,0);
+ g.userData.bevel=bevel;
  geometries.set(id,g);
  return g;
 }
@@ -144,6 +148,8 @@ function drawLabels(){
   const y=top+i*HOUR*k;
   g.beginPath();g.moveTo(left,y);g.lineTo((size.w-PAD*.5)*k,y);g.stroke();
   g.fillText(hhmm(hours.min+i*60),left-14,y+(i===0?14:0));
+  // Half hours: a fainter, dashed line, as fine as the planner's own grid can be read.
+  if(i<span){g.save();g.setLineDash([10,12]);g.strokeStyle=rgba(pal.ink,pal.dark?.07:.06);g.beginPath();g.moveTo(left,y+HOUR*k/2);g.lineTo((size.w-PAD*.5)*k,y+HOUR*k/2);g.stroke();g.restore();}
  }
  const texture=new CanvasTexture(canvas2d);
  texture.colorSpace=SRGBColorSpace;
@@ -203,12 +209,58 @@ function makeSlab(e,order,meetings){
  const mesh=new Mesh(slabGeometry(w,d,h,.13),slabMaterial(e));
  mesh.castShadow=mesh.receiveShadow=true;
  mesh.position.set(colX(e.day)+(e.lane+.5)*lane,0,timeZ((e.start+e.end)/2));
- if(e.conflict||e.review)mesh.add(new LineSegments(new EdgesGeometry(mesh.geometry,35),new LineBasicMaterial({color:e.conflict?pal.danger:pal.warning})));
+ const edge=e.conflict||e.review?new LineSegments(new EdgesGeometry(mesh.geometry,35),new LineBasicMaterial({color:e.conflict?pal.danger:pal.warning})):null;
+ if(edge)mesh.add(edge);
  const still=reduce.matches;
- const slab={e,mesh,h,rx:{x:0,v:0},rz:{x:0,v:0},base:mesh.material.color.clone(),flat:flatColor(e),y:still?0:2.4+order*.05,v:0,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?520:0)+Math.min(order,16)*45)};
+ const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},base:mesh.material.color.clone(),flat:flatColor(e),y:still?0:2.4+order*.05,v:0,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?520:0)+Math.min(order,16)*45)};
  mesh.position.y=slab.y;mesh.visible=still;mesh.userData.slab=slab;
  week.add(mesh);
+ decal(slab);
  return slab;
+}
+
+// The course code engraved into the slab top: a darker, matte groove cut through the clearcoat, whose walls are a
+// normal map built from the lettering, so they catch the scene's light and shift as the board turns.
+// Narrow tops shrink the code (dropping the ECE prefix last); a top too small for it stays plain.
+const DECAL=300,WALL=2,SLOPE=9;
+function decal(slab){
+ const e=slab.e;
+ if(e.sample)return;
+ const b=slab.mesh.geometry.userData.bevel,fw=slab.w-2*b,fd=slab.d-2*b,k=Math.min(DECAL,1024/Math.max(fw,fd)),W=Math.round(fw*k),H=Math.round(fd*k);
+ const mask=slab.mask||(slab.mask=document.createElement('canvas')),bump=slab.bump||(slab.bump=document.createElement('canvas'));
+ mask.width=bump.width=W;mask.height=bump.height=H;
+ const g=mask.getContext('2d',{willReadFrequently:true}),font='Geologica,"Noto Sans",system-ui,sans-serif',pad=.09*k,room=W-2*pad,least=.09*k,most=Math.min(.24*k,H-2*pad);
+ const fits=size=>(g.font=`700 ${size}px ${font}`,g.measureText(code).width<=room);
+ let code=String(e.course),size=most;
+ while(!fits(size)&&size>least)size*=.92;
+ if(!fits(size)){code=code.replace(/^\D+(?=\d)/,'');size=most;while(!fits(size)&&size>least)size*=.92;}
+ if(most<least||!fits(size)){
+  if(slab.decal){slab.mesh.remove(slab.decal);slab.decal.geometry.dispose();slab.decal.material.map.dispose();slab.decal.material.normalMap.dispose();slab.decal.material.dispose();slab.decal=null;}
+  return;
+ }
+ g.clearRect(0,0,W,H);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';
+ g.fillText(code,W/2,H/2+size*.04);
+ // Soften the letter edges into short walls, then turn their slope into normals (a recess: walls face into the cut).
+ const img=g.getImageData(0,0,W,H),a=new Float32Array(W*H),tmp=new Float32Array(W*H);
+ for(let i=0;i<W*H;i++)a[i]=img.data[i*4+3]/255;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){let s=0,c=0;for(let j=Math.max(0,x-WALL);j<=Math.min(W-1,x+WALL);j++){s+=a[y*W+j];c++;}tmp[y*W+x]=s/c;}
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){let s=0,c=0;for(let j=Math.max(0,y-WALL);j<=Math.min(H-1,y+WALL);j++){s+=tmp[j*W+x];c++;}a[y*W+x]=s/c;}
+ const normals=new ImageData(W,H);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const i=y*W+x,dx=(a[x<W-1?i+1:i]-a[x>0?i-1:i])/2,dy=(a[y<H-1?i+W:i]-a[y>0?i-W:i])/2;
+  const nx=SLOPE*dx,ny=-SLOPE*dy,l=Math.hypot(nx,ny,1);
+  normals.data[i*4]=(nx/l*.5+.5)*255;normals.data[i*4+1]=(ny/l*.5+.5)*255;normals.data[i*4+2]=(1/l*.5+.5)*255;normals.data[i*4+3]=255;
+  // Deeper is darker: the floor sits in shadow, the walls stay closer to the surface colour.
+  img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255*(1-.62*a[i]);img.data[i*4+3]=Math.min(255,a[i]*400);
+ }
+ g.putImageData(img,0,0);bump.getContext('2d').putImageData(normals,0,0);
+ if(slab.decal){slab.decal.material.map.needsUpdate=slab.decal.material.normalMap.needsUpdate=true;return;}
+ const map=new CanvasTexture(mask),normalMap=new CanvasTexture(bump);
+ map.anisotropy=normalMap.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ // The groove is the slab's own colour, shaded by depth, matte with no coat; nudged above the top face to stay clear of it.
+ slab.decal=new Mesh(new PlaneGeometry(fw,fd),new MeshStandardMaterial({color:slab.base,map,normalMap,roughness:.55,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+ slab.decal.rotation.x=-Math.PI/2;slab.decal.position.y=slab.h+.002;slab.decal.receiveShadow=true;
+ slab.mesh.add(slab.decal);
 }
 
 function retire(slab){
@@ -219,7 +271,7 @@ function retire(slab){
 function dispose(slab){
  week.remove(slab.mesh);
  slab.mesh.material.dispose();
- for(const child of slab.mesh.children){child.geometry.dispose();child.material.dispose();}
+ for(const child of slab.mesh.children){child.geometry.dispose();child.material.map?.dispose();child.material.normalMap?.dispose();child.material.dispose();}
  dying.delete(slab);
 }
 
@@ -257,7 +309,7 @@ function restyle(){
  for(const slab of slabs.values()){
   if(slab.e.sample)slab.mesh.material.color.set(pal.chrome);
   slab.flat=flatColor(slab.e);
-  for(const child of slab.mesh.children)child.material.color.set(slab.e.conflict?pal.danger:pal.warning);
+  slab.edge?.material.color.set(slab.e.conflict?pal.danger:pal.warning);
  }
  wake();
 }
@@ -390,10 +442,11 @@ function step(now){
   moving=spring(springs.cx,follow?pointer.x:0,38,9,dt)|moving;
   moving=spring(springs.cy,follow?pointer.y:0,38,9,dt)|moving;
   const a=orbit.aim;
-  if(orbit.drag){
+  const held=orbit.drag&&p<=FREE;
+  if(held){
    // Held: the board follows the hand on a stiff spring, so it has weight (a little lag, a little overshoot).
    moving=spring(orbit.yaw,a.yaw,170,19,dt)|spring(orbit.pitch,a.pitch,170,19,dt)|moving;
-  }else if(p>.002||orbit.home){
+  }else if(p>FREE||orbit.home){
    // Home the shortest way round.
    orbit.yaw.x=Math.atan2(Math.sin(orbit.yaw.x),Math.cos(orbit.yaw.x));
    const going=spring(orbit.yaw,0,60,15,dt)|spring(orbit.pitch,0,60,15,dt)|spring(orbit.zoom,1,60,15,dt);
@@ -412,7 +465,7 @@ function step(now){
    moving=(Math.abs(orbit.yaw.v)+Math.abs(orbit.pitch.v)+Math.abs(orbit.pitch.x-lim)>1e-3)|moving;
    moving=spring(orbit.zoom,a.zoom,120,18,dt)|moving;
   }
-  moving=spring(feel.lift,orbit.drag?.moved&&!reduce.matches?.24:0,orbit.drag?95:150,orbit.drag?15:13,dt)|moving;
+  moving=spring(feel.lift,held&&orbit.drag.moved&&!reduce.matches?.24:0,held?95:150,held?15:13,dt)|moving;
   moving=spring(feel.bank,Math.max(-.16,Math.min(.16,-orbit.yaw.v*.05)),110,13,dt)|moving;
   moving=spring(feel.nod,Math.max(-.12,Math.min(.12,orbit.pitch.v*.05)),110,13,dt)|moving;
  }
@@ -426,12 +479,15 @@ function step(now){
   pointer.dirty=false;
   const under=pointer.inside&&pointer.type!=='touch'&&!orbit.drag&&p<.3&&e<.02?cast(pointer.cx,pointer.cy):{slab:null,board:false};
   setHover(under.slab);
-  hero.style.cursor=orbit.drag?.moved?'grabbing':under.slab?'pointer':under.board?'grab':'';
+  hero.style.cursor=orbit.drag?.moved&&p<=FREE?'grabbing':under.slab?'pointer':under.board&&p<=FREE?'grab':'';
   if(hovered)tip.style.transform=`translate(${pointer.cx+16}px,${pointer.cy+16}px)`;
  }
+ // Words on the board (day labels, hours, the slabs' printed text) leave together, before the planner's own arrive.
+ const words=1-smooth((e-.35)/.3);
  for(const slab of slabs.values()){
   if(now<slab.start)continue;
   slab.mesh.visible=true;
+  if(slab.decal)slab.decal.material.opacity=words;
   if(!still){
    const fall={x:slab.y,v:slab.v},lift={x:slab.lift,v:slab.lv};
    moving=spring(fall,0,150,14,dt)|moving;
@@ -452,6 +508,7 @@ function step(now){
  for(const slab of dying){
   slab.s=Math.max(0,slab.s-dt*4.5);
   slab.mesh.scale.set(1,Math.max(.001,slab.s),1);
+  if(slab.decal)slab.decal.material.opacity=Math.min(slab.decal.material.opacity,slab.s);
   if(slab.s<=0)dispose(slab);
   moving=true;
  }
@@ -461,7 +518,7 @@ function step(now){
  // Strictly in sequence, so two hour axes never show at once: the 3D labels are gone by e .65, and the planner's
  // own chrome only arrives from e .82, when the slabs are within a few pixels of landing.
  const chrome=smooth((e-.82)/.15);
- if(board){board.material.opacity=edges.material.opacity=dissolve;labels.material.opacity=1-smooth((e-.35)/.3);}
+ if(board){board.material.opacity=edges.material.opacity=dissolve;labels.material.opacity=words;}
  floor.material.opacity=pal.shadow*calm;
  // Camera: the hero's three-quarter orbit, straight down once landed (phones keep the gentle tilt).
  // The elevation never reaches straight down or the board's own plane, whatever the springs overshoot.
@@ -523,7 +580,8 @@ function stillMode(){
 }
 
 hero.addEventListener('pointerdown',event=>{
- if(event.button!==0||event.target.closest('a,button')||!live||progress()>=.3||!cast(event.clientX,event.clientY).board)return;
+ down={x:event.clientX,y:event.clientY};
+ if(event.button!==0||event.target.closest('a,button')||!live||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
  orbit.drag={id:event.pointerId,x:event.clientX,y:event.clientY,lx:event.clientX,ly:event.clientY,moved:false,touch:event.pointerType==='touch',pitch:orbit.pitch.x};
  // Catch: the aim starts where the board is, so a spinning board is caught and stopped by the hand's spring.
  orbit.home=false;orbit.aim.yaw=orbit.yaw.x;orbit.aim.pitch=orbit.pitch.x;
@@ -561,14 +619,14 @@ function endDrag(event){
 hero.addEventListener('pointerup',endDrag);
 hero.addEventListener('pointercancel',endDrag);
 hero.addEventListener('dblclick',event=>{
- if(event.target.closest('a,button')||progress()>=.3||!cast(event.clientX,event.clientY).board)return;
+ if(event.target.closest('a,button')||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
  orbit.home=true;
  if(reduce.matches){orbit.yaw.x=orbit.pitch.x=0;orbit.zoom.x=orbit.aim.zoom=1;orbit.home=false;}
  wake();
 });
 // Trackpad pinch arrives as Ctrl+wheel (Lenis leaves it alone); plain wheel always scrolls the page.
 hero.addEventListener('wheel',event=>{
- if(!event.ctrlKey||progress()>=.3||!cast(event.clientX,event.clientY).board)return;
+ if(!event.ctrlKey||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
  event.preventDefault();
  orbit.aim.zoom=Math.min(ZOOM[1],Math.max(ZOOM[0],orbit.aim.zoom*Math.exp(event.deltaY*.01)));orbit.home=false;
  if(reduce.matches)orbit.zoom.x=orbit.aim.zoom;
@@ -576,7 +634,8 @@ hero.addEventListener('wheel',event=>{
 },{passive:false});
 hero.addEventListener('pointerleave',()=>{pointer={...pointer,inside:false,dirty:true};wake();});
 hero.addEventListener('click',event=>{
- if(suppressClick||event.target.closest('a,button')||progress()>=.3)return;
+ // A press that travelled (an orbit, or a swipe while the board is morphing) is not a click on a course.
+ if(suppressClick||event.target.closest('a,button')||progress()>=.3||down&&Math.hypot(event.clientX-down.x,event.clientY-down.y)>5)return;
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
@@ -585,7 +644,7 @@ document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
 reduce.addEventListener('change',stillMode);
-document.fonts.ready.then(()=>{if(labels)drawLabels();resize();});
+document.fonts.ready.then(()=>{if(labels)drawLabels();for(const slab of slabs.values())decal(slab);resize();});
 light();
 stillMode();
 build();

@@ -1005,7 +1005,7 @@
       {
         "name": "free-view",
         "value": "pointerdown catches (aim = current pose); held: yaw/pitch spring to aim (170/19); throw keeps spring velocity soft-limited by m*tanh(v/m) (m 12 yaw, 2.8 pitch; 0 under reduced motion), then drag exp(-dt*3.2) plus constant grip 2.6 rad/s^2 (flick 3 rad/s -> 32deg in .48s, 8 -> 95deg .70s, 16 -> 153deg .82s, 30 -> 177deg .87s); a thrown tilt stays within the same .1 rubber stretch (peak .098), never reaching the elevation clamp; yaw free; pitch [-.4, .86] on a .56 rad base, rubber band past it (STRETCH .1, asymptotic) with spring-back 160/18; camera elevation clamped [.06, pi/2-.04]; zoom eases to aim (120/18); zoom [.8, 1.6] by pinch or Ctrl+wheel; 5px drag threshold; double-click resets",
-        "purpose": "Hero board free view. Touch: horizontal swipes spin, vertical swipes scroll (.hero touch-action: pan-y pinch-zoom). Orbit springs home once scroll progress > 0 and its offsets scale by (1 - e), so the landing stays exact."
+        "purpose": "Hero board free view. Touch: horizontal swipes spin, vertical swipes scroll (.hero touch-action: pan-y pinch-zoom). Free view starts only at the top (scroll progress <= 0.002); a drag still held when the page scrolls yields to the homing spring. Orbit springs home once scroll progress > 0 and its offsets scale by (1 - e), so the landing stays exact. A press that travels more than 5px never opens a course."
       },
       {
         "name": "free-view-feel",
@@ -1026,6 +1026,11 @@
         "name": "slab-height",
         "value": "h = .18 + (min(5, n) - 1) * .22 world units",
         "purpose": "Slab height encodes weekly meetings n: once is nearly flat, three or more clearly tall."
+      },
+      {
+        "name": "slab-engraving",
+        "value": "code up to .24 world units (min .09), pad .09; 300px per unit; walls: box blur radius 2px, slope 9; groove shade 1 - .62 x depth; roughness .55, no clearcoat",
+        "purpose": "The course code engraved, centred, into each real slab top: a normal-mapped groove in the slab colour that catches the scene light as the board turns; narrow tops shrink the code, then drop the ECE prefix; fades with the board labels over e .35-.65."
       },
       {
         "name": "ring-trace",
