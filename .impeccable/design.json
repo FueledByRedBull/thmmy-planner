@@ -1065,9 +1065,14 @@
         "purpose": "min-width: docked 340px rail beside the week."
       },
       {
-        "name": "lane-time-code",
+        "name": "lane-time-name",
         "value": "112px (container, screen)",
-        "purpose": "Narrow lane: start time plus course code."
+        "purpose": "Narrow lane: start time plus the compact name, soft-hyphenated at Greek syllables (app.js hyphenate)."
+      },
+      {
+        "name": "lane-time-code",
+        "value": "80px (container, screen); also lessons of an hour or less below 112px",
+        "purpose": "Narrower lane: start time plus course code."
       },
       {
         "name": "lane-code",
@@ -1217,7 +1222,7 @@
       },
       {
         "name": "The No Sideways Week Rule",
-        "body": "The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog.",
+        "body": "The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows its start time and the name, set compact with soft hyphens at Greek syllable breaks. At 80px or less, and for lessons of an hour or less, it shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog. Margin notes move beside the week only when the busiest day still gets 150px per lane.",
         "section": "layout"
       },
       {
@@ -1248,7 +1253,7 @@
       "**Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.",
       "**Do** pair every success, warning and danger state with an icon, dashes or an outline.",
       "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, and make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
-      "**Do** keep five equal day columns and step narrow lanes down (time and code, code, number) rather than widening a busy day.",
+      "**Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.",
       "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
       "**Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.",
       "**Do** use tabular figures and display-scale numerals for the week's totals."

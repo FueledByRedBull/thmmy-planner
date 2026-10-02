@@ -363,7 +363,7 @@ select option{background:var(--surface);color:var(--text)}
 }
 
 /* ---------- Planner sheet ---------- */
-main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((100% - 1640px)/2 + 2vw)) 24px;background:var(--sheet);border-radius:var(--r-sheet) var(--r-sheet) 0 0;box-shadow:0 -1px 0 color-mix(in srgb,var(--line-strong) 50%,transparent),0 -30px 60px -34px #0e0e0e59;scroll-margin-top:var(--bar);animation:sheet-in 1.2s .36s var(--ease) backwards}
+main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((100% - 2080px)/2 + 2vw)) 24px;background:var(--sheet);border-radius:var(--r-sheet) var(--r-sheet) 0 0;box-shadow:0 -1px 0 color-mix(in srgb,var(--line-strong) 50%,transparent),0 -30px 60px -34px #0e0e0e59;scroll-margin-top:var(--bar);animation:sheet-in 1.2s .36s var(--ease) backwards}
 /* Fill backwards only: a transform left filling on main would trap the fixed course drawer inside it. */
 .intro{padding:26px 0 22px}
 .intro-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -509,13 +509,20 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .meeting .event-room{padding-top:4px;font-size:11px;line-height:1.4;opacity:.86}
 .meeting .event-teacher{font-size:11px;line-height:1.4;opacity:.72}
 .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-teacher{display:none}
-/* Parallel lessons get narrow lanes: keep time and title, the full detail stays in the tooltip and dialog. */
+/* Parallel lessons get narrow lanes: start time and the name, set compact (app.js puts soft hyphens at Greek syllables).
+   Lanes too narrow for a name, and one-hour lessons, show the course code; full detail stays in the tooltip and dialog. */
 .meeting .event-code{display:none}
 @media screen{@container (max-width:112px){
  .meeting-content{padding:7px 6px}
- .meeting .event-end,.meeting .full-title,.meeting .event-room,.meeting .event-teacher,.meeting .event-time .icon{display:none}
+ .meeting .event-end,.meeting .event-room,.meeting .event-teacher,.meeting .event-time .icon{display:none}
  .meeting .event-time,.meeting .event-code{overflow:hidden;white-space:nowrap;overflow-wrap:normal}
- .meeting .event-code{display:block;font-size:11.5px;letter-spacing:-.01em}}
+ .meeting .full-title{font-size:12px;line-height:1.2;letter-spacing:-.015em}
+ .meeting .event-code{font-size:11.5px;letter-spacing:-.01em}
+ .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
+ .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-code{display:block}}
+@container (max-width:80px){
+ .meeting .full-title{display:none}
+ .meeting .event-code{display:block}}
 @container (max-width:60px){
  .meeting-content{padding:6px 4px}
  .meeting .event-time{display:none}

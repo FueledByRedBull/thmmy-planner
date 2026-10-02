@@ -14,6 +14,23 @@ let data=initialData,state={...blankState(),...(embeddedState||{})},storageWarni
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved?.version===1&&saved.data?.catalog&&saved.state?.selected){data=saved.data;state={...blankState(),...saved.state};}}catch(e){storageWarning='Η τοπική αποθήκευση δεν είναι διαθέσιμη ή δεν διαβάστηκε. Χρησιμοποίησε «Αποθήκευση αντιγράφου» για να κρατήσεις τη δουλειά σου.';}
 const icon=name=>`<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Soft hyphens at Greek syllable breaks, so long names in narrow lanes break as "Μικροη-λεκτρο-νικών" in every browser
+// instead of at an arbitrary letter. Consonants between vowels go to the next syllable when a Greek word can start with
+// the first two, otherwise the first stays behind; fragments keep at least 3 letters.
+// ponytail: never splits two adjacent vowels, so a few valid breaks are missed; swap for a dictionary if that matters.
+const ONSET=new Set('βγ βδ βλ βρ γδ γκ γλ γν γρ δν δρ ζβ ζμ θλ θν θρ κλ κν κρ κτ μν μπ ντ πλ πν πρ πτ σβ σγ σθ σκ σλ σμ σν σπ στ σφ σχ τζ τμ τρ τσ φθ φλ φρ φτ χθ χλ χμ χν χρ χτ'.split(' ')),VOWEL=/[αεηιουωάέήίόύώϊϋΐΰ]/;
+const hyphenate=text=>String(text??'').replace(/[Ά-ώ]{7,}/g,word=>{
+ const w=word.toLowerCase();let out='',from=0;
+ for(let i=0;i<w.length;){
+  if(!VOWEL.test(w[i])){i++;continue;}
+  let j=i+1;while(j<w.length&&VOWEL.test(w[j]))j++;
+  let k=j;while(k<w.length&&!VOWEL.test(w[k]))k++;
+  const cut=k-j===1||ONSET.has(w.slice(j,j+2))?j:j+1;
+  if(k<w.length&&k>j&&cut>=from+3&&w.length-cut>=3){out+=word.slice(from,cut)+'­';from=cut;}
+  i=k;
+ }
+ return out+word.slice(from);
+});
 const norm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('el').replace(/ς/g,'σ');
 const time=n=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
 const dateText=s=>s?new Date(s).toLocaleString('el-GR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'Άγνωστη ημερομηνία';
@@ -139,7 +156,8 @@ function fitCalendar(){
  const calendar=$('calendar'),wrap=$('calendarWrap'),panel=wrap.closest('.schedule-panel'),sheet=panel.parentElement;
  const printing=printLayoutActive||matchMedia('print').matches;
  // Red margin notes move beside the sheet only when the whole week still fits next to them.
- const aside=!printing&&panel.clientWidth-320>=54+(Number(calendar.style.getPropertyValue('--lane-total'))||5)*150+40;
+ // Day columns are equal, so the busiest day sets the width every column needs (150px per lane).
+ const aside=!printing&&panel.clientWidth-320>=54+5*(Number(calendar.style.getPropertyValue('--lane-max'))||1)*150+40;
  if(panel.classList.contains('notes-aside')!==aside){panel.classList.toggle('notes-aside',aside);if(aside)$('checks').open=true;}
  panel.style.removeProperty('--print-scale');
  panel.style.removeProperty('--print-width');
@@ -195,11 +213,12 @@ function renderSchedule(){
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events),partners=new Map();
  for(const [a,b] of pairs){partners.set(a.id,[...(partners.get(a.id)||[]),b.id]);partners.set(b.id,[...(partners.get(b.id)||[]),a.id]);}
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(c.name)}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)} · ${c.name} · ${e.type} · ${e.room} · ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
  $('calendar').style.setProperty('--lane-total',dayLanes.reduce((a,b)=>a+b,0));
+ $('calendar').style.setProperty('--lane-max',Math.max(...dayLanes));
  const legendCourses=chosen().map(course).filter(Boolean),seen=new Set();
  $('legend').innerHTML=legendCourses.filter(c=>{const key=colorKey(c);if(seen.has(key))return false;seen.add(key);return true;}).map(c=>`<label class="legend-item" style="--legend-bg:${baseColor(c)}"><span class="color-swatch" aria-hidden="true" style="background:${baseColor(c)}"></span><input type="color" value="${baseColor(c)}" data-color="${esc(colorKey(c))}" aria-label="Χρώμα ${esc(state.colorMode==='course'?c.name:c.semester+'ου εξαμήνου')}"><span>${esc(state.colorMode==='course'?c.id+' · '+c.name:c.semester+'ο εξάμηνο')}</span></label>`).join('')+(state.review.some(id=>chosen().includes(id))?'<span class="legend-item"><span class="legend-hatch" aria-hidden="true"></span>Προς έλεγχο</span>':'')+(pairs.length?'<span class="legend-item"><span class="legend-conflict" aria-hidden="true"></span>Κόκκινο περίγραμμα: επικάλυψη</span>':'');
  renderChecks(pairs);

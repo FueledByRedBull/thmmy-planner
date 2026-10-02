@@ -331,7 +331,7 @@ Nine vivid hues assigned per course by default, cycling without repeats among se
 
 ## Layout
 
-A week-first canvas inside a sheet. The hero is a full-viewport sticky studio (100svh, min 600px; 92svh on phones); the planner sheet overlaps it by 13svh (9svh on phones) and carries everything else. Content tracks a 1640px maximum with fluid 2vw gutters (16px on phones).
+A week-first canvas inside a sheet. The hero is a full-viewport sticky studio (100svh, min 600px; 92svh on phones); the planner sheet overlaps it by 13svh (9svh on phones) and carries everything else. Content tracks a 2080px maximum with fluid 2vw gutters (16px on phones).
 
 - **Desktop (>1180px):** a 340px sticky course rail beside the week, divided by a hairline. On wide layouts the rail can be hidden so the week runs full-width, with the floating rail button to bring it back.
 - **Tablet (861-1180px):** the week takes the full width; the rail becomes a 340px side drawer floating 12px from the edges.
@@ -343,7 +343,7 @@ Day headings (name, meta, today pill) are centred in their columns and reserve e
 Spacing runs on 4 / 8 / 12 / 16 / 22 / 28px; panels breathe at 22px vertical padding, the hour grid is 56px per hour, and the header bar is 76px (68px on phones).
 
 ### Named Rules
-**The No Sideways Week Rule.** The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog.
+**The No Sideways Week Rule.** The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows its start time and the name, set compact with soft hyphens at Greek syllable breaks. At 80px or less, and for lessons of an hour or less, it shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog. Margin notes move beside the week only when the busiest day still gets 150px per lane.
 
 **The Print Is Its Own Layout Rule.** Print is one A4 landscape sheet: chrome hidden, blocks at a 45% tint on white with ink text, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off.
 
@@ -432,7 +432,7 @@ As soon as the page scrolls, the orbit springs home and its offsets fade with th
 - **Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones.
 - **Do** pair every success, warning and danger state with an icon, dashes or an outline.
 - **Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that land, and make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.
-- **Do** keep five equal day columns and step narrow lanes down (time and code, code, number) rather than widening a busy day.
+- **Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.
 - **Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.
 - **Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.
 - **Do** use tabular figures and display-scale numerals for the week's totals.
