@@ -345,7 +345,7 @@ Spacing runs on 4 / 8 / 12 / 16 / 22 / 28px; panels breathe at 22px vertical pad
 ### Named Rules
 **The No Sideways Week Rule.** The week never scrolls horizontally. The grid is a 54px hour axis plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows its start time and the name, set compact with soft hyphens at Greek syllable breaks. At 80px or less, and for lessons of an hour or less, it shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog. Margin notes move beside the week only when the busiest day still gets 150px per lane.
 
-**The Print Is Its Own Layout Rule.** Print is one A4 landscape sheet: chrome hidden, blocks at a 45% tint on white with ink text, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off.
+**The Print Is Its Own Layout Rule.** Print is one A4 landscape sheet in the selected theme: chrome hidden, the sheet and blocks exactly as on screen (light or dark), no today marking, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off. Nothing on the printed page sizes itself with viewport units, because Chrome's print preview resolves them against the browser window and a window-tall page spills a blank second sheet.
 
 ## Elevation & Depth
 

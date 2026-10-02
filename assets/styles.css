@@ -768,30 +768,34 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 /* ---------- Print: one A4 landscape sheet; fitCalendar() sets --print-width and --print-scale ---------- */
 @page{size:A4 landscape;margin:0}
 @media print{
- :root,:root[data-theme=dark]{color-scheme:light;--bg:#fff;--sheet:#fff;--surface:#fff;--surface-2:#f2f2f2;--surface-3:#e4e4e4;--line:#d9d9d9;--line-strong:#c4c4c4;--text:#0e0e0e;--text-2:#3b3b3b;--text-3:#5a5a5a;--accent:#ef1a84;--danger:#d61f3a;--danger-soft:#d61f3a12;--warning:#985200;--warning-soft:#e8890c1a;--success:#0f7a3d;--shadow-sm:none;--highlight:none}
- html,body{background:#fff;color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ /* The sheet prints in the selected theme, exactly as on screen (data-theme is always light or dark). */
+ :root,:root[data-theme=dark]{--shadow-sm:none;--highlight:none}
+ /* No viewport units on the page: Chrome's print preview resolves them against the browser window, not the paper,
+    so a 100dvh body spilled a blank second page. */
+ html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
  .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
- main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:#fff;animation:none}
+ main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */
  #calendarWrap,.empty-state{opacity:1!important}
  #calendarWrap{--chrome:1!important;--blocks:1!important}
- .schedule-panel{display:block;width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto;padding:2mm;border:0;border-radius:0;box-shadow:none;background:#fff}
+ .schedule-panel{display:block;width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto;padding:2mm;border:0;border-radius:0;box-shadow:none;background:var(--sheet)}
  .schedule-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;padding:0 0 5mm}
  .schedule-top h2{font-size:22px;white-space:nowrap}
  .stats{display:flex;flex-wrap:nowrap;width:auto}
+ /* A printed week is used on other days: no today marking. */
  .day-column.today{background:none}
  .day-head.today b{margin:0;padding:0;background:none;color:inherit}
+ .day-head .today-word{display:none}
  .stats>span{min-width:70px;padding:0 10px}
  .stats b{font-size:20px;letter-spacing:-.02em}
  .calendar-scroll{margin:0;overflow:visible}
  .calendar{min-width:0;padding-bottom:2mm}
  .time-axis,.time-head{position:relative;left:auto}
- .day-head{height:10mm}
+ .day-head{height:auto;min-height:10mm;padding-block:1mm}
  .day-head b{font-size:11px}
  .day-head small{min-height:0;font-size:8px}
- :root .meeting,:root[data-theme=dark] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 45%,#fff);background:var(--block-fill);color:#0e0e0e}
  .meeting{padding:0;overflow:hidden;transform:none!important;opacity:1!important;box-shadow:none!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .meeting.course-highlight,.meeting.trace{outline:none!important}
  .meeting-content{padding:1.2mm}

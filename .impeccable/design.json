@@ -1227,7 +1227,7 @@
       },
       {
         "name": "The Print Is Its Own Layout Rule",
-        "body": "Print is one A4 landscape sheet: chrome hidden, blocks at a 45% tint on white with ink text, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off.",
+        "body": "Print is one A4 landscape sheet in the selected theme: chrome hidden, the sheet and blocks exactly as on screen (light or dark), no today marking, the week scaled to fit and forced fully visible, the print type ramp, all motion and shadows off. Nothing on the printed page sizes itself with viewport units, because Chrome's print preview resolves them against the browser window and a window-tall page spills a blank second sheet.",
         "section": "layout"
       },
       {
