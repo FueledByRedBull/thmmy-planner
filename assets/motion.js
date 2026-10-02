@@ -10,9 +10,16 @@
  };
  sync();
  reduce.addEventListener('change',sync);
- const start=()=>{
-  if(!document.getElementById('week3d')||!('WebGL2RenderingContext' in window))return;
-  import('./week3d.js?v=engrave2').catch(()=>{});
- };
+ // Resolved from this script's own URL; inlined into an HTML backup it has none, and the 3D (never loadable from a
+ // saved file) is skipped.
+ let week3d=null;try{week3d=new URL('week3d.js?v=skel1',document.currentScript.src).href;}catch{}
+ const can3d=week3d&&document.getElementById('week3d')&&'WebGL2RenderingContext' in window;
+ // No 3D, no skeleton waiting for it in the hero.
+ const no3d=()=>document.documentElement.classList.remove('has-3d');
+ if(!can3d)no3d();
+ // Download the 3D week now, at low priority: this deferred script runs once the stylesheet is in, so it never
+ // competes with the first paint, and the board is ready the moment the page is idle.
+ if(can3d)document.head.append(Object.assign(document.createElement('link'),{rel:'modulepreload',href:week3d,fetchPriority:'low'}));
+ const start=()=>{if(can3d)import(week3d).catch(no3d);};
  addEventListener('load',()=>'requestIdleCallback' in window?requestIdleCallback(start,{timeout:900}):setTimeout(start,200),{once:true});
 })();

@@ -29,7 +29,7 @@ Selections, passed courses, review flags and preferences are stored in the curre
 
 ## Development
 
-This folder is the source: edit `index.html`, `assets/` and `data/` directly. GitHub Pages serves the root of `main`; no server or runtime packages are required. When an asset changes, bump its `?v=` query in `index.html` (or in `assets/motion.js` for `week3d.js`) so browsers do not reuse a stale cache.
+This folder is the source: edit `index.html`, `assets/` and `data/` directly. GitHub Pages serves the root of `main`; no server or runtime packages are required. When an asset changes, bump its `?v=` query in `index.html` (or in `assets/motion.js` for `week3d.js`) so browsers do not reuse a stale cache. The data files and `app.js` are also preloaded in the `<head>` of `index.html`: keep those URLs identical to the ones the loader uses, or the preload is wasted.
 
 The 3D week is the one bundled file. After editing `src/week3d.js`, rebuild it with esbuild 0.28 and three 0.186.1:
 

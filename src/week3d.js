@@ -27,6 +27,8 @@ const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,78
 
 const renderer=new WebGLRenderer({canvas,alpha:true,antialias:devicePixelRatio<2,powerPreference:'high-performance'});
 renderer.setClearColor(0,0);
+// Production setting: reading shader logs forces every compile to finish synchronously on the main thread.
+renderer.debug.checkShaderErrors=false;
 renderer.toneMapping=NeutralToneMapping;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=PCFSoftShadowMap;
@@ -34,9 +36,12 @@ let pixelRatio=Math.min(devicePixelRatio,coarse.matches?1.5:1.75);
 renderer.setPixelRatio(pixelRatio);
 
 const scene=new Scene(),camera=new PerspectiveCamera(24,1,.5,200),week=new Group();
-const pmrem=new PMREMGenerator(renderer);
-scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;
-pmrem.dispose();
+// The studio reflection is baked once at startup (see start below); the generator and room are freed after.
+function environment(){
+ const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment();
+ scene.environment=pmrem.fromScene(room,.04).texture;
+ room.dispose();pmrem.dispose();
+}
 // A strong key from the upper left shades slab sides against their tops; a cool rim from behind draws the edges.
 const key=new DirectionalLight('#ffffff',2.2);
 key.position.set(-6,13,8);
@@ -151,7 +156,7 @@ function drawLabels(){
   // Half hours: a fainter, dashed line, as fine as the planner's own grid can be read.
   if(i<span){g.save();g.setLineDash([10,12]);g.strokeStyle=rgba(pal.ink,pal.dark?.07:.06);g.beginPath();g.moveTo(left,y+HOUR*k/2);g.lineTo((size.w-PAD*.5)*k,y+HOUR*k/2);g.stroke();g.restore();}
  }
- const texture=new CanvasTexture(canvas2d);
+ const texture=release(new CanvasTexture(canvas2d));
  texture.colorSpace=SRGBColorSpace;
  texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
  if(labels.material.map)labels.material.map.dispose();
@@ -219,46 +224,60 @@ function makeSlab(e,order,meetings){
  return slab;
 }
 
+// Once a texture is on the GPU its canvas is dead weight: free it (a redraw hands the texture a fresh canvas).
+function release(texture){
+ texture.onUpdate=()=>{texture.image.width=texture.image.height=0;texture.onUpdate=null;};
+ return texture;
+}
 // The course code engraved into the slab top: a darker, matte groove cut through the clearcoat, whose walls are a
 // normal map built from the lettering, so they catch the scene's light and shift as the board turns.
 // Narrow tops shrink the code (dropping the ECE prefix last); a top too small for it stays plain.
-const DECAL=300,WALL=2,SLOPE=9;
-function decal(slab){
- const e=slab.e;
- if(e.sample)return;
- const b=slab.mesh.geometry.userData.bevel,fw=slab.w-2*b,fd=slab.d-2*b,k=Math.min(DECAL,1024/Math.max(fw,fd)),W=Math.round(fw*k),H=Math.round(fd*k);
- const mask=slab.mask||(slab.mask=document.createElement('canvas')),bump=slab.bump||(slab.bump=document.createElement('canvas'));
+// Identical tops (a course meeting twice at the same size) share one pair of textures.
+const DECAL=300,WALL=2,SLOPE=9,engravings=new Map();
+function engrave(e,W,H,k){
+ const mask=document.createElement('canvas'),bump=document.createElement('canvas');
  mask.width=bump.width=W;mask.height=bump.height=H;
  const g=mask.getContext('2d',{willReadFrequently:true}),font='Geologica,"Noto Sans",system-ui,sans-serif',pad=.09*k,room=W-2*pad,least=.09*k,most=Math.min(.24*k,H-2*pad);
  const fits=size=>(g.font=`700 ${size}px ${font}`,g.measureText(code).width<=room);
  let code=String(e.course),size=most;
  while(!fits(size)&&size>least)size*=.92;
  if(!fits(size)){code=code.replace(/^\D+(?=\d)/,'');size=most;while(!fits(size)&&size>least)size*=.92;}
- if(most<least||!fits(size)){
-  if(slab.decal){slab.mesh.remove(slab.decal);slab.decal.geometry.dispose();slab.decal.material.map.dispose();slab.decal.material.normalMap.dispose();slab.decal.material.dispose();slab.decal=null;}
-  return;
- }
- g.clearRect(0,0,W,H);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';
+ if(most<least||!fits(size))return null;
+ g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';
  g.fillText(code,W/2,H/2+size*.04);
- // Soften the letter edges into short walls, then turn their slope into normals (a recess: walls face into the cut).
- const img=g.getImageData(0,0,W,H),a=new Float32Array(W*H),tmp=new Float32Array(W*H);
- for(let i=0;i<W*H;i++)a[i]=img.data[i*4+3]/255;
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){let s=0,c=0;for(let j=Math.max(0,x-WALL);j<=Math.min(W-1,x+WALL);j++){s+=a[y*W+j];c++;}tmp[y*W+x]=s/c;}
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){let s=0,c=0;for(let j=Math.max(0,y-WALL);j<=Math.min(H-1,y+WALL);j++){s+=tmp[j*W+x];c++;}a[y*W+x]=s/c;}
- const normals=new ImageData(W,H);
+ // Soften the letter edges into short walls: a box blur by running sums (rows, then columns), constant work per pixel.
+ const img=g.getImageData(0,0,W,H),id=img.data,n=W*H,a=new Float32Array(n),tmp=new Float32Array(n),span=2*WALL+1;
+ for(let i=0;i<n;i++)a[i]=id[i*4+3]/255;
+ for(let y=0;y<H;y++){const o=y*W;let s=0;for(let x=-WALL;x<=WALL;x++)s+=a[o+Math.min(W-1,Math.max(0,x))];for(let x=0;x<W;x++){tmp[o+x]=s/span;s+=a[o+Math.min(W-1,x+WALL+1)]-a[o+Math.max(0,x-WALL)];}}
+ for(let x=0;x<W;x++){let s=0;for(let y=-WALL;y<=WALL;y++)s+=tmp[Math.min(H-1,Math.max(0,y))*W+x];for(let y=0;y<H;y++){a[y*W+x]=s/span;s+=tmp[Math.min(H-1,y+WALL+1)*W+x]-tmp[Math.max(0,y-WALL)*W+x];}}
+ // Wall slopes become normals (a recess: walls face into the cut); deeper is darker, so the floor sits in shadow.
+ const normals=new ImageData(W,H),nd=normals.data;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-  const i=y*W+x,dx=(a[x<W-1?i+1:i]-a[x>0?i-1:i])/2,dy=(a[y<H-1?i+W:i]-a[y>0?i-W:i])/2;
-  const nx=SLOPE*dx,ny=-SLOPE*dy,l=Math.hypot(nx,ny,1);
-  normals.data[i*4]=(nx/l*.5+.5)*255;normals.data[i*4+1]=(ny/l*.5+.5)*255;normals.data[i*4+2]=(1/l*.5+.5)*255;normals.data[i*4+3]=255;
-  // Deeper is darker: the floor sits in shadow, the walls stay closer to the surface colour.
-  img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255*(1-.62*a[i]);img.data[i*4+3]=Math.min(255,a[i]*400);
+  const i=y*W+x,j=i*4,dx=(a[x<W-1?i+1:i]-a[x>0?i-1:i])/2,dy=(a[y<H-1?i+W:i]-a[y>0?i-W:i])/2;
+  if(dx===0&&dy===0){nd[j]=nd[j+1]=128;nd[j+2]=255;}
+  else{const nx=SLOPE*dx,ny=-SLOPE*dy,l=1/Math.sqrt(nx*nx+ny*ny+1);nd[j]=(nx*l*.5+.5)*255;nd[j+1]=(ny*l*.5+.5)*255;nd[j+2]=(l*.5+.5)*255;}
+  nd[j+3]=255;
+  id[j]=id[j+1]=id[j+2]=255*(1-.62*a[i]);id[j+3]=Math.min(255,a[i]*400);
  }
  g.putImageData(img,0,0);bump.getContext('2d').putImageData(normals,0,0);
- if(slab.decal){slab.decal.material.map.needsUpdate=slab.decal.material.normalMap.needsUpdate=true;return;}
- const map=new CanvasTexture(mask),normalMap=new CanvasTexture(bump);
- map.anisotropy=normalMap.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ return {mask,bump};
+}
+function decal(slab){
+ const e=slab.e;
+ if(e.sample||slab.decal)return;
+ const b=slab.mesh.geometry.userData.bevel,fw=slab.w-2*b,fd=slab.d-2*b,k=Math.min(DECAL,1024/Math.max(fw,fd)),W=Math.round(fw*k),H=Math.round(fd*k),key=`${e.course}|${W}|${H}`;
+ let entry=engravings.get(key);
+ if(!entry){
+  const art=engrave(e,W,H,k);
+  if(!art)return;
+  const map=release(new CanvasTexture(art.mask)),normalMap=release(new CanvasTexture(art.bump));
+  map.anisotropy=normalMap.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+  entry={map,normalMap,users:0,e,W,H,k};
+  engravings.set(key,entry);
+ }
+ entry.users++;slab.engraving=key;
  // The groove is the slab's own colour, shaded by depth, matte with no coat; nudged above the top face to stay clear of it.
- slab.decal=new Mesh(new PlaneGeometry(fw,fd),new MeshStandardMaterial({color:slab.base,map,normalMap,roughness:.55,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+ slab.decal=new Mesh(new PlaneGeometry(fw,fd),new MeshStandardMaterial({color:slab.base,map:entry.map,normalMap:entry.normalMap,roughness:.55,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
  slab.decal.rotation.x=-Math.PI/2;slab.decal.position.y=slab.h+.002;slab.decal.receiveShadow=true;
  slab.mesh.add(slab.decal);
 }
@@ -271,7 +290,10 @@ function retire(slab){
 function dispose(slab){
  week.remove(slab.mesh);
  slab.mesh.material.dispose();
- for(const child of slab.mesh.children){child.geometry.dispose();child.material.map?.dispose();child.material.normalMap?.dispose();child.material.dispose();}
+ for(const child of slab.mesh.children){child.geometry.dispose();child.material.dispose();}
+ // Engravings are shared: their textures go with the last slab using them.
+ const entry=engravings.get(slab.engraving);
+ if(entry&&!--entry.users){entry.map.dispose();entry.normalMap.dispose();engravings.delete(slab.engraving);}
  dying.delete(slab);
 }
 
@@ -327,10 +349,13 @@ function measure(){
  dock=Math.max(1,Math.min(planner.offsetTop-bar,root.scrollHeight-innerHeight));
 }
 
+let sized='';
 function resize(){
  const w=stage.clientWidth,h=stage.clientHeight;
  if(!w||!h)return;
- renderer.setSize(w,h,false);
+ // Setting the canvas size reallocates the drawing buffer even when nothing changed: only on a real change.
+ const key=`${w}x${h}@${pixelRatio}`;
+ if(key!==sized){sized=key;renderer.setSize(w,h,false);}
  camera.aspect=w/h;
  // Desktop parks the week right of the headline; when the copy spans the hero, the week fills the space above it.
  const stacked=copy.offsetWidth>w*.6,heroH=hero.offsetHeight;
@@ -530,7 +555,9 @@ function step(now){
  camera.lookAt(0,0,0);
  // Pan clear of the headline (pixels: right on wide screens, up on phones); fades out as the board lands.
  const need=e<.99?clearance():0;
- if(still)springs.push.x=need;else moving=spring(springs.push,need,220,30,dt)|moving;
+ // The pan follows the drifting outline every frame; only a real pan (resize, zoom: fast) counts as movement, so the
+ // idle frame rate can still apply while it tracks the slow drift.
+ if(still)springs.push.x=need;else{spring(springs.push,need,220,30,dt);moving=moving||Math.abs(springs.push.v)>24;}
  if(springs.push.x>.5){
   const s=springs.push.x*calm;
   camera.setViewOffset(view.w,view.h,view.ox*calm-(view.stacked?0:s),view.oy*calm+(view.stacked?s:0),view.w,view.h);
@@ -556,19 +583,30 @@ function govern(ms){
  if(median>28){renderer.shadowMap.enabled=false;key.castShadow=false;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}
 }
 
+// Idle: when nothing moves but the slow drift and conflict pulse (no spring, scroll, pointer or drag), 30 fps looks
+// identical to the display rate at a fraction of the GPU. Any of those wakes full rate on the very next frame.
+const IDLE=1000/30;
+let compiled=false,busy=true,lastP=-1;
 function loop(now){
  raf=0;
- const still=reduce.matches,was=last,isDocked=!still&&live&&(progress()>=1||document.body.classList.contains('rail-open'));
+ if(!compiled)return;
+ const still=reduce.matches,was=last,p=progress(),isDocked=!still&&live&&(p>=1||document.body.classList.contains('rail-open'));
  if(isDocked!==docked){docked=isDocked;stage.classList.toggle('docked',docked);}
- // Docked under the planner: hand the week back to the page and skip the GPU until scrolled up again.
- if(docked){clearTarget();last=now;raf=requestAnimationFrame(loop);return;}
- step(now);
+ // Docked under the planner: hand the week back to the page and sleep (no frames at all) until a scroll, a resize or
+ // the course drawer closing wakes it.
+ if(docked){clearTarget();last=now;return;}
+ if(p!==lastP){lastP=p;busy=true;}
+ if(!busy&&!still&&now-was<IDLE){raf=requestAnimationFrame(loop);return;}
+ const full=busy;
+ busy=!!step(now);
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
- if(was)govern(now-was);
+ // Only frames drawn at full rate measure the GPU; idle frames are slow on purpose.
+ if(was&&full)govern(now-was);
  if(!still)raf=requestAnimationFrame(loop);
 }
 function wake(){
+ busy=true;
  if(!raf)raf=requestAnimationFrame(loop);
 }
 function stillMode(){
@@ -639,13 +677,36 @@ hero.addEventListener('click',event=>{
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
-canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');clearTarget();cancelAnimationFrame(raf);raf=-1;});
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);raf=-1;});
 document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
+// Wakers for the docked sleep: scrolling back up, and the drawer that hides the stage closing.
+addEventListener('scroll',()=>{if(docked)wake();},{passive:true});
+new MutationObserver(()=>{if(docked)wake();}).observe(document.body,{attributes:true,attributeFilter:['class']});
 reduce.addEventListener('change',stillMode);
-document.fonts.ready.then(()=>{if(labels)drawLabels();for(const slab of slabs.values())decal(slab);resize();});
+// Canvas text drawn before the web font arrived is redrawn once it has; normally the font is already there.
+if(document.fonts.status!=='loaded')document.fonts.ready.then(()=>{
+ if(labels)drawLabels();
+ for(const entry of engravings.values()){
+  const art=engrave(entry.e,entry.W,entry.H,entry.k);
+  if(!art)continue;
+  entry.map.image=art.mask;entry.normalMap.image=art.bump;
+  release(entry.map);release(entry.normalMap);
+  entry.map.needsUpdate=entry.normalMap.needsUpdate=true;
+ }
+ for(const slab of slabs.values())decal(slab);
+ resize();
+});
 light();
 stillMode();
-build();
-resize();
+// Startup in short tasks (studio light, week, shaders) so the page stays responsive while the board gets ready.
+// Shaders compile in parallel where the browser can, and the first frame waits for them instead of stalling.
+const task=()=>new Promise(r=>setTimeout(r));
+(async()=>{
+ await task();environment();
+ await task();build();resize();
+ await task();
+ try{await renderer.compileAsync(scene,camera);}catch{}
+ compiled=true;wake();
+})();

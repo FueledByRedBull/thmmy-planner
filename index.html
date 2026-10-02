@@ -14,11 +14,20 @@ function applyTheme(){
  document.documentElement.dataset.themePreference=themePreference;
 }
 applyTheme();
+// The hero shows a skeleton of the 3D week until it is ready; only where it can load (assets/motion.js clears this
+// if it cannot), so the skeleton never waits forever.
+document.documentElement.classList.toggle('has-3d','WebGL2RenderingContext' in window);
 systemTheme.addEventListener('change',applyTheme);
 </script>
-<link rel="stylesheet" href="./assets/styles.css?v=print1">
+<link rel="stylesheet" href="./assets/styles.css?v=skel2">
+<!-- Fetch the data and the app at once instead of in a chain; assets/motion.js fetches the 3D week once the stylesheet
+     is in. Fonts are not preloaded on purpose: Chrome holds the first paint for preloaded fonts.
+     URLs and versions must match their uses below. -->
+<link rel="preload" href="./data/courses.json?v=f3e6a7eefa89" as="fetch" crossorigin>
+<link rel="preload" href="./data/guide.json?v=5020198886fc" as="fetch" crossorigin>
+<link rel="preload" href="./assets/app.js?v=perf1" as="script">
 <script src="./assets/vendor/lenis.min.js?v=1.3.26" defer></script>
-<script src="./assets/motion.js?v=engrave2" defer></script>
+<script src="./assets/motion.js?v=skel1" defer></script>
 </head>
 <body>
 <!-- Icons: Tabler Icons 3.48.0, MIT License, https://tabler.io/icons -->
@@ -42,7 +51,7 @@ systemTheme.addEventListener('change',applyTheme);
 <symbol id="i-print" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/><path d="M7 15a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/></symbol>
 </defs></svg>
 <header class="masthead"><a class="brand" href="#"><span class="brand-mark">ΗΜ<br>ΜΥ</span><span class="brand-text">Πανεπιστήμιο Θεσσαλίας<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span></a><div class="header-actions"><button id="profileButton" class="quiet"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg><span class="btn-label">Το προφίλ σπουδών μου</span></button><label class="theme-control"><svg class="icon" aria-hidden="true"><use id="themeIcon" href="#i-sunmoon"/></svg><svg class="icon chev" aria-hidden="true"><use href="#i-chevron"/></svg><select id="theme" aria-label="Θέμα εμφάνισης"><option value="system">Σύστημα</option><option value="light">Φωτεινό</option><option value="dark">Σκοτεινό</option></select></label><details id="dataMenu" class="data-menu"><summary aria-label="Δεδομένα και πηγές"><svg class="icon" aria-hidden="true"><use href="#i-dots"/></svg><span class="btn-label">Δεδομένα</span></summary><div class="data-menu-actions"><button id="sourcesButton" class="quiet source-action">Πηγές & ενημέρωση</button><button id="transferButton" class="quiet">Εισαγωγή / εξαγωγή κωδικού</button><button id="saveCopy" class="quiet" title="Κατεβάζει νέο αυτοτελές HTML με τα δεδομένα και τις επιλογές σου">Αποθήκευση αντιγράφου HTML</button></div></details><button id="printButton" class="quiet" aria-label="Εκτύπωση"><svg class="icon" aria-hidden="true"><use href="#i-print"/></svg><span class="btn-label">Εκτύπωση</span></button></div></header>
-<section class="hero" aria-labelledby="heroTitle"><div class="hero-copy"><h1 id="heroTitle" class="hero-title"><span class="line"><span>Η εβδομάδα</span></span><span class="line"><span>μου<em>.</em></span></span></h1><p class="hero-sub">Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.</p><a class="hero-cta" href="#planner">Στο πρόγραμμα</a></div></section>
+<section class="hero" aria-labelledby="heroTitle"><div class="hero-skeleton" aria-hidden="true"><div class="hs-board"><div class="hs-field"><b style="--d:1;--t:4%;--h:15%"></b><b style="--d:2;--t:0%;--h:15%"></b><b style="--d:2;--t:40%;--h:15%"></b><b style="--d:3;--t:40%;--h:23%"></b><b style="--d:4;--t:15%;--h:15%"></b><b style="--d:5;--t:0%;--h:15%"></b><b style="--d:5;--t:56%;--h:30%"></b></div></div></div><div class="hero-copy"><h1 id="heroTitle" class="hero-title"><span class="line"><span>Η εβδομάδα</span></span><span class="line"><span>μου<em>.</em></span></span></h1><p class="hero-sub">Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.</p><a class="hero-cta" href="#planner">Στο πρόγραμμα</a></div></section>
 <div class="hero-stage" aria-hidden="true"><canvas id="week3d"></canvas><div class="hero-tip" id="heroTip"></div></div>
 <main id="planner">
 <section class="intro"><div class="intro-actions"><div class="season-switch" aria-label="Περίοδος προγράμματος"><button data-season="fall" aria-pressed="true">Χειμερινό</button><button data-season="spring" aria-pressed="false">Εαρινό</button></div><div class="sync-box"><button id="refresh" class="primary"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg><span>Ανανέωση<span class="btn-extra"> από ΤΗΜΜΥ</span></span></button><span id="syncMeta"></span></div></div></section>
@@ -81,7 +90,9 @@ systemTheme.addEventListener('change',applyTheme);
   const files=await Promise.all(["./data/courses.json?v=f3e6a7eefa89","./data/guide.json?v=5020198886fc"].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('HTTP '+r.status);return r.json();}));
   document.getElementById('initial-data').textContent=JSON.stringify(files[0]);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=lanes1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  // The preloads make the app ready before the first frame; let the hero paint first (or 100ms, for background tabs).
+  await Promise.race([new Promise(r=>requestAnimationFrame(()=>setTimeout(r))),new Promise(r=>setTimeout(r,100))]);
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=perf1";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
   const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
  }catch(error){document.documentElement.classList.remove('is-loading');document.getElementById('emptyState').hidden=false;notice.hidden=false;notice.classList.add('error');notice.textContent='Η φόρτωση δεν ολοκληρώθηκε. '+error.message+' Δοκίμασε επαναφόρτωση της σελίδας. Τα αποθηκευμένα δεδομένα σου παραμένουν στον browser.';}
