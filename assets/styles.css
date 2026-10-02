@@ -379,6 +379,18 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 #refresh:disabled .icon{animation:spin .9s linear infinite}
 #syncMeta{color:var(--text-3);font-size:12px}
 .notice{display:flex;gap:10px;margin:0 0 16px;padding:13px 18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2);font-size:13px;line-height:1.55;animation:pop-in .4s var(--ease)}
+/* After a refresh or an import: what changed against the previous data, collapsed right under the notice. */
+.update-report{margin:-6px 0 16px;padding:0 18px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:13px;line-height:1.55;animation:pop-in .4s var(--ease)}
+.update-report summary{display:flex;align-items:center;gap:10px;padding:13px 0;list-style:none;font-weight:600;cursor:pointer}
+.update-report summary::-webkit-details-marker{display:none}
+.update-report summary::before{content:'';width:7px;height:7px;border-right:2px solid var(--text-3);border-bottom:2px solid var(--text-3);transform:rotate(-45deg);transition:transform .3s var(--ease);flex-shrink:0}
+.update-report[open] summary{border-bottom:1px solid var(--line)}
+.update-report[open] summary::before{transform:rotate(45deg)}
+.update-report h3{margin:14px 0 6px;font-size:13px;font-weight:600}
+.update-report ul{display:grid;gap:6px;margin:0 0 14px;padding:0;list-style:none}
+.update-report li,.update-report p{color:var(--text-2)}
+.update-report li strong{color:var(--text);font-weight:600}
+.update-report p{margin:12px 0}
 .notice.error{border-color:color-mix(in srgb,var(--danger) 30%,transparent);background:var(--danger-soft);color:var(--text)}
 .period-label{margin:2px 0 14px}
 
@@ -785,7 +797,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ .sprite,.hero,.hero-stage,.flight,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */

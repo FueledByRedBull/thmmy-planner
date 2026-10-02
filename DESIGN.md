@@ -391,6 +391,7 @@ Pills that press, never lift.
 - **Shadow Strategy:** floating plus highlight for raised surfaces (see Elevation).
 - **Border:** transparent in light, hairline in dark; warning and danger callouts use a 24-30% tinted border on the soft fill.
 - **Internal Padding:** 28px dialogs, 11-16px callouts.
+- **Update report:** after a refresh or an import, a collapsed "Τι άλλαξε · N αλλαγές" card on `surface` sits right under the notice and lists what changed against the previous data, grouped as changed, added and removed meetings and catalog changes (season, code and name in ink, the detail in ink-2). The next notice hides it; print and the HTML backup leave it out.
 
 ### Inputs / Fields
 - **Style:** 40px pill well on `surface-2` with a hairline border (44px with a leading icon for search).
