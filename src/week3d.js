@@ -83,6 +83,14 @@ scene.add(key,key.target,rim,fill,floor,week,air);
 let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:-1},board=null,labels=null,edges=null;
 const slabs=new Map(),dying=new Set(),geometries=new Map();
 const springs={intro:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0}};
+// The choreography follows the scroll on a critically damped spring instead of 1:1: `shown` is the progress the board,
+// camera and tiles act on. A slow scroll is tracked closely; a fast or back-and-forth one is played at the motion's own
+// pace (never faster than about four tenths of a second end to end, never reversing on a jitter) and always ends where the page
+// is. `handover` is the eased share of the planner's own blocks (see the hand-over in step).
+const shown={x:0,v:0};
+let handover=0,handed=true;
+// How far down the page the week is, for the hand: the scroll itself or the morph still catching up, whichever is further.
+const travel=()=>Math.max(progress(),shown.x);
 let pointer={x:0,y:0,inside:false,dirty:false,type:'mouse'},hovered=null,raf=0,last=0,live=false,firstBuild=true;
 const ray=new Raycaster(),ndc=new Vector2();
 let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targetEl=null,targetKey='',clip='';
@@ -720,11 +728,15 @@ const pick=(x,y)=>cast(x,y).slab;
 function step(now){
  const dt=Math.min(.05,(now-(last||now))/1000);
  last=now;
- const t=now/1000,still=reduce.matches,p=still?0:progress();
+ const t=now/1000,still=reduce.matches;
+ let moving=false;
+ if(still)shown.x=shown.v=0;
+ else if(spring(shown,progress(),160,25.3,dt))moving=true;
+ else{shown.x=progress();shown.v=0;}
+ const p=Math.min(1,Math.max(0,shown.x));
  const R=still?null:gridRect();
  // e: how far the board has travelled onto the planner (complete a little before the sheet docks).
  const e=R?smooth((p-.04)/.84):0,tilt=R?0:smooth(p),calm=1-e;
- let moving=false;
  if(!still){
   moving=spring(springs.intro,1,26,9,dt)|moving;
   const follow=pointer.inside&&!orbit.drag;
@@ -840,7 +852,12 @@ function step(now){
  // Hand-over: the real blocks fade in over the last tenth of the scroll while the canvas fades out. While tiles are
  // thrown to the sky or being dealt, the canvas stays fully on and the planner's own blocks stay hidden (a dealt tile's
  // block shows on its own, see stamp), so nothing shows twice.
- const land=R&&!sky&&!deal?smooth((p-.9)/.1):0;
+ // The share itself is eased, so the blocks never pop in or out when a throw or a deal ends mid-way.
+ const want=R&&!sky&&!deal?smooth((p-.9)/.1):0;
+ handover=still||Math.abs(want-handover)<.01?want:handover+(want-handover)*(1-Math.exp(-dt*16));
+ handed=handover===want;
+ if(!handed)moving=true;
+ const land=handover;
  setTarget(R?.el||null,chrome,land);
  setStage(1-land);
  // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while any is still leaving.
@@ -871,7 +888,7 @@ let compiled=false,busy=true,chain=false,lastP=-1,idle=0;
 function loop(now){
  raf=0;
  if(!compiled)return;
- const still=reduce.matches,was=last,p=progress(),isDocked=!still&&live&&(p>=1&&!deal||document.body.classList.contains('rail-open'));
+ const still=reduce.matches,was=last,p=progress(),isDocked=!still&&live&&(p>=1&&shown.x>=1&&handed&&!deal||document.body.classList.contains('rail-open'));
  if(isDocked!==docked){docked=isDocked;stage.classList.toggle('docked',docked);}
  // Docked under the planner (once a deal in progress has finished): hand the week back to the page and sleep (no frames
  // at all) until a scroll, a resize or the course drawer closing wakes it.
@@ -905,7 +922,7 @@ function stillMode(){
 
 hero.addEventListener('pointerdown',event=>{
  down={x:event.clientX,y:event.clientY};
- if(event.button!==0||event.target.closest('a,button')||!live||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
+ if(event.button!==0||event.target.closest('a,button')||!live||travel()>FREE||!cast(event.clientX,event.clientY).board)return;
  orbit.drag={id:event.pointerId,x:event.clientX,y:event.clientY,lx:event.clientX,ly:event.clientY,moved:false,touch:event.pointerType==='touch',pitch:orbit.pitch.x};
  // Catch: the aim starts where the board is, so a spinning board is caught and stopped by the hand's spring.
  orbit.home=false;orbit.aim.yaw=orbit.yaw.x;orbit.aim.pitch=orbit.pitch.x;
@@ -943,14 +960,14 @@ function endDrag(event){
 hero.addEventListener('pointerup',endDrag);
 hero.addEventListener('pointercancel',endDrag);
 hero.addEventListener('dblclick',event=>{
- if(event.target.closest('a,button')||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
+ if(event.target.closest('a,button')||travel()>FREE||!cast(event.clientX,event.clientY).board)return;
  orbit.home=true;
  if(reduce.matches){orbit.yaw.x=orbit.pitch.x=0;orbit.zoom.x=orbit.aim.zoom=1;orbit.home=false;}
  wake();
 });
 // Trackpad pinch arrives as Ctrl+wheel (Lenis leaves it alone); plain wheel always scrolls the page.
 hero.addEventListener('wheel',event=>{
- if(!event.ctrlKey||progress()>FREE||!cast(event.clientX,event.clientY).board)return;
+ if(!event.ctrlKey||travel()>FREE||!cast(event.clientX,event.clientY).board)return;
  event.preventDefault();
  orbit.aim.zoom=Math.min(ZOOM[1],Math.max(ZOOM[0],orbit.aim.zoom*Math.exp(event.deltaY*.01)));orbit.home=false;
  if(reduce.matches)orbit.zoom.x=orbit.aim.zoom;
@@ -959,7 +976,7 @@ hero.addEventListener('wheel',event=>{
 hero.addEventListener('pointerleave',()=>{pointer={...pointer,inside:false,dirty:true};wake();});
 hero.addEventListener('click',event=>{
  // A press that travelled (an orbit, or a swipe while the board is morphing) is not a click on a course.
- if(suppressClick||event.target.closest('a,button')||progress()>=.3||down&&Math.hypot(event.clientX-down.x,event.clientY-down.y)>5)return;
+ if(suppressClick||event.target.closest('a,button')||travel()>=.3||down&&Math.hypot(event.clientX-down.x,event.clientY-down.y)>5)return;
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
@@ -995,7 +1012,7 @@ stillMode();
 const task=()=>new Promise(r=>setTimeout(r));
 (async()=>{
  await task();await environment();
- await task();build();resize();
+ await task();build();resize();shown.x=progress();
  await task();
  try{await renderer.compileAsync(scene,camera);}catch{}
  compiled=true;wake();

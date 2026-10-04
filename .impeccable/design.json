@@ -1047,7 +1047,7 @@
       },
       {
         "name": "scroll-morph",
-        "value": "e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks), held at 0 while a deal or throw runs (a dealt block shows on its own via --dealt)",
+        "value": "p follows the scroll on a critically damped spring (k 160, c 25.3), never 1:1, so a fast or back-and-forth scroll plays at the motion's own pace; e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks), held at 0 while a deal or throw runs (a dealt block shows on its own via --dealt); the crossfade share itself is eased (16/s), so it never pops when a deal or throw ends",
         "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns; slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
       },
       {
