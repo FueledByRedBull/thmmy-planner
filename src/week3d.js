@@ -378,7 +378,7 @@ function spring(s,to,k,c,dt){
 // so only a sustained hard spin by hand clears it; a flick or a released throw does not.
 const G=22,DEAL=40,GRIP=600,SLIP=.25,SKY_G=10,HOVER=.55,UP=new Vector3(0,1,0),v1=new Vector3(),v2=new Vector3(),v3=new Vector3(),q1=new Quaternion();
 const sweep=(a,b)=>a.e.day-b.e.day||a.e.start-b.e.start||a.e.lane-b.e.lane;
-let sky=null,deal=null,armed=false,topArmed=false,anyDealt=false,prevP=-1,pMoved=0,heading=0;
+let sky=null,deal=null,rising=false,armed=false,topArmed=false,anyDealt=false,prevP=-1,pMoved=0,heading=0;
 const airborne=()=>[...slabs.values()].filter(s=>s.air);
 // Half the tile's vertical extent at orientation q (scale s), for resting its lowest point on the floor.
 function halfY(slab,q,s){
@@ -457,20 +457,21 @@ function fling(slab,omega){
  a.w.copy(v2.crossVectors(UP,dir).normalize()).multiplyScalar(6+Math.random()*4);
  a.mode='fly';
 }
-// Screen-up in air coordinates (into out), and how far along it point c must travel to leave the top of the view.
+// Screen-up in air coordinates (into out), and how far along it a tile centred at c must still travel for all of it
+// (whatever its tumble) to be clear of the top of the view; zero or less once it is.
 const sw1=new Vector3(),sw2=new Vector3(),swq=new Quaternion();
-function skyward(c,out){
+function skyward(slab,c,out){
  out.setFromMatrixColumn(camera.matrixWorld,1).applyQuaternion(swq.copy(air.quaternion).invert());
- const w=air.localToWorld(sw1.copy(c)),ndc=sw2.copy(w).project(camera),dist=camera.position.distanceTo(w);
- return Math.max(.5,(1.3-ndc.y)*dist*Math.tan(camera.fov*Math.PI/360));
+ const w=air.localToWorld(sw1.copy(c)),ndc=sw2.copy(w).project(camera),dist=camera.position.distanceTo(w),s=slab.air.s;
+ return (1.1-ndc.y)*dist*Math.tan(camera.fov*Math.PI/360)+Math.hypot(slab.w*s.x,slab.h*s.y,slab.d*s.z)/2;
 }
 function throwUp(now){
  undeal();
  const list=[...slabs.values()].filter(s=>!s.air&&s.mesh.visible&&now>=s.start).sort(sweep);
  if(!list.length)return;
  list.forEach((slab,i)=>{
-  const a=takeOff(slab,'sky'),reach=skyward(a.c,v1);
-  a.mode='up';a.t0=now+i*12;a.v.copy(v1).multiplyScalar(reach/.3+SKY_G*.15);
+  const a=takeOff(slab,'sky'),reach=Math.max(.5,skyward(slab,a.c,v1));
+  a.mode='up';a.t0=now+i*12;a.pace=reach/.3;a.v.copy(v1).multiplyScalar(reach/.3+SKY_G*.15);
   a.v.addScaledVector(v2.setFromMatrixColumn(camera.matrixWorld,0).applyQuaternion(q1.copy(air.quaternion).invert()),(Math.random()-.5)*1.4);
   a.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(3+Math.random()*2);
   // A tile thrown off the flattened planner pops back into a full slab on the way up, never bigger than its block.
@@ -479,6 +480,7 @@ function throwUp(now){
  sky={phase:'up',t:now};
 }
 function stepAir(now,dt,p,R,e){
+ rising=false;
  if(reduce.matches)return false;
  let moving=false;
  if(p!==prevP){heading=Math.sign(p-prevP);prevP=p;pMoved=now;}
@@ -517,7 +519,8 @@ function stepAir(now,dt,p,R,e){
  if(sky?.phase==='up'&&(list.every(s=>s.air.kind!=='sky'||s.air.mode==='wait')||now-sky.t>700))sky.phase='wait';
  if(sky?.phase==='wait'&&(now-pMoved>160||p<.25||heading>0&&p>.95)){
   const fast=heading>0&&p>.95;
-  list.filter(s=>s.air.kind==='sky').sort(sweep).forEach((slab,i)=>{const a=slab.air;a.mode='drop';a.t0=now+i*(fast?10:DEAL);a.reach=undefined;});
+  // Only the tiles already out of sight: one still on its way up keeps going and drops the moment it is clear.
+  list.filter(s=>s.air.mode==='wait').sort(sweep).forEach((slab,i)=>{const a=slab.air;a.mode='drop';a.t0=now+i*(fast?10:DEAL);a.reach=undefined;});
   sky.phase='drop';
  }
  for(const slab of list){
@@ -572,13 +575,20 @@ function stepAir(now,dt,p,R,e){
    a.v.addScaledVector(v1.copy(a.v).normalize(),-SKY_G*dt);c.addScaledVector(a.v,dt);
    const turn=a.w.length();if(turn>1e-4)a.q.premultiply(q1.setFromAxisAngle(v1.copy(a.w).divideScalar(turn),turn*dt));
    a.s.lerp(a.pop,1-Math.exp(-dt*14));
-   if(air.localToWorld(v2.copy(c)).project(camera).y>1.25){a.mode='wait';m.visible=false;}
+   // The camera swings while the page scrolls, so "up" is the screen's up as it is now: the throw keeps its own speed,
+   // but never falls below the pace it set out at (the edge in .3s), so a tile cannot slow to a hang short of it; it is
+   // only parked once the whole of it is out of sight.
+   const left=skyward(slab,c,v1),short=a.pace-a.v.dot(v1);
+   rising=true;
+   if(short>0)a.v.addScaledVector(v1,short);
+   if(left<=0){m.visible=false;if(sky?.phase==='drop'){a.mode='drop';a.t0=now;a.reach=undefined;}else a.mode='wait';}
   }else if(a.mode==='drop'){
-   // Falls in from just above the top edge, accelerating like a dropped tile, onto a slot that moves with the scroll.
-   const to=slot(slab,v2),reach=skyward(to,v3);
+   // Falls in from wholly above the top edge onto a slot that moves with the scroll, accelerating like a dropped tile
+   // but already moving as it comes into view (no hang at the edge), the same fall as the deal.
+   const to=slot(slab,v2),reach=Math.max(.5,skyward(slab,to,v3));
    if(a.reach===undefined){a.reach=reach;a.fq=a.q.clone();a.fs=a.s.clone();m.visible=true;}
    const u=Math.min(1,(now-a.t0)/300);
-   c.copy(to).addScaledVector(v3,a.reach*(1-u*u));
+   c.copy(to).addScaledVector(v3,a.reach*(1-u*(.35+.65*u)));
    a.q.slerpQuaternions(a.fq,slotQ(q1),smooth(u));a.s.lerpVectors(a.fs,week.scale,u);
    if(u>=1){seat(slab);continue;}
   }
@@ -833,8 +843,8 @@ function step(now){
  const land=R&&!sky&&!deal?smooth((p-.9)/.1):0;
  setTarget(R?.el||null,chrome,land);
  setStage(1-land);
- // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while they leave.
- if(!still){if(sky?.phase==='up'){if(clip){clip='';stage.style.clipPath='';}}else clipStage(R);}
+ // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while any is still leaving.
+ if(!still){if(rising){if(clip){clip='';stage.style.clipPath='';}}else clipStage(R);}
  return moving;
 }
 
