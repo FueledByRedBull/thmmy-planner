@@ -1107,8 +1107,8 @@
       },
       {
         "name": "tile-throw",
-        "value": "fires once p < .9, once per planner visit; up to the top edge in ~0.3s; fall 300ms each, 40ms stagger by day (10ms heading back down)",
-        "purpose": "Leaving the docked planner upward throws the slabs off the top of the screen once per visit, only once the scroll is below 90% so overshooting the planner's top never throws the week; they fall back onto the board when the scroll rests 160ms, the board nears the hero (p < .25) or the page heads back down. Desktop and tablet only; not under reduced motion."
+        "value": "fires once p < .9, every time the page scrolls up from near the planner (re-arms with the week whole at p >= .95); up to the top edge in ~0.3s; fall 300ms each, 40ms stagger by day (10ms heading back down)",
+        "purpose": "Scrolling up from near the planner (docked or not) throws the slabs off the top of the screen, only once the scroll is below 90% so overshooting the planner's top never throws the week; they fall back onto the board when the scroll rests 160ms, the board nears the hero (p < .25) or the page heads back down. Desktop and tablet only; not under reduced motion."
       },
       {
         "name": "tile-deal",

@@ -507,8 +507,10 @@ function stepAir(now,dt,p,R,e){
  if(topArmed&&heading>0&&p>.05&&R){topArmed=false;if(!airborne().length)lift(now);}
  // The tiles are only handed over to the planner's blocks while the board lies exactly on them.
  if(anyDealt&&(e<.995||R?.el!==calendarWrap))undeal();
- // Thrown: leaving the docked planner upward, once per visit to the planner, and only once the scroll is well into the
- // hero (below 90%), so overshooting the planner's top on the way back to it never throws the week.
+ // Thrown: every time the page scrolls up from near the planner. The throw arms whenever the week is whole (nothing
+ // in the air or being dealt) at 95% or beyond, docked or not, and fires once the scroll is well into the hero (below
+ // 90%), so overshooting the planner's top on the way back to it never throws the week.
+ if(!armed&&p>=.95&&!airborne().length)armed=true;
  if(armed&&R&&heading<0&&p<.9){armed=false;throwUp(now);}
  const list=airborne();
  if(!list.length){sky=deal=null;return false;}
