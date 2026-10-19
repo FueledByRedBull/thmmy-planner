@@ -22,7 +22,7 @@ It is built on the department's own published timetables (e-ce.uth.gr) and study
 
 - It is used on laptops and phones around registration periods and during the semester (Χειμερινό / Εαρινό seasons).
 - There are no accounts. All state (selections, passed courses, profile, colors, theme) lives in the browser's localStorage and moves between devices through a short THMMY2 transfer code (choices only; the timetable itself is reloaded from the source) or file. Older THMMY1 codes, which embed the whole timetable, still import.
-- Data refresh fetches public e-ce.uth.gr pages through Jina Reader, AllOrigins, or directly. Users can also import a saved official HTML page manually.
+- The timetable is refreshed nightly by a GitHub Action (`scripts/refresh-data.mjs`). In the app, *Ανανέωση από ΤΗΜΜΥ* fetches the public e-ce.uth.gr pages through Jina Reader, AllOrigins, or directly. Users can also import a saved official HTML page manually.
 - Printing or saving the week as a PDF is a core ritual.
 
 ## Capabilities and Constraints
@@ -30,19 +30,19 @@ It is built on the department's own published timetables (e-ce.uth.gr) and study
 - The capabilities are course catalog search and filters (semester, offered/selected/all/passed), fall/spring season switch, and a week calendar with overlap detection. The app also offers color by semester or course, course detail dialogs, a study profile, a program/registration check panel, a study-guide rules dialog, sources and refresh, data transfer (export/import code), a self-contained HTML copy download, a light/dark/system theme, and print.
 - **Must keep working:** the GitHub Pages version (static `index.html` + `assets/` + `data/`) and print/PDF output.
 - The standalone `THMMY-programma.html` is not a required target and may drift from the redesigned version.
-- New dependencies are allowed. The CSP in `index.html` currently limits scripts, styles, and fonts to self-hosted assets, so any new asset must be vendored or the CSP updated deliberately.
+- Keep the footprint small: no new dependencies, fonts or font weights without the owner's say. The CSP in `index.html` limits scripts, styles, and fonts to self-hosted assets, so any new asset must be vendored or the CSP updated deliberately.
 - The UI language is Greek (`lang="el"`), and all copy is Greek.
 
 ## Brand Commitments
 
 - Name: "Η εβδομάδα μου · ΤΗΜΜΥ". The ΗΜΜΥ mark and the "ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΙΑΣ" line appear in the current masthead.
 - Voice: short, direct, second-person Greek ("Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.").
-- The user asked for a full visual redesign with motion graphics and skeleton loaders. The existing look is evidence only, not something to preserve.
+- The look is established and documented in DESIGN.md (Geologica, neutral studio greys, one neon-pink accent, saturated per-course colours, pill controls, the 3D board hero that morphs into the 2D week). Polish within it; do not redesign.
 
 ## Evidence on Hand
 
 - `data/courses.json` holds the catalog plus fall and spring timetables. `data/guide.json` holds the 2024–25 study-guide rules, checks, and uncertainties.
-- Self-hosted Noto fonts are in `assets/fonts/`.
+- Self-hosted Geologica (Greek and Latin subsets, variable 300-800) is in `assets/fonts/`. Noto Sans is only named in the font stack as a fallback; it is not bundled.
 - There are no testimonials, usage numbers, or endorsements. Do not fabricate any, and do not imply the department officially endorses the app.
 
 ## Product Principles

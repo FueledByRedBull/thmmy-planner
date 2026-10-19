@@ -60,7 +60,7 @@ flowchart LR
 
 - **Nightly.** At 02:17 UTC, [`refresh-data.yml`](.github/workflows/refresh-data.yml) downloads the catalogue and both timetables. It parses them with the app's own [`source-parser.js`](assets/source-parser.js) in headless Chrome, so the result is exactly what the app would produce. It commits only when something changed, and refuses results that look broken (a shrunken catalogue, or a published timetable that came back empty).
 - **On your next visit,** the planner takes the new snapshot in the way a manual refresh does: your meeting choices are remapped, selected courses that left the catalogue are kept, and *Τι άλλαξε* shows the differences.
-- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins, chosen in *Πηγές & ενημέρωση*). You can also import an official page you saved yourself.
+- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins) or directly, chosen in *Πηγές & ενημέρωση*. You can also import an official page you saved yourself.
 
 ## Privacy
 
@@ -92,16 +92,17 @@ assets/
   motion.js               smooth scrolling (Lenis) and loading the 3D week
   week3d.js               the 3D week, bundled from src/week3d.js
   vendor/lenis.min.js
-  fonts/                  Geologica and Noto Sans subsets, with OFL.txt
+  fonts/                  Geologica subsets, with OFL.txt
   icons/                  app icons
 data/
   courses.json            catalogue and timetables, refreshed nightly
   guide.json              study-guide rules behind the checks
 src/week3d.js             source of the 3D week (Three.js)
 scripts/refresh-data.mjs  the nightly data refresh
+scripts/*.test.mjs        tests: week logic and transfer codes (app.test), the source parser in headless Chrome (parser.test)
 .github/workflows/        refresh-data.yml
 docs/screenshots/         images for this README
-DESIGN.md, PRODUCT.md     design system and product notes (.impeccable/ holds their machine-readable form)
+DESIGN.md, PRODUCT.md     design system and product notes (.impeccable/ holds the design tokens as JSON and the page's surface brief)
 ```
 
 ## Development
@@ -128,6 +129,12 @@ node scripts/refresh-data.mjs --dry-run   # report what changed, write nothing
 node scripts/refresh-data.mjs             # update data/courses.json and its version in index.html
 ```
 
+**Tests** need Node 22 or newer; the parser tests also need Chrome (set `CHROME_PATH` if it is not in its usual place, or they are skipped):
+
+```sh
+node --test
+```
+
 To run the nightly job right away, use *Run workflow* on the [workflow's page](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/refresh-data.yml), or `gh workflow run refresh-data.yml`. Commits made with the workflow's token do not start a Pages build on their own, so the job requests one.
 
 **Updates and the service worker.** Updates need no extra step. The page asks `sw.js` to check for a new `index.html` when it loads, when it comes back into view and every half hour. A changed page has its files (read from `index.html`, `assets/motion.js` and `assets/styles.css`) cached first; the page then shows a "new version" prompt whose reload is instant. Change `CACHE` in `sw.js` only when its own caching changes; the new worker then waits behind the same prompt. If a published `sw.js` ever misbehaves, replace it with one whose `install` and `activate` handlers call `self.registration.unregister()`.
@@ -137,7 +144,7 @@ Design decisions live in [`DESIGN.md`](DESIGN.md) and [`PRODUCT.md`](PRODUCT.md)
 ## Credits
 
 - Timetables and catalogue: the public pages of the department at [e-ce.uth.gr](https://www.e-ce.uth.gr/).
-- [Geologica](https://github.com/googlefonts/geologica) and [Noto Sans](https://github.com/notofonts/latin-greek-cyrillic), SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
+- [Geologica](https://github.com/googlefonts/geologica), SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
 - [Three.js](https://threejs.org/) (MIT, notice at the end of `assets/week3d.js`), [Lenis](https://github.com/darkroomengineering/lenis) (MIT) and [Tabler Icons](https://tabler.io/icons) (MIT).
 
 This is an unofficial tool. The official course declaration is made in the university's Electronic Secretariat (Ηλεκτρονική Γραμματεία).
