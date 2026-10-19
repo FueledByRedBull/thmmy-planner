@@ -4,10 +4,11 @@
 //   the cache; files without a version (fonts) are served from the cache and refreshed in the background.
 // - The page itself (index.html) is served from the cache. The page asks for a check when it loads, when it comes back
 //   into view and every half hour. A changed page has its files fetched first, then becomes current and open pages
-//   are told, so the "new version" reload is instant and works offline. One previous version is kept for open tabs.
+//   are told, so the "new version" reload is instant and works offline. The previous version's files are kept for
+//   tabs still open on it.
 // - Everything cross-origin (the timetable refresh goes through public proxies) and anything but GET is left alone.
 // Kill switch: if this file ever misbehaves, publish one whose install/activate call self.registration.unregister().
-const CACHE='thmmy-planner-1',SCOPE=new URL('./',self.location).href,INDEX=SCOPE,PREVIOUS=SCOPE+'?sw-previous';
+const CACHE='thmmy-planner-1',SCOPE=new URL('./',self.location).href,INDEX=SCOPE;
 
 const fetchOk=async(url,init)=>{const response=await fetch(url,init);if(!response.ok)throw new Error(`HTTP ${response.status} ${url}`);return response;};
 
@@ -18,7 +19,8 @@ async function assetsOf(cache,html){
  for(const [,path] of html.matchAll(/["'](\.\/(?:assets|data)\/[^"'\s>]+)["']/g))urls.add(new URL(path,SCOPE).href);
  for(const url of [...urls]){
   if(!/\/(?:motion\.js|styles\.css)\?/.test(url))continue;
-  const text=await ((await cache.match(url))||await fetchOk(url)).text();
+  // Comments name files too ("(week3d.js)" in styles.css): match real references only.
+  const text=(await ((await cache.match(url))||await fetchOk(url)).text()).replace(/\/\*[\s\S]*?\*\//g,'');
   for(const [,ref] of text.matchAll(/["'(]([\w./-]+\.(?:js|woff2)(?:\?v=[\w-]+)?)["')]/g))urls.add(new URL(ref,url).href);
  }
  return urls;
@@ -70,11 +72,10 @@ function check(){
    const cache=await caches.open(CACHE),[current,fresh]=await Promise.all([cache.match(INDEX),fetchOk(INDEX,{cache:'no-cache'})]);
    const html=await fresh.clone().text(),old=current&&await current.clone().text();
    if(old===html)return;
-   // A new version: its files first, then it becomes the page; the old one stays one step back for open tabs.
+   // A new version: its files first, then it becomes the page; the old version's files stay for open tabs.
    const urls=await precache(cache,html);
-   if(current)await cache.put(PREVIOUS,current);
    await cache.put(INDEX,fresh);
-   const keep=new Set([INDEX,PREVIOUS,...urls,...(old?await assetsOf(cache,old):[])]);
+   const keep=new Set([INDEX,...urls,...(old?await assetsOf(cache,old):[])]);
    for(const request of await cache.keys())if(!keep.has(request.url))await cache.delete(request);
    if(old)for(const client of await self.clients.matchAll({type:'window'}))client.postMessage('update');
   }catch{
