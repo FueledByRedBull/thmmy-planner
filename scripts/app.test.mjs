@@ -1,5 +1,5 @@
-// Checks the week's pure logic in assets/app.js: lanes, overlaps and contact time. Run with: node --test
-// app.js is a classic script that touches the DOM as it loads, so the three functions are lifted out of its source.
+// Checks the pure logic in assets/app.js: lanes, overlaps, contact time and THMMY2 backup codes. Run with: node --test
+// app.js is a classic script that touches the DOM as it loads, so the functions under test are lifted out of its source.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -49,4 +49,21 @@ test('layoutEvents: separate clusters and days do not share lanes, and the input
  assert.equal(laid.c.lanes,1);
  assert.equal(laid.d.lanes,1);
  assert.ok(input.every(e=>!('lane' in e)));
+});
+
+test('THMMY2 code: every choice survives encode and decode; a malformed code is refused',async()=>{
+ const sourcesAt=source.indexOf('const SOURCES='),limitAt=source.indexOf('const TRANSFER_LIMIT'),decodeAt=source.indexOf('async function decodeTransfer');
+ assert.ok(sourcesAt>=0&&limitAt>=0&&decodeAt>limitAt,'SOURCES or TRANSFER_LIMIT…decodeCompact moved in assets/app.js');
+ const lift=source.slice(sourcesAt,source.indexOf('\n',sourcesAt))+source.slice(limitAt,decodeAt)+';return {encodeTransfer,decodeCompact};';
+ const data=JSON.parse(readFileSync(new URL('../data/courses.json',import.meta.url),'utf8'));
+ // Codes name a meeting by course, day and start, so use meetings that are alone in their slot.
+ const unique=data.fall.events.filter(e=>data.fall.events.filter(o=>o.courseId===e.courseId&&o.day===e.day&&o.start===e.start).length===1);
+ const [lab,skipped]=unique,other=data.catalog.find(c=>c.id!==lab.courseId).id;
+ const state={season:'spring',selected:{fall:[lab.courseId],spring:[]},passed:[other],excluded:[skipped.id],labs:[lab.id],review:[other],creditTo:{[lab.courseId]:3},colors:{'semester-3':'#112233'},colorMode:'semester',entryYear:'new',studySemester:'5',passedComplete:true,provider:'direct'};
+ const {encodeTransfer,decodeCompact}=new Function('state','data','themePreference',lift)(state,data,'dark');
+ const decoded=decodeCompact(await encodeTransfer());
+ assert.deepEqual(decoded.state,state);
+ assert.equal(decoded.theme,'dark');
+ assert.equal(decoded.dropped,0);
+ assert.throws(()=>decodeCompact('THMMY2:f=1x'));
 });

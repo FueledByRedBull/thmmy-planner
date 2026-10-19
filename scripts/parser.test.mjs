@@ -83,6 +83,11 @@ test('parseTimetable: rows become events with day, minutes and course matched by
  assert.equal(new Set(result.events.map(e=>e.id)).size,2);
 });
 
+test('parseTimetable: co-teachers listed one per item are joined with commas',{skip},async()=>{
+ const [event]=(await parseTimetable(timetablePage([[row('9:00-11:00','Φυσική','Θεωρία','Αμφ. 1','<ul><li><a>Α Β</a></li><li>Γ Δ</li></ul>')]]))).events;
+ assert.equal(event.teacher,'Α Β, Γ Δ');
+});
+
 test('parseTimetable: an identical repeated row is one event; an empty timetable is unpublished',{skip},async()=>{
  assert.equal((await parseTimetable(timetablePage([[row('9:00-11:00','Φυσική'),row('9:00-11:00','Φυσική')]]))).events.length,1);
  const empty=await parseTimetable(timetablePage([]));
