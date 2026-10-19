@@ -11,6 +11,7 @@ Pick your courses, see how they meet across the week, and check them against the
 
 [![Pages](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/pages/pages-build-deployment)
 [![Nightly data refresh](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/refresh-data.yml/badge.svg)](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/refresh-data.yml)
+[![Tests](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/tests.yml/badge.svg)](https://github.com/FueledByRedBull/thmmy-planner/actions/workflows/tests.yml)
 
 </div>
 
@@ -100,7 +101,7 @@ data/
 src/week3d.js             source of the 3D week (Three.js)
 scripts/refresh-data.mjs  the nightly data refresh
 scripts/*.test.mjs        tests: week logic and transfer codes (app.test), the source parser in headless Chrome (parser.test)
-.github/workflows/        refresh-data.yml
+.github/workflows/        refresh-data.yml (nightly data), tests.yml (node --test on every push)
 docs/screenshots/         images for this README
 DESIGN.md, PRODUCT.md     design system and product notes (.impeccable/ holds the design tokens as JSON and the page's surface brief)
 ```
@@ -129,7 +130,7 @@ node scripts/refresh-data.mjs --dry-run   # report what changed, write nothing
 node scripts/refresh-data.mjs             # update data/courses.json and its version in index.html
 ```
 
-**Tests** need Node 22 or newer; the parser tests also need Chrome (set `CHROME_PATH` if it is not in its usual place, or they are skipped):
+**Tests** need Node 22 or newer; the parser tests also need Chrome (set `CHROME_PATH` if it is not in its usual place, or they are skipped locally). [`tests.yml`](.github/workflows/tests.yml) runs them on every push and pull request, where a missing Chrome fails them instead:
 
 ```sh
 node --test

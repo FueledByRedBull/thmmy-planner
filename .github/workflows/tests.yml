@@ -1,0 +1,27 @@
+# Runs node --test on every push and pull request: the week logic, THMMY2 backup codes, and the source parser
+# (in the runner's Chrome, the same one the nightly refresh uses).
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Run the tests
+        run: node --test
+        env:
+          CHROME_PATH: /usr/bin/google-chrome

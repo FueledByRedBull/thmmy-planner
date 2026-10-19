@@ -9,7 +9,8 @@ import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 const CHROME=process.env.CHROME_PATH||{win32:'C:/Program Files/Google/Chrome/Application/chrome.exe',darwin:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}[process.platform]||'/usr/bin/google-chrome';
-const skip=existsSync(CHROME)?false:`Chrome not found at ${CHROME} (set CHROME_PATH)`;
+// Locally a missing Chrome skips these tests; in CI it fails them, so a changed runner image cannot hide the parser.
+const skip=existsSync(CHROME)||process.env.CI?false:`Chrome not found at ${CHROME} (set CHROME_PATH)`;
 
 let chrome,profile,socket,id=0;
 const pending=new Map();
