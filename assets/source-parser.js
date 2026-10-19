@@ -319,7 +319,8 @@
             end: range.end,
             type: values[2],
             room: values[3],
-            teacher: values[4],
+            // Co-teachers come one per <li>; their text alone would run together into one name.
+            teacher: cells[4].querySelectorAll('li').length ? Array.from(cells[4].querySelectorAll('li'), text).filter(Boolean).join(', ') : values[4],
             url
           };
           const duplicate = seen.get(id);

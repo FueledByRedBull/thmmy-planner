@@ -55,6 +55,7 @@ const credited=c=>mandatory(c)?c.semester:(creditOptions(c).includes(Number(stat
 const invalidCredit=c=>!mandatory(c)&&state.creditTo[c.id]!=null&&credited(c)===null;
 const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.startsWith(state.season+'|'+id+'|')&&!allMeetings().some(e=>e.id===key));
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
+const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
 function notify(text,error=false){$('updateReport').hidden=true;$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
 function available(c){return meetings(c.id).length>0;}
@@ -77,6 +78,8 @@ function courseSlot(id){const index=cid=>data.catalog.findIndex(x=>x.id===cid)%C
 function baseColor(c){return state.colors[colorKey(c)]||COLORS[state.colorMode==='course'?courseSlot(c.id):(c.semester-1)%COLORS.length]||COLORS[0];}
 // Ink or white on a full course-colour block, whichever has the higher WCAG contrast.
 function onColor(hex){const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4),l=.2126*r+.7152*g+.0722*b;return (l+.05)/.0544>=1.05/(l+.05)?'#0e0e0e':'#ffffff';}
+// The dark theme paints blocks as 90% hue over --surface (#181818, styles.css), so their text is picked against that fill.
+const mixDark=h=>'#'+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*.9+0x18*.1).toString(16).padStart(2,'0')).join('');
 function layoutEvents(events){
  const result=[];
  for(let day=0;day<5;day++){
@@ -95,7 +98,7 @@ function renderList(){
  const q=norm($('search').value),sem=Number($('semesterFilter').value),filter=$('listFilter').value;
  const list=data.catalog.filter(c=>(!sem||c.semester===sem)&&(!q||norm(c.name+' '+c.id).includes(q))&&(filter==='all'||filter==='offered'&&available(c)||filter==='selected'&&chosen().includes(c.id)||filter==='passed'&&state.passed.includes(c.id)));
  $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;
- $('listHelp').textContent=filter==='offered'?'Μόνο όσα έχουν ώρες στην επίσημη πηγή.':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
+ $('listHelp').hidden=filter==='offered';$('listHelp').textContent=filter==='offered'?'':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
  const rows=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);const gapped=selected&&meetings(c.id).some(e=>!isLab(e)&&!included(e));return `<article class="course ${c.id===justToggled?'just':''} ${selected?'selected':''} ${passed?'passed':''} ${state.review.includes(c.id)?'review':''} ${gapped?'gapped':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><span class="link-mark" aria-hidden="true"></span><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span class="sep" aria-hidden="true"></span><span>${c.semester}ο εξ.</span><span class="sep" aria-hidden="true"></span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?`<span class="tag">${icon('check')}Περασμένο</span>`:''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${icon(selected?'minus':'plus')}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}),box=$('courseList');
  // A toggle changes a row or two: while the list shows the same courses in the same order, only the rows whose markup
  // changed are replaced, so the rest of the list keeps its layout.
@@ -108,9 +111,9 @@ function renderList(){
 }
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 // The strong ease-out, read from styles.css (--ease) so the JS exits never drift from the CSS ones.
-const EASE=getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();
-// Spring curve for entrances and moves; older engines fall back to the ease-out.
-const SPRING=CSS.supports('animation-timing-function','linear(0, 1)')?'linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)':EASE;
+const rootStyle=getComputedStyle(document.documentElement),EASE=rootStyle.getPropertyValue('--ease').trim();
+// Spring curve for entrances and moves (--spring, which styles.css already falls back to the ease-out on older engines).
+const SPRING=rootStyle.getPropertyValue('--spring').trim();
 let justToggled='',renderedSeason='';
 // Leave the way it came in, then hide; instant under reduced motion. The fill holds the last frame until hidden.
 function exit(el,to,hide,duration=160){
@@ -121,7 +124,6 @@ function exit(el,to,hide,duration=160){
 // Stat values roll like an odometer: every digit is a column that springs to its new value.
 function countTo(el,value,suffix=''){
  const to=Number(value),text=(Number.isInteger(to)?to:Math.round(to*10)/10).toLocaleString('el-GR')+suffix,shape=text.replace(/\d/g,'0');
- el.dataset.value=to;
  if(el.dataset.text===text)return;
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
@@ -193,7 +195,7 @@ function fitCalendar(){
  // Red margin notes move beside the sheet only when the whole week still fits next to them.
  // Day columns are equal, so the busiest day sets the width every column needs (150px per lane).
  const aside=!printing&&panel.clientWidth-320>=54+5*(Number(calendar.style.getPropertyValue('--lane-max'))||1)*150+40;
- if(panel.classList.contains('notes-aside')!==aside){panel.classList.toggle('notes-aside',aside);if(aside)$('checks').open=true;}
+ if(panel.classList.contains('notes-aside')!==aside){panel.classList.toggle('notes-aside',aside);if(aside)$('checks').open=true;$('checks').firstElementChild.tabIndex=aside?-1:0;}
  panel.style.removeProperty('--print-scale');
  panel.style.removeProperty('--print-width');
  if(printing){
@@ -221,7 +223,6 @@ function fitCalendar(){
    calendar.style.setProperty('--hour',Math.ceil(Math.max(need,Math.min(hour,(sheet.clientHeight-rest)/hours)))+'px');
   }
  }
- $('calendarHint').hidden=wrap.hidden||wrap.scrollWidth<=wrap.clientWidth+1;
  if(printing){
   // Widen the sheet by the height-driven zoom so the zoomed week still spans the page width.
   const fitHeight=Math.min(1,sheet.clientHeight/panel.offsetHeight);
@@ -230,6 +231,8 @@ function fitCalendar(){
   panel.style.setProperty('--print-scale',String(Math.floor(scale*100000)/100000));
  }
 }
+// Beside the sheet the checks stay open: the summary is a heading there, not a toggle (keyboard included).
+$('checks').firstElementChild.onclick=event=>{if(event.currentTarget.closest('.notes-aside'))event.preventDefault();};
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
@@ -253,11 +256,11 @@ function renderSchedule(){
  const min=Math.min(9*60,...events.map(e=>Math.floor(e.start/60)*60)),max=Math.max(22*60,...events.map(e=>Math.ceil(e.end/60)*60));
  const hours=(max-min)/60;$('calendar').style.setProperty('--hours',hours);
  const today=(new Date().getDay()+6)%7;
- let html='<div class="day-head time-head">ΩΡΑ</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length} συναντήσεις · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR')} ώρες</small></div>`).join('');
+ let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length} συναντήσεις · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR')} ώρες</small></div>`).join('');
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events),partners=new Map();
  for(const [a,b] of pairs){partners.set(a.id,[...(partners.get(a.id)||[]),b.id]);partners.set(b.id,[...(partners.get(b.id)||[]),a.id]);}
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)}, ${c.name}, ${e.type}, ${e.room}, ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)}, ${c.name}, ${e.type}, ${e.room}, ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
@@ -269,7 +272,7 @@ function renderSchedule(){
  fitCalendar();
  highlightCourse();
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
- window.weekModel={season:state.season,min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),ects:ects(c)??5,conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
+ window.weekModel={min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
  // landing: when the last newcomer arrives (a flight lands at ~600ms, a dealt block at ~150ms past its stagger).
  const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
@@ -279,7 +282,7 @@ function renderSchedule(){
   placed.push(now);
   if(old&&now.width&&now.height){
    const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
-   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`},{transform:'none'}],{duration:520,easing:SPRING});
+   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:520,easing:SPRING});
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
    // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
@@ -294,7 +297,7 @@ function renderSchedule(){
  // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,
  // a neighbour widening into a freed lane): the fade would double-expose over it.
  if(animate&&sameSeason&&events.length&&!phone.matches){
-  const kept=new Set([...$('calendar').querySelectorAll('.meeting')].map(b=>b.dataset.event));
+  const kept=new Set(all.map(b=>b.dataset.event));
   const covered=r=>placed.some(p=>p.left<r.right-2&&p.right>r.left+2&&p.top<r.bottom-2&&p.bottom>r.top+2);
   for(const b of blocks){const r=previous.get(b.dataset.event);if(!kept.has(b.dataset.event)&&!covered(r))leave(b,r);}
  }
@@ -332,12 +335,14 @@ function renderChecks(pairs){
  const credits=planned.reduce((n,c)=>n+(ects(c)||0),0),unknown=planned.filter(c=>ects(c)===null).length;
  countTo($('creditsStat'),credits,unknown?'+?':'');
  $('creditsStat').title='ECTS των μαθημάτων προς δήλωση, χωρίς τα προς έλεγχο και τα περασμένα';
- $('checkBadge').dataset.tone=pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';$('checkBadge').textContent=issues.length?`${issues.length} σημεία προς έλεγχο`:selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Προσθήκη μαθημάτων';
- $('checkContent').innerHTML=`<p><b>Προς δήλωση: ${planned.length} μαθήματα</b>${review.length?` · ${review.length} προς έλεγχο, εκτός υπολογισμού δήλωσης`:""}${passed.length?` · ${passed.length} ${passed.length===1?'περασμένο':'περασμένα'}, μόνο στο ωρολόγιο`:''}.</p><p class="subtle">${credits} γνωστά ECTS προς δήλωση${unknown?` · ${unknown} μαθήματα με άγνωστα ECTS`:''}. Οι ώρες και οι επικαλύψεις περιλαμβάνουν όλα τα μαθήματα του ωρολογίου, μαζί με τα προς έλεγχο και τα περασμένα. Οι ώρες μετρούν τον χρόνο παρουσίας χωρίς διπλή μέτρηση επικαλύψεων. Οι επικαλύψεις μετρούν ζεύγη συναντήσεων.</p>`+(issues.length?'<ul>'+issues.map(x=>`<li class="${x.tone||'warning'}">${esc(x.text||x)}</li>`).join('')+'</ul>':'<p class="subtle">Δεν εντοπίστηκαν ενδείξεις με τα καταχωρισμένα στοιχεία.</p>')+'<p class="subtle">Συμβουλευτικός έλεγχος με βάση τον οδηγό 2024-25 και τους τρέχοντες μεταβατικούς κανόνες δήλωσης για εισαγωγή από 2023-24 (έλεγχος 18/09/2026). Δεν πιστοποιεί δικαίωμα δήλωσης. Η ανανέωση αφορά το ωρολόγιο και τον κατάλογο, όχι τους κανόνες του οδηγού. <button class="link-button" data-guide>Πεδίο ελέγχων και πηγές</button></p>';
+ $('checkBadge').dataset.tone=pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';$('checkBadge').innerHTML=(pairs.length?icon('warn'):'')+(issues.length?`${issues.length} σημεία προς έλεγχο`:selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Προσθήκη μαθημάτων');
+ $('checkContent').innerHTML=`<p><b>Προς δήλωση: ${planned.length} μαθήματα</b>${review.length?` · ${review.length} προς έλεγχο, εκτός υπολογισμού δήλωσης`:""}${passed.length?` · ${passed.length} ${passed.length===1?'περασμένο':'περασμένα'}, μόνο στο ωρολόγιο`:''}.</p><p class="subtle">${credits} γνωστά ECTS προς δήλωση${unknown?` · ${unknown} μαθήματα με άγνωστα ECTS`:''}. Οι ώρες και οι επικαλύψεις περιλαμβάνουν όλα τα μαθήματα του ωρολογίου, μαζί με τα προς έλεγχο και τα περασμένα. Οι ώρες μετρούν τον χρόνο παρουσίας χωρίς διπλή μέτρηση επικαλύψεων. Οι επικαλύψεις μετρούν ζεύγη συναντήσεων.</p>`+(issues.length?'<ul>'+issues.map(x=>`<li class="${x.tone||'warning'}">${x.tone==='danger'?icon('warn'):''}${esc(x.text||x)}</li>`).join('')+'</ul>':'<p class="subtle">Δεν εντοπίστηκαν ενδείξεις με τα καταχωρισμένα στοιχεία.</p>')+'<p class="subtle">Συμβουλευτικός έλεγχος με βάση τον οδηγό 2024-25 και τους τρέχοντες μεταβατικούς κανόνες δήλωσης για εισαγωγή από 2023-24 (έλεγχος 18/09/2026). Δεν πιστοποιεί δικαίωμα δήλωσης. Η ανανέωση αφορά το ωρολόγιο και τον κατάλογο, όχι τους κανόνες του οδηγού. <button class="link-button" data-guide>Πεδίο ελέγχων και πηγές</button></p>';
 }
 function render(){
  for(const b of document.querySelectorAll('[data-season]'))b.setAttribute('aria-pressed',String(b.dataset.season===state.season));
  const snapshot=data[state.season];$('syncMeta').textContent='Ανάκτηση πηγής: '+dateText(snapshot.fetchedAt);
+ // The printed title says which season and data date it shows (styles.css, print).
+ $('scheduleTitle').dataset.print=document.querySelector(`.season-switch [data-season="${state.season}"]`).textContent+' · πηγή '+dateText(snapshot.fetchedAt);
  $('periodLabel').textContent=`${new Set(snapshot.events.map(e=>e.courseId)).size} μαθήματα με δημοσιευμένες ώρες`;
  $('availabilityNote').hidden=snapshot.published!==false;$('availabilityNote').textContent='Η επίσημη σελίδα του εαρινού/χειμερινού που ανακτήθηκε είναι κενή. Δεν υπάρχουν δημοσιευμένες ώρες σε αυτή την πηγή. Οι επιλογές παραμένουν διαθέσιμες στον πλήρη κατάλογο.';
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
@@ -356,7 +361,7 @@ function renderDetail(id){
  if(!mandatory(c)&&c.semester>=5){const options=creditOptions(c);html+=`<label style="margin-top:15px">Χρέωση μαθήματος στο εξάμηνο<select data-credit="${esc(id)}"><option value="" ${credited(c)===null?'selected':''}>Δεν έχει οριστεί</option>${options.map(s=>`<option value="${s}" ${credited(c)===s?'selected':''}>${s}ο εξάμηνο</option>`).join('')}</select></label><p class="subtle">${practice(c)?'Η Πρακτική Άσκηση καλύπτει αποκλειστικά μία θέση επιλογής του 8ου εξαμήνου, σύμφωνα με την τρέχουσα ρύθμιση του Τμήματος.':special(c)?'Τα «Ειδικά Θέματα - Εργασίες» χρεώνονται στο 7ο/9ο για χειμερινά ή στο 6ο/8ο για εαρινά.':'Όρισε το εξάμηνο που καλύπτει στο πτυχίο σου, όχι αυτό του καταλόγου. Π.χ. επιλογής του 5ου ή 9ου μπορεί να χρεωθεί στο 7ο (οδηγός σ. 21).'} Η χρέωση ισχύει και για περασμένα· τα οφειλόμενα υποχρεωτικά κρατούν το δικό τους εξάμηνο.</p>${invalidCredit(c)?`<p role="alert">Η αποθηκευμένη χρέωση στο ${esc(state.creditTo[id])}ο δεν είναι έγκυρη και δεν προσμετράται. Επίλεξε ένα επιτρεπτό εξάμηνο.</p>`:''}`;}
  html+='<h3>Προαπαιτούμενα</h3>';
  html+=pre===null?'<p>Δεν βρέθηκαν επαληθευμένα στοιχεία στον οδηγό 2024-25. Έλεγξε την επίσημη περιγραφή.</p>':pre.length?'<ul>'+pre.map(p=>`<li>${icon(state.passed.includes(p)?'check':'circle')}${esc(p)} · ${esc(course(p)?.name||'Μάθημα εκτός τρέχοντος καταλόγου')}${state.passed.includes(p)?' (περασμένο)':''}</li>`).join('')+'</ul>':'<p>Κανένα, σύμφωνα με τον οδηγό 2024-25.</p>';
- if(g)html+=`<p class="subtle">Πηγή: οδηγός σπουδών 2024-25, σ. ${esc((g.pages||[]).join(', '))}. ${esc(g.prerequisiteText||'')}</p>`;
+ if(g)html+=`<p class="subtle">Πηγή: οδηγός σπουδών 2024-25, σ. ${esc((g.pages||[]).join(', '))}. ${pre&&pre.length?esc(g.prerequisiteText||''):''}</p>`;
  html+='<h3>Συναντήσεις στην επίσημη πηγή</h3><p class="subtle">Οι διαλέξεις και τα φροντιστήρια μπαίνουν αυτόματα. Για εργαστήρια, διάλεξε τις ζώνες του τμήματός σου. Μια πολύωρη ζώνη μπορεί να περιλαμβάνει περισσότερες ομάδες· επιβεβαίωσε το ακριβές τμήμα με τον διδάσκοντα.</p>';
  if(staleMeetings(id).length)html+=`<p role="alert">Οι παλιές επιλογές δεν αντιστοιχίστηκαν με βεβαιότητα στο νέο ωρολόγιο. Η επαναφορά εμφανίζει τις διαλέξεις και τα φροντιστήρια και αποεπιλέγει τα εργαστήρια αυτού του μαθήματος· μετά διάλεξε ξανά τις συναντήσεις σου.</p><button data-reset-meetings="${esc(id)}">Επαναφορά συναντήσεων αυτού του μαθήματος</button>`;
  html+=list.length?list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`<label class="meeting-option"><input type="checkbox" data-meeting="${esc(e.id)}" ${included(e)?'checked':''}><span><b>${DAYS[e.day]} ${time(e.start)}-${time(e.end)}</b><small>${esc(e.type)} · ${esc(e.room)}</small><small>${esc(e.teacher)}</small></span></label>`).join(''):'<p>Δεν υπάρχουν δημοσιευμένες ώρες για αυτό το μάθημα στην επιλεγμένη περίοδο.</p>';
@@ -456,7 +461,7 @@ async function downloadCopy(){
  try{
  const root=document.documentElement.cloneNode(true),json=v=>JSON.stringify(v).replace(/</g,'\\u003c');root.querySelector('#initial-data').textContent=json(data);root.querySelector('#guide-data').textContent=json(GUIDE);root.querySelector('#initial-state').textContent=json({...state,storageId:crypto.randomUUID()});root.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));root.querySelector('#notice').hidden=true;root.querySelector('#updateReport').hidden=true;root.querySelector('#refresh').disabled=false;
  root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelector('.dock-mark')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
- const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status);return response;};
+ const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status+'.');return response;};
  await Promise.all([
   ...[...root.querySelectorAll('script[src]')].map(async script=>{const code=await(await fetchAsset(new URL(script.getAttribute('src'),document.baseURI))).text();script.removeAttribute('src');script.textContent=code;}),
   ...[...root.querySelectorAll('link[rel="stylesheet"]')].map(async link=>{
@@ -469,7 +474,7 @@ async function downloadCopy(){
    for(const [from,to]of urls)css=css.replace(from,to);const style=document.createElement('style');style.textContent=css;link.replaceWith(style);
   })
  ]);
- const blob=new Blob(['<!doctype html>\n'+root.outerHTML],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='THMMY-programma-'+new Date().toISOString().slice(0,10)+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+ saveFile(new Blob(['<!doctype html>\n'+root.outerHTML],{type:'text/html;charset=utf-8'}),'THMMY-programma-'+new Date().toISOString().slice(0,10)+'.html');
  }catch(error){notify('Δεν δημιουργήθηκε το αυτοτελές αντίγραφο: '+error.message+' Έλεγξε τη σύνδεση και δοκίμασε ξανά. Τα δεδομένα σου δεν άλλαξαν.',true);}finally{$('saveCopy').disabled=false;}
 }
 const TRANSFER_LIMIT=1000000;
@@ -576,7 +581,7 @@ $('generateTransfer').onclick=async()=>{
  try{$('exportCode').value=await encodeTransfer();$('exportTransfer').hidden=false;$('exportStatus').textContent='Έτοιμο. Αντέγραψε ολόκληρο τον κωδικό ή κράτησε το αρχείο .txt.';}catch(error){$('exportStatus').textContent=error.message;}finally{$('generateTransfer').disabled=false;}
 };
 $('copyTransfer').onclick=async()=>{try{await navigator.clipboard.writeText($('exportCode').value);$('exportStatus').textContent='Ο κωδικός αντιγράφηκε.';}catch{$('exportCode').focus();$('exportCode').select();$('exportStatus').textContent='Η αυτόματη αντιγραφή δεν επιτρέπεται. Ο κωδικός επιλέχθηκε: χρησιμοποίησε Ctrl+C ή την εντολή Αντιγραφή.';}};
-$('downloadTransfer').onclick=()=>{const url=URL.createObjectURL(new Blob([$('exportCode').value+'\n'],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='THMMY-backup-'+new Date().toISOString().slice(0,10)+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
+$('downloadTransfer').onclick=()=>saveFile(new Blob([$('exportCode').value+'\n'],{type:'text/plain;charset=utf-8'}),'THMMY-backup-'+new Date().toISOString().slice(0,10)+'.txt');
 $('transferFile').onchange=async()=>{resetTransferPreview();const file=$('transferFile').files[0],attempt=transferAttempt;if(!file)return;try{if(file.size>200000)throw new Error('Το αρχείο είναι μεγαλύτερο από 200 KB.');const code=await file.text();if(attempt!==transferAttempt)return;$('importCode').value=code;await inspectTransfer();}catch(error){if(attempt===transferAttempt)$('transferStatus').textContent=error.message;}finally{$('transferFile').value='';}};
 $('semesterFilter').length=1;$('studySemester').length=1;
 // The theme pill shows the icon of the current choice: sun, moon, or both for the system setting.
@@ -607,7 +612,9 @@ function setRail(open,opener){
  for(const id of ['focusSchedule','railFab'])$(id).setAttribute('aria-expanded',String(shown));
  hoveredCourse='';highlightCourse();fitCalendar();
  if(shown&&opener&&(drawerMode.matches||opener.id==='railFab')){railOpener=drawerMode.matches?opener:null;(phone.matches?$('railClose'):$('search')).focus({preventScroll:true});}
- else if(!shown&&railOpener){railOpener.focus({preventScroll:true});railOpener=null;}
+ // A frame later: the rail button only becomes visible (and focusable) once its visibility transition has started.
+ // Only if focus is still in the drawer or was dropped: a click on the week or a Tab out already moved it on.
+ else if(!shown&&railOpener){const back=railOpener;railOpener=null;requestAnimationFrame(()=>{const a=document.activeElement;if(!a||a===document.body||$('courseSidebar').contains(a))back.focus({preventScroll:true});});}
 }
 $('focusSchedule').onclick=()=>setRail(!railOpen(),$('focusSchedule'));
 $('railFab').onclick=()=>setRail(true,$('railFab'));
@@ -615,6 +622,14 @@ $('railClose').onclick=()=>setRail(false);
 drawerMode.addEventListener('change',()=>{document.body.classList.remove('rail-open');railOpener=null;setRail(railOpen());});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&drawerMode.matches&&railOpen()&&!document.querySelector('dialog[open]'))setRail(false);});
 document.addEventListener('pointerdown',event=>{if(drawerMode.matches&&railOpen()&&!event.target.closest('#courseSidebar,#focusSchedule,#railFab,dialog'))setRail(false);});
+// Tabbing out of the drawer closes it instead of leaving it open over the page.
+$('courseSidebar').addEventListener('focusout',event=>{if(drawerMode.matches&&railOpen()&&event.relatedTarget&&!event.relatedTarget.closest('#courseSidebar,dialog'))setRail(false);});
+// The phone sheet follows a finger dragged down from its handle or heading; past 80px or on a downward flick (past 24px,
+// over 0.5px/ms over the last 16ms or more of movement, released within 100ms of it) it closes, otherwise springs back.
+const sidebar=$('courseSidebar');let sheetDrag=null;
+sidebar.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'||!phone.matches||!railOpen()||event.target.closest('button')||event.clientY>sidebar.querySelector('.panel-heading').getBoundingClientRect().bottom)return;sheetDrag={id:event.pointerId,y:event.clientY,dy:0,ly:event.clientY,lt:event.timeStamp,v:0};sidebar.setPointerCapture(event.pointerId);sidebar.style.transition='none';});
+sidebar.addEventListener('pointermove',event=>{if(sheetDrag?.id!==event.pointerId)return;sheetDrag.dy=Math.max(0,event.clientY-sheetDrag.y);const dt=event.timeStamp-sheetDrag.lt;if(dt>=16){sheetDrag.v=(event.clientY-sheetDrag.ly)/dt;sheetDrag.ly=event.clientY;sheetDrag.lt=event.timeStamp;}sidebar.style.transform=`translateY(${sheetDrag.dy}px)`;});
+for(const type of ['pointerup','pointercancel'])sidebar.addEventListener(type,event=>{if(sheetDrag?.id!==event.pointerId)return;const close=sheetDrag.dy>80||sheetDrag.dy>24&&sheetDrag.v>.5&&event.timeStamp-sheetDrag.lt<100;sheetDrag=null;sidebar.style.transform='';sidebar.style.transition='';if(close)setRail(false);});
 setRail(railOpen());
 const dataMenu=$('dataMenu');
 dataMenu.addEventListener('click',event=>{if(event.target.closest('button')){dataMenu.open=false;dataMenu.querySelector('summary').focus();}},true);
@@ -679,7 +694,8 @@ window.addEventListener('afterprint',()=>{
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
  const sw=navigator.serviceWorker,toast=$('updateToast');
  let registration=null,taking=false;
- const offer=()=>{toast.hidden=false;};
+ // The text is set again once shown: screen readers skip a live region that only turns visible.
+ const offer=()=>{if(!toast.hidden)return;const s=toast.firstElementChild,text=s.textContent;s.textContent='';toast.hidden=false;requestAnimationFrame(()=>s.textContent=text);};
  sw.addEventListener('message',event=>{if(event.data==='update')offer();});
  // A new service worker took over (after "Ανανέωση"): load the page it serves.
  sw.addEventListener('controllerchange',()=>{if(taking)location.reload();});
@@ -687,7 +703,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   if(registration?.waiting){taking=true;registration.waiting.postMessage('skip-waiting');}
   else location.reload();
  };
- $('updateClose').onclick=()=>exit(toast,{opacity:0,transform:'translate(-50%,-10px) scale(.96)'},()=>{toast.hidden=true;},200);
+ $('updateClose').onclick=()=>exit(toast,{opacity:0,transform:'translate(-50%,-10px) scale(.96)'},()=>{toast.hidden=true;if(toast.contains(document.activeElement)||document.activeElement===document.body)$('printButton').focus({preventScroll:true});},200);
  const check=()=>{registration?.update().catch(()=>{});sw.controller?.postMessage('check');};
  const start=async()=>{
   try{registration=await sw.register('./sw.js',{updateViaCache:'none'});}catch{return;}

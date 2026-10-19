@@ -106,7 +106,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --success:#0f7a3d;--success-soft:#0f7a3d14;
  --warning:#985200;--warning-soft:#e8890c1a;
  --danger:#d61f3a;--danger-soft:#d61f3a12;
- --info:var(--text);--info-soft:var(--surface-2);
  --shadow-sm:0 1px 2px #0e0e0e12,0 1px 1px #0e0e0e0a;
  --shadow-md:0 12px 28px -12px #0e0e0e2e,0 2px 6px -2px #0e0e0e14;
  --shadow-lg:0 32px 64px -24px #0e0e0e40,0 6px 16px -6px #0e0e0e17;
@@ -153,11 +152,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 @supports (transition-timing-function:linear(0,1)){:root{--spring:linear(0, .02 2%, .09 4.5%, .36 10%, .72 17%, .93 23%, 1.03 29%, 1.05 35%, 1.03 43%, 1.004 55%, .998 70%, 1)}}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;min-height:100dvh;background:var(--bg)}
-/* Lenis smooth scroll (vendored lenis.css). */
+/* Lenis smooth scroll: the one rule of lenis.css this page needs. */
 html.lenis,html.lenis body{height:auto}
-.lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
-.lenis [data-lenis-prevent]{overscroll-behavior:contain}
-.lenis.lenis-smooth iframe{pointer-events:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 ::selection{background:color-mix(in srgb,var(--accent) 32%,transparent)}
 input,textarea{caret-color:var(--accent)}
@@ -178,8 +174,9 @@ button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min
 button:hover{background:var(--surface-2);border-color:var(--line-strong)}
 button:active:not(:disabled){transform:scale(.96)}
 button:disabled{opacity:.5;cursor:wait}
-.primary{background:var(--text);border-color:transparent;color:var(--sheet);box-shadow:var(--shadow-md)}
-.primary:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent));border-color:transparent}
+/* Coloured hovers only where a fine pointer can hover, so a tap never leaves one stuck; the plain state also beats button:hover. */
+.primary,.primary:hover{background:var(--text);border-color:transparent;color:var(--sheet);box-shadow:var(--shadow-md)}
+@media (hover:hover) and (pointer:fine){.primary:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}
 .quiet{background:transparent;border-color:transparent;box-shadow:none}
 .quiet:hover{background:color-mix(in srgb,var(--text) 7%,transparent);border-color:transparent}
 .link-button{display:inline;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:var(--text);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-size:inherit;white-space:normal}
@@ -190,7 +187,10 @@ input:focus-visible,select:focus-visible{outline:0;border-color:var(--text);box-
 input[type=search]{appearance:none}
 input::placeholder{color:var(--text-3);opacity:1}
 input[type=checkbox]{width:18px;height:18px;padding:0;accent-color:var(--text);flex-shrink:0}
+input[type=checkbox]:focus-visible,.theme-control select:focus-visible{outline:2px solid var(--text);outline-offset:2px;box-shadow:none}
 input[type=file]{height:auto;padding:10px 14px;border-radius:var(--r-md)}
+input[type=file]::file-selector-button{margin-right:12px;padding:6px 14px;border:1px solid var(--line-strong);border-radius:var(--pill);background:var(--surface);color:var(--text);font:inherit;font-weight:550;cursor:pointer}
+input[type=file]::file-selector-button:hover{background:var(--surface-2)}
 select option{background:var(--surface);color:var(--text)}
 
 /* ---------- Header: a floating pill over the hero that docks onto a solid bar over the planner ---------- */
@@ -210,14 +210,15 @@ select option{background:var(--surface);color:var(--text)}
 .icon-btn{width:38px;min-height:38px;padding:0}
 .icon-btn .icon{color:var(--text-2)}
 .theme-control{position:relative;display:flex;align-items:center}
-.theme-control .icon{position:absolute;left:13px;pointer-events:none;color:var(--text-3)}
-.theme-control .chev{left:auto;right:12px;width:14px;height:14px}
+.theme-control .icon{position:absolute;left:13px;pointer-events:none;color:var(--text)}
+.theme-control .chev{left:auto;right:12px;width:14px;height:14px;color:var(--text-3)}
 .theme-control select{height:38px;padding:0 32px 0 36px;appearance:none;background:transparent;border-color:transparent;font-weight:550}
 .theme-control select:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}
 .data-menu{position:relative}
-.data-menu summary{display:flex;align-items:center;gap:6px;min-height:38px;padding:8px 14px;border-radius:var(--pill);font-size:13px;font-weight:550;list-style:none;transition:background-color .18s}
+.data-menu summary{display:flex;align-items:center;gap:6px;min-height:38px;padding:8px 14px;border-radius:var(--pill);font-size:13px;font-weight:550;list-style:none;transition:background-color .18s,transform .18s var(--ease)}
 .data-menu summary::-webkit-details-marker{display:none}
 .data-menu summary:hover,.data-menu[open] summary{background:color-mix(in srgb,var(--text) 7%,transparent)}
+.data-menu summary:active{transform:scale(.96)}
 .data-menu-actions{position:absolute;right:0;top:calc(100% + 12px);z-index:60;width:300px;max-width:calc(100vw - 32px);padding:8px;background:var(--surface);border:1px solid transparent;border-radius:var(--r-lg);box-shadow:var(--shadow-lg),var(--highlight);transform-origin:top right}
 .data-menu-actions button{display:flex;justify-content:flex-start;width:100%;border:0;box-shadow:none;background:none;border-radius:var(--r-sm);font-weight:500;text-align:left;white-space:normal}
 .data-menu-actions button:hover{background:var(--surface-2)}
@@ -237,7 +238,8 @@ select option{background:var(--surface);color:var(--text)}
 .hero-tip.on{opacity:1}
 .hero-tip b{color:var(--text);font-size:13px;font-weight:600}
 .hero-copy{position:absolute;left:max(24px,4vw);bottom:calc(13svh + 44px);max-width:min(46rem,50vw);pointer-events:none}
-.hero-title{font-size:clamp(52px,7.2vw,96px);font-weight:620;line-height:.98;letter-spacing:-.04em}
+/* The negative margin pulls the capital's side bearing back onto the sub's and CTA's edge. */
+.hero-title{margin-left:-.07em;font-size:clamp(52px,7.2vw,96px);font-weight:620;line-height:.98;letter-spacing:-.04em}
 /* Each line rises out of its own mask; the padding keeps Greek descenders unclipped. */
 .hero-title .line{display:block;overflow:hidden;padding:.04em 0 .14em;margin-bottom:-.14em}
 .hero-title .line>span{display:inline-block;animation:line-in 1.2s .1s var(--ease) both}
@@ -245,7 +247,8 @@ select option{background:var(--surface);color:var(--text)}
 .hero-title em{font-style:normal;color:var(--accent)}
 .hero-sub{max-width:31ch;margin:22px 0 0;color:var(--text-2);font-size:clamp(16px,1.3vw,19px);line-height:1.5;animation:fade-up 1s .42s var(--ease) both}
 .hero-cta{display:inline-flex;align-items:center;min-height:52px;margin-top:28px;padding:0 26px;border-radius:var(--pill);background:var(--text);color:var(--sheet);box-shadow:var(--shadow-md);font-size:14px;font-weight:600;text-decoration:none;pointer-events:auto;transition:background-color .18s,transform .18s var(--ease);animation:fade-up 1s .54s var(--ease) both}
-.hero-cta:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent));text-decoration:none}
+.hero-cta:hover{text-decoration:none}
+@media (hover:hover) and (pointer:fine){.hero-cta:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}
 .hero-cta:active{transform:scale(.96)}
 @supports (animation-timeline:scroll()){
  .hero-copy{animation:copy-recede linear both;animation-timeline:scroll(root);animation-range:0 60svh}
@@ -292,7 +295,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 /* ---------- Workspace: a slim course rail beside an edge-to-edge week ---------- */
 .workspace{display:grid;grid-template-columns:var(--side) minmax(0,1fr);align-items:start;border-top:1px solid var(--line)}
 .sidebar{container-type:inline-size;position:sticky;top:calc(var(--bar) + 8px);display:flex;flex-direction:column;min-width:0;max-height:calc(100dvh - var(--bar) - 20px);padding:22px 24px 16px 0}
-.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px}
 .panel-heading h2{font-size:20px;font-weight:600;letter-spacing:-.025em}
 .mono{padding:3px 10px;border-radius:var(--pill);background:var(--surface-2);color:var(--text-2);font-size:11.5px;font-weight:600}
 .search-wrap{position:relative;display:flex;align-items:center}
@@ -303,7 +306,8 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 @container (max-width:270px){.filters{grid-template-columns:1fr}}
 .subtle{color:var(--text-3);font-size:12.5px;line-height:1.55}
 .list-help{margin:12px 4px 8px}
-.course-list{flex:1;min-height:120px;margin:0;padding:0 2px 0 0;overflow:auto}
+/* The last 28px fade out, so a row cut by the edge reads as more below; the bottom padding lets the last row scroll clear of it. */
+.course-list{flex:1;min-height:120px;margin:0;padding:0 2px 28px 0;overflow:auto;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),#0000);mask-image:linear-gradient(#000 calc(100% - 28px),#0000)}
 .course{position:relative;display:grid;grid-template-columns:12px minmax(0,1fr) 32px;column-gap:12px;align-items:start;padding:13px 2px;border-bottom:1px solid var(--line)}
 .course.selected .course-title{font-weight:650}
 .course.just{animation:row-flash .9s var(--ease)}
@@ -322,19 +326,26 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 .selected .course-meta{color:var(--text-2)}
 .credit-tag{margin-left:auto;padding:1px 8px;border-radius:var(--pill);background:var(--text);color:var(--sheet);font-size:11px;font-weight:600}
 .tag,.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:11.5px;font-weight:600;line-height:1.5}
-.tag .icon{width:12px;height:12px;stroke-width:2.4}
+.tag .icon,.badge .icon{width:12px;height:12px;stroke-width:2.4}
 .tag:has(use[href="#i-check"]){background:var(--success-soft);color:var(--success)}
 .tag.warn{background:var(--warning-soft);color:var(--warning)}
-.course-add{width:32px;min-height:32px;height:32px;padding:0;box-shadow:none;color:var(--text-2);background:var(--surface)}
+.course-add{position:relative;width:32px;min-height:32px;height:32px;margin-top:-7px;padding:0;box-shadow:none;color:var(--text-2);background:var(--surface)}
+/* A 44px hit area around the 32px disc, kept inside the list's right edge so it adds no sideways scroll. */
+.course-add::after{content:'';position:absolute;inset:-7px -4px -7px -10px;border-radius:var(--pill)}
 .course-add .icon{width:15px;height:15px;stroke-width:2.2}
-.course-add:hover{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
-.course.selected .course-add{border-color:var(--text);background:var(--text);color:var(--sheet)}
-.course.selected .course-add:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+.course.selected .course-add{border-color:var(--line-strong);background:var(--surface-2);color:var(--text)}
+/* Dark: surface-2 barely parts from the row, so selected steps up to surface-3; :where() keeps the hover fills winning. */
+:where(:root[data-theme=dark]) .course.selected .course-add{background:var(--surface-3);border-color:transparent}
+@media (hover:hover) and (pointer:fine){
+ .course-add:hover{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+ .course.selected .course-add:hover{background:var(--danger);border-color:var(--danger);color:#fff}
+}
 .course.just .course-add{animation:pop .5s var(--ease)}
 .course-pass{grid-column:2/-1;display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--text-2);font-size:12px}
 .rail-close{display:none;margin-left:auto}
-.rail-fab{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:46;display:none;gap:10px;min-height:52px;padding:0 22px 0 18px;border:0;background:var(--text);color:var(--sheet);box-shadow:var(--shadow-lg);font-size:14px;font-weight:600;translate:-50% 0;transition:opacity .3s,visibility .3s,scale .3s var(--ease)}
-.rail-fab:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}
+.rail-fab{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));z-index:46;display:none;gap:10px;min-height:52px;padding:0 22px 0 18px;border:0;background:var(--text);color:var(--sheet);box-shadow:var(--shadow-lg);font-size:14px;font-weight:600;translate:-50% 0;transition:opacity .3s,visibility .3s,scale .3s var(--ease),transform .18s var(--ease),background-color .18s}
+.rail-fab:hover{background:var(--text)}
+@media (hover:hover) and (pointer:fine){.rail-fab:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}
 .rail-fab .icon{width:18px;height:18px;stroke-width:2.2}
 .rail-fab-count{min-width:24px;padding:2px 8px;border-radius:var(--pill);background:var(--accent);color:var(--on-accent);font-size:12px;text-align:center}
 .rail-open .rail-fab{opacity:0;visibility:hidden;scale:.9}
@@ -349,7 +360,9 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 /* ---------- The week ---------- */
 .schedule-panel{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;padding-left:28px;border-left:1px solid var(--line)}
 .sheet-main{min-width:0}
-.schedule-panel.notes-aside{grid-template-columns:minmax(0,1fr) 320px}
+/* The margin-note divider is drawn on the panel, not the sticky checks, so it runs the full height of the week:
+   1px at the checks' left edge (320px column, 24px margin). */
+.schedule-panel.notes-aside{grid-template-columns:minmax(0,1fr) 320px;background:linear-gradient(var(--line),var(--line)) right 295px top/1px 100% no-repeat}
 .schedule-top{display:grid;gap:18px;padding:22px 0 22px}
 .schedule-heading{display:flex;align-items:center;gap:10px;min-width:0}
 .schedule-top h2{font-size:20px;font-weight:600;letter-spacing:-.025em}
@@ -366,7 +379,6 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 max(20px,2vw,calc((
 .digit>span{display:block;transform:translateY(calc(var(--n,0) * -1.2em));transition:transform .9s var(--spring) calc(var(--i,0) * 40ms)}
 .tb-note{display:block;margin-top:2px;color:var(--text-3);font-size:12px}
 .inline-note{margin:0 0 12px;padding:11px 16px;border:1px solid color-mix(in srgb,var(--warning) 30%,transparent);border-radius:var(--r-md);background:var(--warning-soft);font-size:12.5px;line-height:1.55}
-.scroll-hint{margin:0 0 8px;color:var(--text-3);font-size:12px;text-align:center;text-wrap:balance}
 .calendar-scroll{overflow-x:auto}
 /* The scroll morph hands the week over in two layers (week3d.js setTarget): grid chrome first, blocks last. */
 #calendarWrap{--chrome:1;--blocks:1}
@@ -399,23 +411,27 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .day-column.today{background:color-mix(in srgb,var(--accent) 5%,transparent)}
 .hour-rule:first-child{border-color:transparent}
 
-/* Event blocks: full course colour, ink or white text picked for contrast in app.js. */
+/* Event blocks: full course colour, ink or white text picked for contrast in app.js. The lip ends above the text
+   (padding-top 9px; glyphs in the narrowest lanes start 8px down): a taller sheen pushed white on cobalt
+   or dark violet under 4.5:1. Themes and states set these variables, never the background or box-shadow shorthands,
+   so the review hatch and the conflict band survive dark mode. */
 .meeting{
- --block-fill:var(--event-color);
+ --block-fill:var(--event-color);--block-lip:#ffffff2e;--block-rim:#ffffff59;--block-edge:#0e0e0e14;
+ --block-inset:inset 0 1px 0 var(--block-rim),inset 0 0 0 1px var(--block-edge);
  position:absolute;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-width:0;min-height:0;padding:0;container-type:inline-size;
- border:0;border-radius:var(--r-block);background:linear-gradient(180deg,#ffffff40,transparent 46%) var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--shadow-sm),inset 0 0 0 1px #0e0e0e14;
+ border:0;border-radius:var(--r-block);background:linear-gradient(180deg,var(--block-lip),#ffffff00 9px) var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--shadow-sm),var(--block-inset);
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;transform-origin:center top;
  transition:transform .25s var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
-:root[data-theme=dark] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface));background:linear-gradient(180deg,#ffffff26,transparent 46%) var(--block-fill);box-shadow:var(--shadow-sm),inset 0 0 0 1px #ffffff17}
-@media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;transform:translateY(-2px);box-shadow:var(--shadow-md)}}
+:root[data-theme=dark] .meeting{color:var(--event-on-dark,var(--event-on));--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface));--block-lip:#ffffff1c;--block-rim:#ffffff33;--block-edge:#ffffff17}
+@media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;transform:translateY(-2px);box-shadow:var(--shadow-md),var(--block-inset)}}
 .meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:9px 11px;overflow:hidden}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .calendar.measuring .meeting-content{flex-grow:0}
-.meeting .event-time{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px;font-weight:600;opacity:.84}
+.meeting .event-time{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px;font-weight:600}
 .meeting .event-time .icon{width:13px;height:13px;stroke-width:2.2}
 .meeting strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}
-.meeting .event-room{padding-top:4px;font-size:11px;line-height:1.4;opacity:.86}
-.meeting .event-teacher{font-size:11px;line-height:1.4;opacity:.72}
+.meeting .event-room{padding-top:4px;font-size:11px;line-height:1.4}
+.meeting .event-teacher{font-size:11px;line-height:1.4}
 .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-teacher{display:none}
 /* Parallel lessons get narrow lanes: start time and the name, set compact (app.js puts soft hyphens at Greek syllables).
    Lanes too narrow for a name, and one-hour lessons, show the course code; full detail stays in the tooltip and dialog. */
@@ -428,6 +444,8 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .event-code{font-size:11.5px;letter-spacing:-.01em}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-code{display:block}}
+/* Soft hyphens are for narrow lanes only; wider lanes wrap whole words. */
+@container (width>112px){.meeting .full-title{hyphens:none}}
 @container (max-width:80px){
  .meeting .full-title{display:none}
  .meeting .event-code{display:block}}
@@ -439,23 +457,30 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 @container (max-width:50px){
  .meeting-content{padding:6px 3px}
  .meeting .code-pre{display:none}}
+/* Wrapped names in mid lanes run to 6px from the edge: a review block keeps them clear of its 10px hatch strip. */
+@container (60px<width<=112px){.meeting.review .meeting-content{padding-right:12px}}
 }
-/* Review: dashed amber outline and hatch. Conflict: a red outline and a warning icon. */
+/* Review: dashed amber outline and a hatched strip down the right edge, clear of the text. Conflict: a red outline and a warning icon. */
 /* Rings sit inside the block (negative offset) so neighbouring lanes never collide; a light inner band separates red from the fill. */
-.meeting.review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,currentColor 16%,transparent) 7px 9px)}
-.meeting.conflict{z-index:2;outline:2px solid var(--danger);outline-offset:-2px;box-shadow:var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}
+.meeting.review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px),linear-gradient(180deg,var(--block-lip),#ffffff00 9px);background-size:10px 100%,auto;background-position:right top,0 0;background-repeat:no-repeat}
+.meeting.conflict{z-index:2;outline:2px solid var(--danger);outline-offset:-2px;--block-inset:inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}
 .meeting.course-highlight{z-index:3;outline:3px solid var(--text);outline-offset:-3px}
 .meeting.trace{z-index:3;outline:3px solid var(--danger);outline-offset:-3px;animation:trace .8s var(--ease) infinite alternate}
 @keyframes trace{to{outline-offset:-6px}}
+/* Keyboard focus sits above neighbouring lanes. A block with a state ring keeps it and takes the focus ring outside as a shadow. */
+.meeting:focus-visible{z-index:3}
+.meeting:focus-visible:not(.review,.conflict,.course-highlight,.trace){outline:2px solid var(--text);outline-offset:2px}
+.meeting:is(.review,.conflict,.course-highlight,.trace):focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),var(--shadow-sm),var(--block-inset)}
 
-.empty-state{display:grid;justify-items:center;align-content:center;gap:8px;min-height:420px;margin:0 0 20px;padding:40px;border:1px dashed var(--line-strong);border-radius:var(--r-lg);text-align:center;background:radial-gradient(420px 220px at 50% 0%,var(--accent-soft),transparent 70%)}
-.empty-icon{display:grid;grid-template-columns:repeat(5,14px);align-items:end;gap:6px;height:64px;margin-bottom:10px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-md),var(--highlight)}
-.empty-icon i{display:block;border-radius:var(--pill);background:var(--text);animation:bar-rise .8s var(--ease) both}
-.empty-icon i:nth-child(1){height:40%;background:var(--surface-3)}
-.empty-icon i:nth-child(2){height:75%;background:var(--accent);animation-delay:.06s}
-.empty-icon i:nth-child(3){height:55%;background:var(--line-strong);animation-delay:.12s}
-.empty-icon i:nth-child(4){height:90%;animation-delay:.18s}
-.empty-icon i:nth-child(5){height:30%;background:var(--surface-3);animation-delay:.24s}
+.empty-state{display:grid;justify-items:center;align-content:center;gap:8px;min-height:420px;margin:0 0 20px;padding:40px;border:0;border-radius:var(--r-lg);text-align:center;background:var(--surface-2)}
+.empty-icon{display:grid;grid-template-columns:repeat(5,16px);align-items:start;gap:4px;height:64px;margin-bottom:10px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-md),var(--highlight)}
+.empty-icon i{display:block;border-radius:3px;background:var(--text);animation:block-in .6s var(--ease) both}
+/* A tiny week: five day columns, one block placed in each. */
+.empty-icon i:nth-child(1){height:16px;margin-top:4px;background:var(--surface-3)}
+.empty-icon i:nth-child(2){height:24px;background:var(--accent);animation-delay:.06s}
+.empty-icon i:nth-child(3){height:14px;margin-top:22px;background:var(--line-strong);animation-delay:.12s}
+.empty-icon i:nth-child(4){height:20px;margin-top:10px;animation-delay:.18s}
+.empty-icon i:nth-child(5){height:14px;margin-top:18px;background:var(--surface-3);animation-delay:.24s}
 .empty-state h3{font-size:22px;font-weight:600;letter-spacing:-.025em}
 .empty-state p{margin:0;color:var(--text-2);font-size:13.5px}
 
@@ -472,7 +497,10 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 
 /* Checks: semantic callouts. */
 .checks{padding:0 0 8px;border-top:1px solid var(--line)}
-.notes-aside .checks{align-self:stretch;margin-left:24px;padding:0 0 18px 24px;border-top:0;border-left:1px solid var(--line)}
+/* Wide desktop: the checks sit beside the week as a sticky margin note, mirroring the rail; always open, so no toggle. */
+.notes-aside .checks{align-self:start;position:sticky;top:calc(var(--bar) + 8px);max-height:calc(100dvh - var(--bar) - 20px);overflow-y:auto;overscroll-behavior:contain;margin-left:24px;padding:0 0 18px 25px;border-top:0}
+.notes-aside .checks summary{padding-top:30px;pointer-events:none}
+.notes-aside .checks summary::before{display:none}
 .checks summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:18px 0;list-style:none;font-size:15px;font-weight:600}
 .checks summary::-webkit-details-marker{display:none}
 .checks summary::before{content:'';width:8px;height:8px;border-right:2px solid var(--text-3);border-bottom:2px solid var(--text-3);transform:rotate(-45deg);transition:transform .3s var(--ease);flex-shrink:0}
@@ -488,7 +516,8 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .checks li{position:relative;padding:11px 14px 11px 32px;border:1px solid color-mix(in srgb,var(--warning) 24%,transparent);border-radius:var(--r-md);background:var(--warning-soft);font-size:12.5px;line-height:1.5}
 .checks li::before{content:'';position:absolute;left:14px;top:17px;width:8px;height:8px;border-radius:var(--pill);background:var(--warning)}
 .checks li.danger{border-color:color-mix(in srgb,var(--danger) 28%,transparent);background:var(--danger-soft)}
-.checks li.danger::before{background:var(--danger)}
+.checks li.danger::before{display:none}
+.checks li .icon{position:absolute;left:11px;top:12px;width:15px;height:15px;color:var(--danger)}
 .checks[open]>div li{animation:rise .5s var(--ease) both}
 .checks[open]>div li:nth-child(2){animation-delay:.04s}.checks[open]>div li:nth-child(3){animation-delay:.08s}.checks[open]>div li:nth-child(4){animation-delay:.12s}.checks[open]>div li:nth-child(n+5){animation-delay:.16s}
 
@@ -513,11 +542,14 @@ dialog h3{margin:24px 0 8px;font-size:15px;font-weight:600}
 dialog p,dialog li{font-size:13.5px;line-height:1.65}
 dialog label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:550;color:var(--text-2)}
 dialog .check-label{flex-direction:row;align-items:center;gap:10px;font-weight:500;color:var(--text);line-height:1.5}
+dialog .check-label input[type=checkbox]{margin:0}
 dialog summary{cursor:pointer;font-weight:600}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
 .source-links{display:grid;gap:8px;margin:18px 0;font-size:13.5px}
 .source-links>div{padding:11px 16px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2)}
 .source-links a{display:inline-flex;align-items:center;gap:4px;font-weight:600}
+#detailBody p>a{display:inline-flex;align-items:center;gap:4px}
+#detailBody p>a .icon{width:14px;height:14px}
 .source-links small{display:block;margin-top:2px;color:var(--text-3);font-size:12px}
 hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 .detail-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:0 0 20px}
@@ -571,7 +603,7 @@ hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
 @keyframes fade{from{opacity:0}}
 @keyframes fade-out{to{opacity:0}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}}
-@keyframes bar-rise{from{transform:scaleY(0);transform-origin:bottom}}
+@keyframes block-in{from{opacity:0;transform:translateY(-6px)}}
 @keyframes pop{40%{transform:scale(1.3)}}
 @keyframes row-flash{from{background:color-mix(in srgb,var(--accent) 14%,transparent)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -596,7 +628,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.25s}
 :root[data-vt=detail] dialog[open]{animation:none}
 ::view-transition-group(course-detail){animation-duration:.4s;animation-timing-function:var(--ease)}
-::view-transition-old(course-detail){height:100%;object-fit:cover;animation:fade-out .2s ease-in both}
+::view-transition-old(course-detail){height:100%;object-fit:cover;animation:fade-out .15s var(--ease) both}
 ::view-transition-new(course-detail){height:100%;object-fit:cover;object-position:top;animation:fade .32s .05s ease-out both}
 
 /* ---------- Responsive ---------- */
@@ -605,17 +637,20 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .wide-layout .workspace{grid-template-columns:minmax(0,1fr)}
  .wide-layout .sidebar{display:none}
  .wide-layout .schedule-panel{padding-left:0;border-left:0}
+ .wide-layout footer{padding-bottom:calc(52px + max(18px,env(safe-area-inset-bottom)) + 16px)}
 }
 @media screen and (max-width:1180px){
  .brand-text small{display:none}
  .rail-fab{display:inline-flex}
  .rail-close{display:inline-flex}
+ /* Room for the floating rail button at the page end. */
+ footer{padding-bottom:calc(52px + max(18px,env(safe-area-inset-bottom)) + 16px)}
 }
 /* Tablet: the week takes the full width and the course rail slides over it. */
 @media screen and (min-width:861px) and (max-width:1180px){
  .workspace{grid-template-columns:minmax(0,1fr)}
  .schedule-panel{padding-left:0;border-left:0}
- .sidebar{position:fixed;top:calc(var(--bar) + 2px);left:12px;bottom:12px;z-index:45;width:min(340px,calc(100vw - 24px));max-height:none;padding:20px 18px 16px;border:1px solid transparent;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);transform:translateX(calc(-100% - 24px));visibility:hidden;transition:transform .5s var(--ease),visibility 0s .5s}
+ .sidebar{position:fixed;top:calc(var(--bar) + 2px);left:12px;bottom:12px;z-index:45;width:min(340px,calc(100vw - 24px));max-height:none;padding:20px 18px 16px;border:1px solid transparent;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);transform:translateX(calc(-100% - 24px));visibility:hidden;transition:transform .2s var(--ease),visibility 0s .2s}
  .rail-open .sidebar{transform:none;visibility:visible;transition:transform .5s var(--ease)}
  :root[data-theme=dark] .sidebar{border-color:var(--line)}
 }
@@ -645,8 +680,11 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  #syncMeta{order:3;width:100%}
  #focusSchedule{display:none}
  .workspace{display:block}
- .sidebar{position:fixed;inset:auto 0 0;z-index:47;height:min(84dvh,760px);max-height:none;padding:10px 16px 12px;border-radius:24px 24px 0 0;background:var(--surface);box-shadow:0 -24px 60px -24px #0e0e0e66;transform:translateY(105%);visibility:hidden;transition:transform .5s var(--ease),visibility 0s .5s}
+ .sidebar{position:fixed;inset:auto 0 0;z-index:47;height:min(84dvh,760px);max-height:none;padding:10px 16px 12px;border-radius:24px 24px 0 0;background:var(--surface);box-shadow:0 -24px 60px -24px #0e0e0e66;transform:translateY(105%);visibility:hidden;transition:transform .2s var(--ease),visibility 0s .2s}
  .sidebar::before{content:'';flex-shrink:0;width:40px;height:4px;margin:0 auto 12px;border-radius:var(--pill);background:var(--line-strong)}
+ /* app.js drags the sheet from its handle and heading, so the browser must not pan there (a pseudo-element cannot
+    take touch-action, so the sheet does). The course list is a scroller, which pans again. */
+ .sidebar{touch-action:pinch-zoom}
  .rail-open .sidebar{transform:none;visibility:visible;transition:transform .5s var(--ease)}
  .rail-open .workspace::after{content:'';position:fixed;inset:0;z-index:44;background:#0e0e0e59;animation:fade .3s ease-out}
  :root[data-theme=dark] .sidebar{border-top:1px solid var(--line)}
@@ -695,7 +733,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,.scroll-hint,dialog{display:none!important}
+ .sprite,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */
@@ -704,6 +742,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .schedule-panel{display:block;width:var(--print-width,279mm);zoom:var(--print-scale,1);margin-inline:auto;padding:2mm;border:0;border-radius:0;box-shadow:none;background:var(--sheet)}
  .schedule-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;padding:0 0 5mm}
  .schedule-top h2{font-size:22px;white-space:nowrap}
+ .schedule-top h2::after{content:'·\00a0' attr(data-print);margin-left:.45em;color:var(--text-3);font-size:13px;font-weight:400;letter-spacing:0}
  .stats{display:flex;flex-wrap:nowrap;width:auto}
  /* A printed week is used on other days: no today marking. */
  .day-column.today{background:none}
@@ -718,7 +757,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .day-head b{font-size:11px}
  .day-head small{min-height:0;font-size:8px}
  .meeting{padding:0;overflow:hidden;transform:none!important;opacity:1!important;box-shadow:none!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
- .meeting.course-highlight,.meeting.trace{outline:none!important}
+ .meeting.course-highlight,.meeting.trace,.meeting:focus-visible{outline:none!important}
  .meeting-content{padding:1.2mm}
  .meeting strong{font-size:9px;line-height:1.25}
  .meeting .event-time,.meeting .event-room{font-size:8px;line-height:1.4}
