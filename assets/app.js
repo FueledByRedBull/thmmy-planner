@@ -5,13 +5,15 @@ const GUIDE=JSON.parse($('guide-data').textContent);
 const embeddedState=JSON.parse($('initial-state').textContent);
 const STORE='thmmy-planner-v1-'+(embeddedState?.storageId||'original');
 const SOURCES={fall:'https://www.e-ce.uth.gr/studies/undergraduate/fall-timetable/year/',spring:'https://www.e-ce.uth.gr/studies/undergraduate/spring-timetable/year/',catalog:'https://www.e-ce.uth.gr/studies/undergraduate/courses/'};
-const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή'];
+const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή'],SHORT_DAYS=['Δε','Τρ','Τε','Πε','Πα'];
 // Vivid course palette (cobalt, hot pink, tangerine, violet, aqua, lemon, sky, orchid, periwinkle). No grey: on the studio ground it reads as disabled.
 // No pure green, amber or red: passed, review and overlap are carried by those hues plus icons, dashes and outlines.
 const COLORS=['#3b5bff','#ff4fa8','#ff7b2e','#8f5cff','#1fd1c1','#ffd43b','#3ab8ff','#d34df0','#9db4ff'];
 const blankState=()=>({season:'fall',selected:{fall:[],spring:[]},passed:[],excluded:[],labs:[],review:[],creditTo:{},colors:{},colorMode:'course',entryYear:'',studySemester:'',passedComplete:false,provider:'jina'});
 let data=initialData,state={...blankState(),...(embeddedState||{})},storageWarning='',detailId=null,busy=false;
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved?.version===1&&saved.data?.catalog&&saved.state?.selected){data=saved.data;state={...blankState(),...saved.state};}}catch(e){storageWarning='Η τοπική αποθήκευση δεν είναι διαθέσιμη ή δεν διαβάστηκε. Χρησιμοποίησε «Αποθήκευση αντιγράφου» για να κρατήσεις τη δουλειά σου.';}
+// A hand-edited or older store must not put meetings off the five-day grid.
+for(const season of ['fall','spring'])if(Array.isArray(data[season]?.events))data[season].events=data[season].events.filter(e=>Number.isInteger(e.day)&&e.day>=0&&e.day<5&&e.end>e.start);
 const icon=name=>`<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Soft hyphens at Greek syllable breaks, so long names in narrow lanes break as "Μικροη-λεκτρο-νικών" in every browser
@@ -43,6 +45,11 @@ const meetings=id=>allMeetings().filter(e=>e.courseId===id);
 const isLab=e=>norm(e.type).includes('εργαστηρ');
 const included=e=>isLab(e)?state.labs.includes(e.id):!state.excluded.includes(e.id);
 const activeEvents=()=>allMeetings().filter(e=>chosen().includes(e.courseId)&&included(e));
+const needsLab=c=>{const labs=meetings(c.id).filter(isLab);return labs.length>0&&!labs.some(included);};
+const seasonName=(genitive=false)=>state.season==='fall'?(genitive?'χειμερινού':'χειμερινό'):(genitive?'εαρινού':'εαρινό');
+const clock=n=>n%60?time(n):String(n/60);
+// The row's week at a glance: lectures, or the labs of a course that has nothing else.
+function slotSummary(c){const all=meetings(c.id),list=all.some(e=>!isLab(e))?all.filter(e=>!isLab(e)):all,slots=[...new Set(list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`${SHORT_DAYS[e.day]} ${clock(e.start)}-${clock(e.end)}`))];return slots.slice(0,3).join(' · ')+(slots.length>3?` +${slots.length-3}`:'');}
 // The current 2023+ registration rules assign 2 ECTS to each English course.
 const ects=c=>state.entryYear==='new'&&['ECE121','ECE122'].includes(c.id)?2:(guideCourse(c.id)?.ects??null);
 const prerequisites=c=>guideCourse(c.id)?.prerequisites??null;
@@ -57,7 +64,22 @@ const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.starts
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
 const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
-function notify(text,error=false){$('updateReport').hidden=true;$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
+// Notices float under the header, so they are seen wherever the page is scrolled; a finished one can be dismissed.
+function notify(text,error=false){
+ $('updateReport').hidden=true;const notice=$('notice');notice.textContent=text;notice.classList.toggle('error',error);notice.hidden=false;
+ if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>{notice.hidden=true;};notice.append(close);}
+}
+// Failures in the student's language; the technical text stays in the console.
+function plainError(error){
+ console.error(error);
+ const message=String(error?.message||'').replace(/\.$/,'');
+ if(error?.name==='AbortError')return 'η υπηρεσία δεν απάντησε εντός 35 δευτερολέπτων';
+ if(/^HTTP 429/.test(message))return 'η υπηρεσία δέχεται πολλά αιτήματα αυτή τη στιγμή· δοκίμασε ξανά σε λίγο';
+ if(/^HTTP \d/.test(message))return 'η υπηρεσία απάντησε με σφάλμα';
+ if(error instanceof TypeError||/NetworkError|Failed to fetch|Load failed/.test(message))return 'δεν υπάρχει σύνδεση ή η υπηρεσία δεν είναι διαθέσιμη';
+ if(/^SourceParser/.test(message))return 'η σελίδα της πηγής δεν έχει τη μορφή που περιμένει η εφαρμογή';
+ return /[Ά-ώ]/.test(message)?message:'προέκυψε απρόσμενο σφάλμα';
+}
 function available(c){return meetings(c.id).length>0;}
 function courseIssues(c){
  const issues=[],pre=prerequisites(c),sem=Number(state.studySemester);
@@ -93,19 +115,28 @@ function layoutEvents(events){
 function conflicts(events){const result=[];for(let i=0;i<events.length;i++)for(let j=i+1;j<events.length;j++){const a=events[i],b=events[j];if(a.day===b.day&&a.start<b.end&&b.start<a.end)result.push([a,b]);}return result;}
 function contactMinutes(events){let total=0;for(let d=0;d<5;d++){const entries=events.filter(e=>e.day===d).sort((a,b)=>a.start-b.start);let end=-1;for(const e of entries){total+=Math.max(0,e.end-Math.max(end,e.start));end=Math.max(end,e.end);}}return total;}
 let shownRows=[];
+// An empty list always says why and offers the way out.
+function noResults(filter,q,sem){
+ const all=`<button class="link-button" data-show-all>${q?'Ψάξε σε όλο τον κατάλογο':'Δες όλο τον κατάλογο'}</button>`;
+ if(filter==='passed'&&!q&&!sem)return `<p>Δεν έχεις σημειώσει περασμένα ακόμα.</p><button class="link-button" data-open-passed>Σημείωσε τα περασμένα σου</button>`;
+ if(filter==='selected'&&!q&&!sem)return `<p>Δεν έχεις επιλέξει μαθήματα για το ${seasonName()}.</p>${all}`;
+ if(filter==='offered'&&data[state.season].published===false&&!q)return `<p>Το ${seasonName()} ωρολόγιο δεν έχει δημοσιευτεί ακόμα.</p>${all}`;
+ return `<p>Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</p>${filter==='all'&&!sem?'':all}`;
+}
 function renderList(){
- const focused=document.activeElement,focusKey=focused.closest('#courseList')&&['detail','toggle','passed'].find(key=>focused.dataset[key]);
+ const focused=document.activeElement,focusKey=focused.closest('#courseList')&&['detail','toggle','passed'].find(key=>focused.dataset[key]),focusRow=focusKey?[...$('courseList').children].indexOf(focused.closest('.course')):-1;
  const q=norm($('search').value),sem=Number($('semesterFilter').value),filter=$('listFilter').value;
  const list=data.catalog.filter(c=>(!sem||c.semester===sem)&&(!q||norm(c.name+' '+c.id).includes(q))&&(filter==='all'||filter==='offered'&&available(c)||filter==='selected'&&chosen().includes(c.id)||filter==='passed'&&state.passed.includes(c.id)));
- $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;
+ $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;$('listStatus').textContent=list.length?`${list.length} μαθήματα στη λίστα`:'Δεν βρέθηκαν μαθήματα';
  $('listHelp').hidden=filter==='offered';$('listHelp').textContent=filter==='offered'?'':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
- const rows=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);const gapped=selected&&meetings(c.id).some(e=>!isLab(e)&&!included(e));return `<article class="course ${c.id===justToggled?'just':''} ${selected?'selected':''} ${passed?'passed':''} ${state.review.includes(c.id)?'review':''} ${gapped?'gapped':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><span class="link-mark" aria-hidden="true"></span><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span class="sep" aria-hidden="true"></span><span>${c.semester}ο εξ.</span><span class="sep" aria-hidden="true"></span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div>${selected?`<div class="course-meta"><span>${meetings(c.id).filter(included).length} ενεργές συναντήσεις</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div>`:''}<div class="course-meta">${passed?`<span class="tag">${icon('check')}Περασμένο</span>`:''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${icon(selected?'minus':'plus')}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}),box=$('courseList');
+ const rows=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);const gapped=selected&&meetings(c.id).some(e=>!isLab(e)&&!included(e));return `<article class="course ${c.id===justToggled?'just':''} ${selected?'selected':''} ${passed?'passed':''} ${state.review.includes(c.id)?'review':''} ${gapped?'gapped':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><span class="link-mark" aria-hidden="true"></span><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span class="sep" aria-hidden="true"></span><span>${c.semester}ο εξ.</span><span class="sep" aria-hidden="true"></span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div><div class="course-meta"><span>${slotSummary(c)}</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div><div class="course-meta">${passed?`<span class="tag">${icon('check')}Περασμένο</span>`:''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${selected&&needsLab(c)?`<button class="tag warn tag-action" data-detail="${esc(c.id)}">Διάλεξε εργαστήριο</button>`:''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${icon(selected?'minus':'plus')}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}),box=$('courseList');
  // A toggle changes a row or two: while the list shows the same courses in the same order, only the rows whose markup
  // changed are replaced, so the rest of the list keeps its layout.
  if(rows.length&&rows.length===shownRows.length&&list.every((c,i)=>box.children[i]?.dataset.course===c.id))rows.forEach((html,i)=>{if(html!==shownRows[i])box.children[i].outerHTML=html;});
- else box.innerHTML=rows.join('')||'<div class="no-results">Δεν βρέθηκαν μαθήματα με αυτά τα φίλτρα.</div>';
+ else box.innerHTML=rows.join('')||`<div class="no-results">${noResults(filter,q,sem)}</div>`;
  shownRows=rows;
- if(focusKey)$('courseList').querySelector(`[data-${focusKey}="${CSS.escape(focused.dataset[focusKey])}"]`)?.focus({preventScroll:true});
+ // Focus stays on its control; if that row left the list, it moves to the row that took its place.
+ if(focusKey)($('courseList').querySelector(`[data-${focusKey}="${CSS.escape(focused.dataset[focusKey])}"]`)||box.children[Math.min(focusRow,box.children.length-1)]?.querySelector('[data-toggle]')||$('search')).focus({preventScroll:true});
  hoveredCourse=$('courseList').querySelector('.course:hover')?.dataset.course||'';
  highlightCourse();
 }
@@ -115,6 +146,7 @@ const rootStyle=getComputedStyle(document.documentElement),EASE=rootStyle.getPro
 // Spring curve for entrances and moves (--spring, which styles.css already falls back to the ease-out on older engines).
 const SPRING=rootStyle.getPropertyValue('--spring').trim();
 let justToggled='',renderedSeason='';
+const heroSub=document.querySelector('.hero-sub'),heroDefault=heroSub.textContent;
 // Leave the way it came in, then hide; instant under reduced motion. The fill holds the last frame until hidden.
 function exit(el,to,hide,duration=160){
  if(reducedMotion.matches){hide();return;}
@@ -148,19 +180,18 @@ function fly(block,delay){
  ghost.className='flight';ghost.setAttribute('aria-hidden','true');ghost.dataset.course=block.dataset.detail;ghost.dataset.season=state.season;
  ghost.style.cssText=`left:${to.left}px;top:${to.top}px;width:${to.width}px;height:${to.height}px;--event-color:${block.style.getPropertyValue('--event-color')}`;
  ghost.append(shape);document.body.append(ghost);
- const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:660,delay,fill:'backwards'};
+ const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:420,delay,fill:'backwards'};
  // Horizontal and vertical travel run on different curves, so the path bends into an arc.
  ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
  shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
- stampIn(block,delay+600);
+ stampIn(block,delay+380);
  return true;
 }
 // One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
 // above, a block arrives a touch larger and presses down to size. Blocks are dealt Monday to Friday, DEAL ms apart.
 const DEAL=40;
-// From the block's centre (blocks keep their transform origin at the top for the hover lift).
 // It comes down from the lifted shadow to its own rest shadow, so it reads as landing rather than zooming.
-function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.06)',transformOrigin:'center',boxShadow:'var(--shadow-md)'},{opacity:1,transform:'none',transformOrigin:'center'}],{duration:220,delay,easing:EASE,fill:'backwards'});}
+function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.06)',boxShadow:'var(--shadow-md)'},{opacity:1,transform:'none'}],{duration:220,delay,easing:EASE,fill:'backwards'});}
 // A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
 // itself, so it looks exactly as it did.
 function leave(block,rect,delay=0){
@@ -182,7 +213,9 @@ function morphOpen(trigger,id){
  if(dialog.open||!document.startViewTransition||reducedMotion.matches||printLayoutActive){openDetail(id);return;}
  root.dataset.vt='detail';trigger.style.viewTransitionName='course-detail';
  const transition=document.startViewTransition(()=>{trigger.style.viewTransitionName='';openDetail(id);dialog.style.viewTransitionName='course-detail';});
- transition.finished.finally(()=>{dialog.style.viewTransitionName='';trigger.style.viewTransitionName='';if(root.dataset.vt==='detail')delete root.dataset.vt;});
+ // data-vt stays until the dialog closes: dropping it here would re-arm dialog[open]'s entrance and play it a second time.
+ transition.ready.catch(()=>{});
+ transition.finished.catch(()=>{}).finally(()=>{dialog.style.viewTransitionName='';trigger.style.viewTransitionName='';});
 }
 let printLayoutActive=false,hoveredCourse='';
 function highlightCourse(){
@@ -214,7 +247,8 @@ function fitCalendar(){
    const required=block.querySelector('.meeting-content').offsetHeight+inset+5;
    need=Math.max(need,required*60/Number(block.dataset.duration));
   }
-  hour=Math.max(hour,need);
+  // Capped: one very short lesson must not stretch the whole week (short blocks drop their room in styles.css).
+ hour=Math.max(hour,Math.min(need,110));
   calendar.style.setProperty('--hour',Math.ceil(hour)+'px');
   calendar.classList.remove('measuring');
   if(printing){
@@ -245,28 +279,40 @@ function renderSchedule(){
  const was=renderedSeason,sameSeason=was===state.season,swap=animate&&was!==''&&!sameSeason;renderedSeason=state.season;
  const blocks=animate?[...$('calendar').querySelectorAll('.meeting')]:[];
  const previous=new Map(blocks.map(b=>[b.dataset.event,b.getBoundingClientRect()])),wasConflict=new Set(blocks.filter(b=>b.classList.contains('conflict')).map(b=>b.dataset.event));
- const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id));
+ const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id)),hadConflicts=parseInt($('conflictStat').dataset.text)>0;
+ document.querySelector('.stats').classList.toggle('is-empty',!chosen().length);
+ $('conflictJump').setAttribute('aria-label',`Επικαλύψεις: ${pairs.length}. Μετάβαση στον έλεγχο προγράμματος`);
+ heroSub.textContent=chosen().length?`${chosen().length===1?'1 μάθημα':chosen().length+' μαθήματα'} · ${(Math.round(contactMinutes(events)/6)/10).toLocaleString('el-GR')} ώρες · ${pairs.length?(pairs.length===1?'1 επικάλυψη':pairs.length+' επικαλύψεις'):'χωρίς επικαλύψεις'}.`:heroDefault;
+ const noLab=chosen().map(course).filter(c=>c&&needsLab(c));
+ // Also on the printed sheet: a week without its labs must say so on paper.
+ $('labNote').hidden=!noLab.length;$('labNote').innerHTML=noLab.length?`${icon('warn')}<span>Χωρίς εργαστήριο στο πρόγραμμα: ${noLab.map(c=>`<button class="link-button" data-detail="${esc(c.id)}">${esc(c.id)}</button>`).join(', ')}. Οι ώρες και οι επικαλύψεις δεν το μετρούν ακόμα.</span>`:'';
+ if(hadConflicts&&!pairs.length&&animate)$('conflictStat').animate([{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:300,easing:'cubic-bezier(.77,0,.175,1)'});
  countTo($('countStat'),chosen().length);countTo($('hoursStat'),Math.round(contactMinutes(events)/6)/10);countTo($('conflictStat'),pairs.length);$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
  const reviewCount=chosen().filter(id=>state.review.includes(id)).length,passedCount=chosen().filter(id=>state.passed.includes(id)&&!state.review.includes(id)).length;
  $('countBreakdown').hidden=reviewCount+passedCount===0;
  $('countBreakdown').textContent=reviewCount+passedCount?`${declaration().length}${passedCount?' προς δήλωση':''}${reviewCount?' + '+reviewCount+' προς έλεγχο':''}${passedCount?' + '+passedCount+(passedCount===1?' περασμένο':' περασμένα'):''}`:'';
  
  $('emptyState').hidden=events.length>0;$('calendarWrap').hidden=events.length===0;
- if(!events.length){$('emptyState').querySelector('h3').textContent=chosen().length?'Οι επιλογές σου κρατήθηκαν.':'Πρώτα, τα μαθήματά σου.';$('emptyState').querySelector('p').innerHTML=chosen().length?'Δεν υπάρχουν ενεργές ώρες για τις επιλογές σου.<br>Έλεγξε τη διαθεσιμότητα και τις συναντήσεις κάθε μαθήματος.':'Πάτησε + στον κατάλογο μαθημάτων.<br>Οι ώρες και οι αίθουσες θα μπουν αυτόματα εδώ.';}
+ if(!events.length){
+  const unpublished=data[state.season].published===false;
+  $('emptyState').querySelector('h3').textContent=chosen().length?'Οι επιλογές σου κρατήθηκαν.':unpublished?`Το ${seasonName()} δεν έχει δημοσιευτεί ακόμα.`:'Πρώτα, τα μαθήματά σου.';
+  $('emptyState').querySelector('p').innerHTML=chosen().length?'Δεν υπάρχουν ενεργές ώρες για τις επιλογές σου.<br>Έλεγξε τη διαθεσιμότητα και τις συναντήσεις κάθε μαθήματος.':unpublished?'Μπορείς να διαλέγεις ήδη από τον πλήρη κατάλογο.<br>Οι ώρες θα μπουν εδώ μόλις δημοσιευτούν.':'Πάτησε + στη λίστα μαθημάτων.<br>Οι ώρες και οι αίθουσες θα μπουν αυτόματα εδώ.';
+ }
  const min=Math.min(9*60,...events.map(e=>Math.floor(e.start/60)*60)),max=Math.max(22*60,...events.map(e=>Math.ceil(e.end/60)*60));
  const hours=(max-min)/60;$('calendar').style.setProperty('--hours',hours);
  const today=(new Date().getDay()+6)%7;
- let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length} συναντήσεις · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR')} ώρες</small></div>`).join('');
+ let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length===1?'1 συνάντηση':events.filter(e=>e.day===i).length+' συναντήσεις'} · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR',{maximumFractionDigits:1})} ώρες</small></div>`).join('');
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
  const laidOut=layoutEvents(events),partners=new Map();
  for(const [a,b] of pairs){partners.set(a.id,[...(partners.get(a.id)||[]),b.id]);partners.set(b.id,[...(partners.get(b.id)||[]),a.id]);}
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const detail=`${DAYS[d]} ${time(e.start)}-${time(e.end)}, ${c.name}, ${e.type}, ${e.room}, ${e.teacher}`;const review=state.review.includes(c.id);return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)} · </span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
+ for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const review=state.review.includes(c.id),clash=[...new Set((partners.get(e.id)||[]).map(id=>course(events.find(x=>x.id===id)?.courseId)?.name).filter(Boolean))];const detail=[`${DAYS[d]} ${time(e.start)}-${time(e.end)}`,c.name,e.type,e.room,e.teacher,clash.length?`επικάλυψη με ${clash.join(' και ')}`:'',review?'προς έλεγχο':''].filter(Boolean).join(', ');return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)}${e.type&&e.room?' · ':''}</span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span></span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
  $('calendar').style.setProperty('--lane-total',dayLanes.reduce((a,b)=>a+b,0));
  $('calendar').style.setProperty('--lane-max',Math.max(...dayLanes));
  const legendCourses=chosen().map(course).filter(Boolean),seen=new Set();
+ document.querySelector('.legend-bar>.subtle').hidden=!legendCourses.length;
  $('legend').innerHTML=legendCourses.filter(c=>{const key=colorKey(c);if(seen.has(key))return false;seen.add(key);return true;}).map(c=>`<label class="legend-item" style="--legend-bg:${baseColor(c)}"><span class="color-swatch" aria-hidden="true" style="background:${baseColor(c)}"></span><input type="color" value="${baseColor(c)}" data-color="${esc(colorKey(c))}" aria-label="Χρώμα ${esc(state.colorMode==='course'?c.name:c.semester+'ου εξαμήνου')}"><span>${esc(state.colorMode==='course'?c.id+' · '+c.name:c.semester+'ο εξάμηνο')}</span></label>`).join('')+(state.review.some(id=>chosen().includes(id))?'<span class="legend-item"><span class="legend-hatch" aria-hidden="true"></span>Προς έλεγχο</span>':'')+(pairs.length?'<span class="legend-item"><span class="legend-conflict" aria-hidden="true"></span>Κόκκινο περίγραμμα: επικάλυψη</span>':'');
  renderChecks(pairs);
  fitCalendar();
@@ -274,7 +320,7 @@ function renderSchedule(){
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
  window.weekModel={min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
- // landing: when the last newcomer arrives (a flight lands at ~600ms, a dealt block at ~150ms past its stagger).
+ // landing: when the last newcomer arrives (a flight lands at ~380ms, a dealt block at ~150ms past its stagger).
  const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
  let entering=0,landing=150;const clashing=[],placed=[];
  if(animate)for(const block of all){
@@ -282,13 +328,13 @@ function renderSchedule(){
   placed.push(now);
   if(old&&now.width&&now.height){
    const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
-   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:520,easing:SPRING});
+   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:360,easing:SPRING});
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
    // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
    const delay=swap?120+entering++*step:Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
    if(!flew)stampIn(block,delay);
-   landing=Math.max(landing,delay+(flew?600:150));
+   landing=Math.max(landing,delay+(flew?380:150));
   }
  }
  if(swap&&!phone.matches)blocks.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
@@ -306,12 +352,13 @@ function renderChecks(pairs){
  const issues=[],selected=chosen().map(course).filter(Boolean),planned=declaration().map(course).filter(Boolean),plannedIds=planned.map(c=>c.id),review=selected.filter(c=>state.review.includes(c.id)),passed=selected.filter(c=>state.passed.includes(c.id)&&!state.review.includes(c.id)),offer=data.catalog.filter(available);
  const allocatedCourses=[...new Set([...state.passed,...plannedIds])].map(course).filter(Boolean);
  const courseLabel=c=>`${c.name}${state.review.includes(c.id)?' (προς έλεγχο)':''}`;
- for(const c of selected){for(const issue of courseIssues(c))issues.push(`${courseLabel(c)}: ${issue}`);const labs=meetings(c.id).filter(isLab);if(labs.length&&!labs.some(included))issues.push(`${courseLabel(c)}: υπάρχουν εργαστηριακές ζώνες. Άνοιξε το μάθημα για να επιλέξεις το τμήμα σου· δεν προστέθηκαν αυτόματα.`);if(meetings(c.id).some(e=>!isLab(e)&&!included(e)))issues.push(`${courseLabel(c)}: έχεις κρύψει μία ή περισσότερες συναντήσεις της επίσημης πηγής.`);}
- for(const c of selected)if(staleMeetings(c.id).length)issues.push(`${courseLabel(c)}: άλλαξαν ή αφαιρέθηκαν συναντήσεις και δεν αντιστοιχίστηκαν με βεβαιότητα οι παλιές επιλογές σου. Άνοιξε το μάθημα για επανεπιλογή συναντήσεων.`);
- for(const c of [...new Set([...state.passed,...chosen()])].map(course).filter(Boolean))if(invalidCredit(c))issues.push(`${c.name}: η αποθηκευμένη χρέωση στο ${state.creditTo[c.id]}ο δεν είναι έγκυρη και δεν προσμετράται. Επιτρεπτά εξάμηνα: ${creditOptions(c).join(', ')}. Διόρθωσέ τη στις λεπτομέρειες.`);
- for(const [a,b]of pairs)issues.push({tone:'danger',text:`${DAYS[a.day]} ${time(Math.max(a.start,b.start))}-${time(Math.min(a.end,b.end))}: ${course(a.courseId)?.name} / ${course(b.courseId)?.name}${state.review.includes(a.courseId)||state.review.includes(b.courseId)?' (περιλαμβάνει μάθημα προς έλεγχο)':''}.`});
- if(selected.length&&!state.entryYear)issues.push('Συμπλήρωσε έτος εισαγωγής στο προφίλ για τους κανόνες δήλωσης.');
- if(selected.length&&!state.passedComplete)issues.push('Η λίστα περασμένων δεν έχει επιβεβαιωθεί ως πλήρης. Οι έλεγχοι προαπαιτουμένων είναι ενδείξεις.');
+ for(const c of selected){for(const issue of courseIssues(c))issues.push({group:'course',ids:[c.id],text:`${courseLabel(c)}: ${issue}`});if(needsLab(c))issues.push({group:'course',ids:[c.id],text:`${courseLabel(c)}: υπάρχουν εργαστηριακές ζώνες. Διάλεξε το τμήμα σου· δεν προστέθηκαν αυτόματα.`});if(meetings(c.id).some(e=>!isLab(e)&&!included(e)))issues.push({group:'course',ids:[c.id],text:`${courseLabel(c)}: έχεις κρύψει μία ή περισσότερες συναντήσεις της επίσημης πηγής.`});}
+ for(const c of selected)if(staleMeetings(c.id).length)issues.push({group:'course',ids:[c.id],text:`${courseLabel(c)}: άλλαξαν ή αφαιρέθηκαν συναντήσεις, οπότε οι παλιές σου επιλογές μπορεί να μην ισχύουν. Διάλεξέ τις ξανά.`});
+ for(const c of [...new Set([...state.passed,...chosen()])].map(course).filter(Boolean))if(invalidCredit(c))issues.push({group:'course',ids:[c.id],text:`${c.name}: η αποθηκευμένη χρέωση στο ${state.creditTo[c.id]}ο δεν είναι έγκυρη και δεν προσμετράται. Επιτρεπτά εξάμηνα: ${creditOptions(c).join(', ')}.`});
+ for(const [a,b]of pairs)issues.push({tone:'danger',group:'conflict',ids:[a.courseId,b.courseId],text:`${DAYS[a.day]} ${time(Math.max(a.start,b.start))}-${time(Math.min(a.end,b.end))}: ${course(a.courseId)?.name} / ${course(b.courseId)?.name}${state.review.includes(a.courseId)||state.review.includes(b.courseId)?' (περιλαμβάνει μάθημα προς έλεγχο)':''}.`});
+ if(selected.length&&!state.entryYear)issues.push({group:'profile',text:'Συμπλήρωσε έτος εισαγωγής στο προφίλ για τους κανόνες δήλωσης.'});
+ if(planned.length>9&&!state.entryYear)issues.push({group:'profile',text:`Έχεις ${planned.length} μαθήματα προς δήλωση· για εισαγωγή από το 2023-24 το όριο είναι 9. Συμπλήρωσε έτος εισαγωγής για τον πλήρη έλεγχο.`});
+ if(selected.length&&!state.passedComplete)issues.push({group:'profile',text:'Η λίστα περασμένων δεν έχει επιβεβαιωθεί ως πλήρης. Οι έλεγχοι προαπαιτουμένων είναι ενδείξεις.'});
  if(state.entryYear==='new'&&planned.length){
   const count=planned.filter(c=>c.id!=='ECE588'&&ects(c)!==0).length;
   if(count>9)issues.push(`Όριο δήλωσης για εισαγωγή από 2023-24: ${count} μαθήματα με ECTS, με μέγιστο 9 ανά εξάμηνο, εκτός διπλωματικής.`);
@@ -319,7 +366,7 @@ function renderChecks(pairs){
   const missing=offer.filter(c=>mandatory(c)&&!state.passed.includes(c.id)&&!plannedIds.includes(c.id)&&prerequisites(c)!==null&&!outstanding(c).length&&(!state.studySemester||c.semester<=Number(state.studySemester)));
   if(planned.some(c=>!mandatory(c))&&missing.length)issues.push(`Προτεραιότητα υποχρεωτικών (σ. 20): δεν έχουν επιλεγεί ${missing.map(c=>c.id).join(', ')}. Η διαθεσιμότητα ελέγχεται από το ωρολόγιο και τα καταχωρισμένα περασμένα.`);
   const unassigned=allocatedCourses.filter(c=>!mandatory(c)&&c.id!=='ECE588'&&credited(c)===null);
-  if(unassigned.length)issues.push(`Δεν έχει οριστεί χρέωση ή υπάρχει μη έγκυρη χρέωση για ${unassigned.map(c=>c.id+' · '+c.name).join(', ')}. Το εξάμηνο του καταλόγου δεν θεωρείται χρέωση. Όρισε στις λεπτομέρειες το εξάμηνο που καλύπτει κάθε επιλογής· δεν μπορεί ακόμη να επιβεβαιωθεί η κάλυψη προηγούμενων εξαμήνων.`);
+  if(unassigned.length)issues.push(`Δεν έχει οριστεί χρέωση (σε ποιο εξάμηνο μετρά το μάθημα στο πτυχίο) ή υπάρχει μη έγκυρη χρέωση για ${unassigned.map(c=>c.id+' · '+c.name).join(', ')}. Το εξάμηνο του καταλόγου δεν θεωρείται χρέωση. Όρισε στις λεπτομέρειες το εξάμηνο που καλύπτει κάθε επιλογής· δεν μπορεί ακόμη να επιβεβαιωθεί η κάλυψη προηγούμενων εξαμήνων.`);
   const allocations=Array.from({length:9},(_,i)=>({sem:i+1,items:allocatedCourses.filter(c=>!['ECE121','ECE122'].includes(c.id)&&credited(c)===i+1)}));
   for(const a of allocations)if(a.items.length>5)issues.push(`Χρέωση ${a.sem}ου εξαμήνου: ${a.items.length} περασμένα ή προς δήλωση για 5 θέσεις πτυχίου (${a.items.map(c=>c.id).join(', ')}). Πρόκειται για θέσεις αυτού του εξαμήνου στο πτυχίο, όχι για το σύνολο μαθημάτων που δίνεις τώρα. Έλεγξε τις χρεώσεις των επιλογής στις λεπτομέρειες.`);
   for(const a of allocations.filter(a=>a.sem>=5)){
@@ -331,27 +378,46 @@ function renderChecks(pairs){
  }
  const specials=allocatedCourses.filter(special);
  if(specials.length>2)issues.push('Έχουν σημειωθεί περισσότερα από δύο «Ειδικά Θέματα - Εργασίες» συνολικά (οδηγός σ. 21).');
- if(state.entryYear==='old'&&selected.length)issues.push('Οι κανόνες δήλωσης στη σ. 20 αφορούν εισαγωγή από το 2023-24. Για προηγούμενα έτη απαιτείται ο αντίστοιχος κανονισμός.');
+ if(state.entryYear==='old'&&selected.length)issues.push({group:'profile',text:'Οι κανόνες δήλωσης στη σ. 20 αφορούν εισαγωγή από το 2023-24. Για προηγούμενα έτη απαιτείται ο αντίστοιχος κανονισμός.'});
  const credits=planned.reduce((n,c)=>n+(ects(c)||0),0),unknown=planned.filter(c=>ects(c)===null).length;
  countTo($('creditsStat'),credits,unknown?'+?':'');
  $('creditsStat').title='ECTS των μαθημάτων προς δήλωση, χωρίς τα προς έλεγχο και τα περασμένα';
- $('checkBadge').dataset.tone=pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';$('checkBadge').innerHTML=(pairs.length?icon('warn'):'')+(issues.length?`${issues.length} σημεία προς έλεγχο`:selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Προσθήκη μαθημάτων');
- $('checkContent').innerHTML=`<p><b>Προς δήλωση: ${planned.length} μαθήματα</b>${review.length?` · ${review.length} προς έλεγχο, εκτός υπολογισμού δήλωσης`:""}${passed.length?` · ${passed.length} ${passed.length===1?'περασμένο':'περασμένα'}, μόνο στο ωρολόγιο`:''}.</p><p class="subtle">${credits} γνωστά ECTS προς δήλωση${unknown?` · ${unknown} μαθήματα με άγνωστα ECTS`:''}. Οι ώρες και οι επικαλύψεις περιλαμβάνουν όλα τα μαθήματα του ωρολογίου, μαζί με τα προς έλεγχο και τα περασμένα. Οι ώρες μετρούν τον χρόνο παρουσίας χωρίς διπλή μέτρηση επικαλύψεων. Οι επικαλύψεις μετρούν ζεύγη συναντήσεων.</p>`+(issues.length?'<ul>'+issues.map(x=>`<li class="${x.tone||'warning'}">${x.tone==='danger'?icon('warn'):''}${esc(x.text||x)}</li>`).join('')+'</ul>':'<p class="subtle">Δεν εντοπίστηκαν ενδείξεις με τα καταχωρισμένα στοιχεία.</p>')+'<p class="subtle">Συμβουλευτικός έλεγχος με βάση τον οδηγό 2024-25 και τους τρέχοντες μεταβατικούς κανόνες δήλωσης για εισαγωγή από 2023-24 (έλεγχος 18/09/2026). Δεν πιστοποιεί δικαίωμα δήλωσης. Η ανανέωση αφορά το ωρολόγιο και τον κατάλογο, όχι τους κανόνες του οδηγού. <button class="link-button" data-guide>Πεδίο ελέγχων και πηγές</button></p>';
+ $('checkBadge').dataset.tone=pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';$('checkBadge').innerHTML=(pairs.length?icon('warn'):'')+(issues.length?(issues.length===1?'1 ένδειξη':`${issues.length} ενδείξεις`):selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Χωρίς μαθήματα ακόμα');
+ // Conflicts first, then what can be fixed on a course, then the profile, then the rules; each item links to its fix.
+ const issueGroups=[['conflict','Επικαλύψεις'],['course','Ανά μάθημα'],['profile','Προφίλ'],['rules','Κανόνες δήλωσης']].map(([key,label])=>{
+  const items=issues.filter(x=>(x.group||'rules')===key);
+  return items.length?`<h3 class="check-group">${label} (${items.length})</h3><ul>${items.map(x=>{const actions=key==='profile'?'<button class="link-button" data-open-profile>Άνοιγμα προφίλ</button>':(x.ids||[]).map(id=>`<button class="link-button" data-detail="${esc(id)}">${x.ids.length>1?esc(id):'Άνοιγμα μαθήματος'}</button>`).join(' ');return `<li class="${x.tone||'warning'}">${x.tone==='danger'?icon('warn'):''}${esc(x.text||x)}${actions?` <span class="check-actions">${actions}</span>`:''}</li>`;}).join('')}</ul>`:'';
+ }).join('');
+ $('checkContent').innerHTML=`<p><b>Προς δήλωση: ${planned.length} μαθήματα</b>${review.length?` · ${review.length} προς έλεγχο, εκτός υπολογισμού δήλωσης`:""}${passed.length?` · ${passed.length} ${passed.length===1?'περασμένο':'περασμένα'}, μόνο στο ωρολόγιο`:''}.</p><p class="subtle">${credits} γνωστά ECTS προς δήλωση${unknown?` · ${unknown} μαθήματα με άγνωστα ECTS`:''}. Οι ώρες και οι επικαλύψεις περιλαμβάνουν όλα τα μαθήματα του ωρολογίου, μαζί με τα προς έλεγχο και τα περασμένα. Οι ώρες μετρούν τον χρόνο παρουσίας χωρίς διπλή μέτρηση επικαλύψεων. Οι επικαλύψεις μετρούν ζεύγη συναντήσεων.</p>`+(issues.length?issueGroups:`<p class="subtle">Δεν εντοπίστηκαν ενδείξεις με τα καταχωρισμένα στοιχεία.</p>${selected.length?'<p><button class="primary" data-print>Εκτύπωση προγράμματος</button></p>':''}`)+'<p class="subtle">Συμβουλευτικός έλεγχος με βάση τον οδηγό 2024-25 και τους τρέχοντες μεταβατικούς κανόνες δήλωσης για εισαγωγή από 2023-24 (έλεγχος 18/09/2026). Δεν πιστοποιεί δικαίωμα δήλωσης. Η ανανέωση αφορά το ωρολόγιο και τον κατάλογο, όχι τους κανόνες του οδηγού. <button class="link-button" data-guide>Πεδίο ελέγχων και πηγές</button></p>';
 }
 function render(){
  for(const b of document.querySelectorAll('[data-season]'))b.setAttribute('aria-pressed',String(b.dataset.season===state.season));
- const snapshot=data[state.season];$('syncMeta').textContent='Ανάκτηση πηγής: '+dateText(snapshot.fetchedAt);
+ const snapshot=data[state.season];$('syncMeta').textContent='Τελευταία ενημέρωση: '+dateText(snapshot.fetchedAt);
  // The printed title says which season and data date it shows (styles.css, print).
  $('scheduleTitle').dataset.print=document.querySelector(`.season-switch [data-season="${state.season}"]`).textContent+' · πηγή '+dateText(snapshot.fetchedAt);
  $('periodLabel').textContent=`${new Set(snapshot.events.map(e=>e.courseId)).size} μαθήματα με δημοσιευμένες ώρες`;
- $('availabilityNote').hidden=snapshot.published!==false;$('availabilityNote').textContent='Η επίσημη σελίδα του εαρινού/χειμερινού που ανακτήθηκε είναι κενή. Δεν υπάρχουν δημοσιευμένες ώρες σε αυτή την πηγή. Οι επιλογές παραμένουν διαθέσιμες στον πλήρη κατάλογο.';
+ const skipped=snapshot.skipped||[];
+ $('availabilityNote').hidden=snapshot.published!==false&&!skipped.length;
+ $('availabilityNote').textContent=snapshot.published===false?`Η επίσημη σελίδα του ${seasonName(true)} που ανακτήθηκε είναι κενή. Δεν υπάρχουν δημοσιευμένες ώρες σε αυτή την πηγή. Οι επιλογές παραμένουν διαθέσιμες στον πλήρη κατάλογο.`:`Η επίσημη πηγή έχει ${skipped.length===1?'μία γραμμή':skipped.length+' γραμμές'} με μη έγκυρη ώρα, που δεν μπήκαν στο πρόγραμμα: ${skipped.map(s=>`${s.name} (${DAYS[s.day]} ${s.time})`).join(', ')}.`;
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
  renderList();renderSchedule();renderSources();
 }
-function toggleCourse(id){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=id;render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
-function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();render();if(detailId===id&&$('courseDialog').open)renderDetail(id);}
+function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
+function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();render();syncPassedChecklist();if(detailId===id&&$('courseDialog').open)renderDetail(id);}
+// The profile's checklist of passed courses, grouped by semester, with one tick for a whole semester.
+function renderPassedChecklist(){
+ const semesters=[...new Set(data.catalog.filter(c=>!c.archived).map(c=>c.semester))].sort((a,b)=>a-b);
+ $('passedChecklist').innerHTML=semesters.map(s=>`<fieldset class="passed-semester"><legend>${s}ο εξάμηνο</legend><label class="check-label passed-all"><input type="checkbox" data-pass-all="${s}">Τα πέρασα όλα</label>${data.catalog.filter(c=>c.semester===s&&!c.archived).map(c=>`<label class="check-label"><input type="checkbox" data-passed="${esc(c.id)}">${esc(c.id)} · ${esc(c.name)}</label>`).join('')}</fieldset>`).join('');
+ syncPassedChecklist();
+}
+function syncPassedChecklist(){
+ const box=$('passedChecklist');$('passedCount').textContent=state.passed.length;
+ for(const input of box.querySelectorAll('[data-passed]'))input.checked=state.passed.includes(input.dataset.passed);
+ for(const input of box.querySelectorAll('[data-pass-all]')){const ids=data.catalog.filter(c=>c.semester===Number(input.dataset.passAll)&&!c.archived).map(c=>c.id),done=ids.filter(id=>state.passed.includes(id)).length;input.checked=done===ids.length;input.indeterminate=done>0&&done<ids.length;}
+}
+function openProfile(showPassed=false){$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;renderPassedChecklist();$('passedPanel').open=showPassed;$('profileDialog').showModal();}
 function resetMeetings(id){const prefix=state.season+'|'+id+'|';for(const key of ['labs','excluded'])state[key]=state[key].filter(value=>!value.startsWith(prefix));persist();render();renderDetail(id);}
 function renderDetail(id){
  const c=course(id);if(!c)return;detailId=id;const g=guideCourse(id),pre=prerequisites(c),list=meetings(id);
@@ -364,7 +430,7 @@ function renderDetail(id){
  if(g)html+=`<p class="subtle">Πηγή: οδηγός σπουδών 2024-25, σ. ${esc((g.pages||[]).join(', '))}. ${pre&&pre.length?esc(g.prerequisiteText||''):''}</p>`;
  html+='<h3>Συναντήσεις στην επίσημη πηγή</h3><p class="subtle">Οι διαλέξεις και τα φροντιστήρια μπαίνουν αυτόματα. Για εργαστήρια, διάλεξε τις ζώνες του τμήματός σου. Μια πολύωρη ζώνη μπορεί να περιλαμβάνει περισσότερες ομάδες· επιβεβαίωσε το ακριβές τμήμα με τον διδάσκοντα.</p>';
  if(staleMeetings(id).length)html+=`<p role="alert">Οι παλιές επιλογές δεν αντιστοιχίστηκαν με βεβαιότητα στο νέο ωρολόγιο. Η επαναφορά εμφανίζει τις διαλέξεις και τα φροντιστήρια και αποεπιλέγει τα εργαστήρια αυτού του μαθήματος· μετά διάλεξε ξανά τις συναντήσεις σου.</p><button data-reset-meetings="${esc(id)}">Επαναφορά συναντήσεων αυτού του μαθήματος</button>`;
- html+=list.length?list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`<label class="meeting-option"><input type="checkbox" data-meeting="${esc(e.id)}" ${included(e)?'checked':''}><span><b>${DAYS[e.day]} ${time(e.start)}-${time(e.end)}</b><small>${esc(e.type)} · ${esc(e.room)}</small><small>${esc(e.teacher)}</small></span></label>`).join(''):'<p>Δεν υπάρχουν δημοσιευμένες ώρες για αυτό το μάθημα στην επιλεγμένη περίοδο.</p>';
+ html+=list.length?list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`<label class="meeting-option"><input type="checkbox" data-meeting="${esc(e.id)}" ${included(e)?'checked':''}><span><b>${DAYS[e.day]} ${time(e.start)}-${time(e.end)}</b><small>${esc([e.type,e.room].filter(Boolean).join(' · '))}</small><small>${esc(e.teacher)}</small></span></label>`).join(''):'<p>Δεν υπάρχουν δημοσιευμένες ώρες για αυτό το μάθημα στην επιλεγμένη περίοδο.</p>';
  const url=c.url||SOURCES.catalog;html+=`<p><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Επίσημη περιγραφή μαθήματος${icon('ext')}</a></p>`;
  $('detailBody').innerHTML=html;
 }
@@ -450,11 +516,11 @@ async function refresh(){
   const oldCount=data.fall.events.length+data.spring.events.length,{unresolved,changes}=replaceSources({catalog:preserveCatalog(catalog),fall,spring,catalogFetchedAt:new Date().toISOString()});persist();render();
   notify(`Η ανανέωση ολοκληρώθηκε: ${fall.events.length} χειμερινές και ${spring.events.length} εαρινές συναντήσεις (προηγουμένως ${oldCount} συνολικά). Οι επιλογές μαθημάτων διατηρήθηκαν.${unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''}${!spring.published?' Η εαρινή πηγή είναι κενή.':''}`,unresolved>0);
   showUpdateReport(changes);
- }catch(error){notify(`Η ανανέωση δεν ολοκληρώθηκε: ${error.name==='AbortError'?'η υπηρεσία δεν απάντησε εντός 35 δευτερολέπτων':error.message}. Διατηρήθηκαν όλα τα προηγούμενα δεδομένα. Στις «Πηγές & ενημέρωση» μπορείς να αλλάξεις υπηρεσία ή να εισαγάγεις αποθηκευμένη επίσημη σελίδα.`,true);}finally{busy=false;$('refresh').disabled=false;$('importFile').disabled=false;}
+ }catch(error){notify(`Η ανανέωση δεν ολοκληρώθηκε: ${plainError(error)}. Διατηρήθηκαν όλα τα προηγούμενα δεδομένα. Στις «Πηγές & ενημέρωση» μπορείς να αλλάξεις υπηρεσία ή να εισαγάγεις αποθηκευμένη επίσημη σελίδα.`,true);}finally{busy=false;$('refresh').disabled=false;$('importFile').disabled=false;}
 }
 async function importHtml(){
  const file=$('importFile').files[0];if(!file)return;$('importStatus').textContent='Ανάγνωση αρχείου…';
- try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const {unresolved,changes}=replaceSources(next);persist();render();$('importStatus').textContent='';closeDialog($('sourcesDialog'));notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);showUpdateReport(changes);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+error.message+' Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
+ try{if(file.size>4000000)throw new Error('Το αρχείο είναι μεγαλύτερο από 4 MB.');const html=await file.text(),kind=$('importKind').value;let next;if(kind==='catalog'){const catalog=SourceParser.parseCatalog(html);next={...data,catalog:preserveCatalog(catalog),catalogFetchedAt:new Date().toISOString()};}else{const snapshot=SourceParser.parseTimetable(html,kind,data.catalog);next={...data,[kind]:snapshot};}const {unresolved,changes}=replaceSources(next);persist();render();$('importStatus').textContent='';closeDialog($('sourcesDialog'));notify('Η επίσημη σελίδα εισήχθη. Η ημερομηνία δείχνει την εισαγωγή· η σελίδα μπορεί να έχει αποθηκευτεί παλαιότερα.'+(unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),unresolved>0);showUpdateReport(changes);}catch(error){$('importStatus').textContent='Η εισαγωγή απορρίφθηκε: '+plainError(error)+'. Τα προηγούμενα δεδομένα διατηρήθηκαν.';}finally{$('importFile').value='';}
 }
 async function downloadCopy(){
  $('saveCopy').disabled=true;
@@ -475,7 +541,7 @@ async function downloadCopy(){
   })
  ]);
  saveFile(new Blob(['<!doctype html>\n'+root.outerHTML],{type:'text/html;charset=utf-8'}),'THMMY-programma-'+new Date().toISOString().slice(0,10)+'.html');
- }catch(error){notify('Δεν δημιουργήθηκε το αυτοτελές αντίγραφο: '+error.message+' Έλεγξε τη σύνδεση και δοκίμασε ξανά. Τα δεδομένα σου δεν άλλαξαν.',true);}finally{$('saveCopy').disabled=false;}
+ }catch(error){notify('Δεν δημιουργήθηκε το αυτοτελές αντίγραφο: '+plainError(error)+'. Έλεγξε τη σύνδεση και δοκίμασε ξανά. Τα δεδομένα σου δεν άλλαξαν.',true);}finally{$('saveCopy').disabled=false;}
 }
 const TRANSFER_LIMIT=1000000;
 let pendingTransfer=null,transferAttempt=0;
@@ -592,13 +658,31 @@ $('theme').onchange=()=>{
  try{localStorage.setItem('thmmy-planner-theme',themePreference);}catch{notify('Το θέμα άλλαξε, αλλά ο browser δεν μπόρεσε να αποθηκεύσει την προτίμησή σου.',true);}
 };
 for(let i=1;i<=10;i++)$('semesterFilter').add(new Option(`${i}ο εξάμηνο`,i));for(let i=1;i<=16;i++)$('studySemester').add(new Option(i===16?'16ο ή μεταγενέστερο':`${i}ο εξάμηνο`,i));
-document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail)morphOpen(b,b.dataset.detail);else if(b.dataset.toggle)toggleCourse(b.dataset.toggle);else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;state.season=next;persist();render();}});
+// event.detail is 0 for keyboard activation: those stay instant, with no morph or flight.
+let detailOpener=null;
+document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail){detailOpener={event:b.dataset.event,detail:b.dataset.detail};if(event.detail===0)openDetail(b.dataset.detail);else morphOpen(b,b.dataset.detail);}else if(b.dataset.toggle)toggleCourse(b.dataset.toggle,event.detail!==0);else if(b.hasAttribute('data-show-all')){$('semesterFilter').value='';$('listFilter').value='all';renderList();}else if(b.hasAttribute('data-open-passed'))openProfile(true);else if(b.hasAttribute('data-open-profile'))openProfile();else if(b.hasAttribute('data-print'))window.print();else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;state.season=next;persist();render();}});
 // Escape closes through the same exit. The browser only lets the page delay it after a click or key that opened it.
-for(const dialog of document.querySelectorAll('dialog'))dialog.addEventListener('cancel',event=>{if(!event.cancelable)return;event.preventDefault();closeDialog(dialog);});
-document.addEventListener('change',event=>{const e=event.target;if(e.dataset.passed)setPassed(e.dataset.passed,e.checked);if(e.dataset.review){state.review=setIn(state.review,e.dataset.review,e.checked);persist();renderSchedule();}if(e.dataset.meeting){const m=allMeetings().find(m=>m.id===e.dataset.meeting);if(m){if(isLab(m))state.labs=setIn(state.labs,m.id,e.checked);else state.excluded=setIn(state.excluded,m.id,!e.checked);persist();renderList();renderSchedule();}}if(e.dataset.credit){const id=e.dataset.credit;if(e.value)state.creditTo[id]=Number(e.value);else delete state.creditTo[id];persist();renderSchedule();if(detailId===id&&$('courseDialog').open){renderDetail(id);$('detailBody').querySelector('[data-credit]')?.focus();}}if(e.dataset.color){state.colors[e.dataset.color]=e.value;persist();renderList();renderSchedule();}});
+for(const dialog of document.querySelectorAll('dialog')){
+ dialog.addEventListener('cancel',event=>{if(!event.cancelable)return;event.preventDefault();closeDialog(dialog);});
+ // A click on the backdrop lands on the dialog itself, outside its box.
+ dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeDialog(dialog);});
+}
+// The block that opened the details may have been re-rendered meanwhile: hand focus back to its replacement.
+$('courseDialog').addEventListener('close',()=>{
+ delete document.documentElement.dataset.vt;
+ const from=detailOpener;detailOpener=null;if(!from)return;
+ requestAnimationFrame(()=>{const a=document.activeElement;if(a&&a!==document.body&&!$('courseDialog').contains(a))return;(from.event&&$('calendar').querySelector(`[data-event="${CSS.escape(from.event)}"]`)||$('calendar').querySelector(`[data-detail="${CSS.escape(from.detail)}"]`)||$('courseList').querySelector(`[data-detail="${CSS.escape(from.detail)}"]`)||$('search')).focus({preventScroll:true});});
+});
+document.addEventListener('change',event=>{const e=event.target;if(e.dataset.passAll){for(const c of data.catalog)if(c.semester===Number(e.dataset.passAll)&&!c.archived)state.passed=setIn(state.passed,c.id,e.checked);persist();render();syncPassedChecklist();}if(e.dataset.passed)setPassed(e.dataset.passed,e.checked);if(e.dataset.review){state.review=setIn(state.review,e.dataset.review,e.checked);persist();renderSchedule();}if(e.dataset.meeting){const m=allMeetings().find(m=>m.id===e.dataset.meeting);if(m){if(isLab(m))state.labs=setIn(state.labs,m.id,e.checked);else state.excluded=setIn(state.excluded,m.id,!e.checked);persist();renderList();renderSchedule();}}if(e.dataset.credit){const id=e.dataset.credit;if(e.value)state.creditTo[id]=Number(e.value);else delete state.creditTo[id];persist();renderSchedule();if(detailId===id&&$('courseDialog').open){renderDetail(id);$('detailBody').querySelector('[data-credit]')?.focus();}}if(e.dataset.color){state.colors[e.dataset.color]=e.value;persist();renderList();renderSchedule();}});
 $('search').addEventListener('input',renderList);$('semesterFilter').addEventListener('change',renderList);$('listFilter').addEventListener('change',renderList);$('colorMode').addEventListener('change',e=>{state.colorMode=e.target.value;persist();renderList();renderSchedule();});
-$('profileButton').onclick=()=>{$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;$('profileDialog').showModal();};
-$('saveProfile').onclick=()=>{state.entryYear=$('entryYear').value;state.studySemester=$('studySemester').value;state.passedComplete=$('passedComplete').checked;persist();render();closeDialog($('profileDialog'));};
+$('profileButton').onclick=()=>openProfile();
+// The profile saves as it changes, like everything else here; closing it can no longer lose an edit.
+const studyFilter=()=>{if(state.studySemester&&Number(state.studySemester)<=10)$('semesterFilter').value=state.studySemester;};
+for(const id of ['entryYear','studySemester','passedComplete'])$(id).addEventListener('change',()=>{state.entryYear=$('entryYear').value;const semester=$('studySemester').value,moved=semester!==state.studySemester;state.studySemester=semester;state.passedComplete=$('passedComplete').checked;persist();if(moved)studyFilter();render();});
+$('saveProfile').onclick=()=>closeDialog($('profileDialog'));
+// "/" jumps to the search; Enter there adds the course when only one is left.
+document.addEventListener('keydown',event=>{if(event.key!=='/'||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select')||document.querySelector('dialog[open]'))return;event.preventDefault();if(drawerMode.matches&&!railOpen())setRail(true);$('search').focus();});
+$('search').addEventListener('keydown',event=>{if(event.key!=='Enter')return;const rows=$('courseList').querySelectorAll('.course');if(rows.length===1)toggleCourse(rows[0].dataset.course,false);});
 $('sourcesButton').onclick=()=>$('sourcesDialog').showModal();$('guideButton').onclick=()=>$('guideDialog').showModal();$('provider').onchange=e=>{state.provider=e.target.value;persist();};$('refresh').onclick=refresh;$('importFile').onchange=importHtml;$('saveCopy').onclick=downloadCopy;$('printButton').onclick=()=>window.print();
 // The course rail: docked beside the week on wide screens; up to 1180px a drawer (side panel on tablets,
 // bottom sheet on phones). The floating button reaches it from anywhere in a long week.
@@ -614,22 +698,38 @@ function setRail(open,opener){
  if(shown&&opener&&(drawerMode.matches||opener.id==='railFab')){railOpener=drawerMode.matches?opener:null;(phone.matches?$('railClose'):$('search')).focus({preventScroll:true});}
  // A frame later: the rail button only becomes visible (and focusable) once its visibility transition has started.
  // Only if focus is still in the drawer or was dropped: a click on the week or a Tab out already moved it on.
- else if(!shown&&railOpener){const back=railOpener;railOpener=null;requestAnimationFrame(()=>{const a=document.activeElement;if(!a||a===document.body||$('courseSidebar').contains(a))back.focus({preventScroll:true});});}
+ else if(!shown&&railOpener){
+  const back=railOpener;railOpener=null;
+  const give=()=>{const a=document.activeElement;if(!a||a===document.body||$('courseSidebar').contains(a))back.focus({preventScroll:true});};
+  // A frame may still be too early on the phone, so it tries again once the button's transition has run.
+  requestAnimationFrame(()=>{give();if(document.activeElement!==back)back.addEventListener('transitionrun',give,{once:true});});
+ }
 }
-$('focusSchedule').onclick=()=>setRail(!railOpen(),$('focusSchedule'));
+$('focusSchedule').onclick=event=>{
+ const change=()=>setRail(!railOpen(),$('focusSchedule'));
+ // The week's width would snap: a short crossfade bridges it (not from the keyboard, not under reduced motion).
+ if(document.startViewTransition&&!reducedMotion.matches&&event.detail!==0)document.startViewTransition(change).ready.catch(()=>{});else change();
+};
+$('skipToWeek').onclick=()=>($('calendarWrap').hidden?$('scheduleTitle'):$('calendarWrap')).focus();
+$('conflictJump').onclick=()=>{$('checks').open=true;$('checks').scrollIntoView({block:'start'});$('checks').firstElementChild.focus({preventScroll:true});};
 $('railFab').onclick=()=>setRail(true,$('railFab'));
 $('railClose').onclick=()=>setRail(false);
 drawerMode.addEventListener('change',()=>{document.body.classList.remove('rail-open');railOpener=null;setRail(railOpen());});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&drawerMode.matches&&railOpen()&&!document.querySelector('dialog[open]'))setRail(false);});
-document.addEventListener('pointerdown',event=>{if(drawerMode.matches&&railOpen()&&!event.target.closest('#courseSidebar,#focusSchedule,#railFab,dialog'))setRail(false);});
+// Tablets close the drawer as the press starts; the phone's scrim waits for the click, or that click would fall through
+// to the block under the scrim once it is gone.
+document.addEventListener('pointerdown',event=>{if(!phone.matches&&drawerMode.matches&&railOpen()&&!event.target.closest('#courseSidebar,#focusSchedule,#railFab,dialog'))setRail(false);});
+document.addEventListener('click',event=>{if(phone.matches&&railOpen()&&!event.target.closest('#courseSidebar,#railFab,dialog'))setRail(false);});
 // Tabbing out of the drawer closes it instead of leaving it open over the page.
 $('courseSidebar').addEventListener('focusout',event=>{if(drawerMode.matches&&railOpen()&&event.relatedTarget&&!event.relatedTarget.closest('#courseSidebar,dialog'))setRail(false);});
-// The phone sheet follows a finger dragged down from its handle or heading; past 80px or on a downward flick (past 24px,
-// over 0.5px/ms over the last 16ms or more of movement, released within 100ms of it) it closes, otherwise springs back.
+// The phone sheet follows a finger dragged down from its handle or heading. Velocity is averaged over the last 80ms. It
+// closes past 80px, or past 24px when that speed would carry it (projected 499ms on) past half its height; a flick back
+// up or a cancelled touch springs it back. Dragged up it meets a rubber band, and a press mid-flight catches it there.
 const sidebar=$('courseSidebar');let sheetDrag=null;
-sidebar.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'||!phone.matches||!railOpen()||event.target.closest('button')||event.clientY>sidebar.querySelector('.panel-heading').getBoundingClientRect().bottom)return;sheetDrag={id:event.pointerId,y:event.clientY,dy:0,ly:event.clientY,lt:event.timeStamp,v:0};sidebar.setPointerCapture(event.pointerId);sidebar.style.transition='none';});
-sidebar.addEventListener('pointermove',event=>{if(sheetDrag?.id!==event.pointerId)return;sheetDrag.dy=Math.max(0,event.clientY-sheetDrag.y);const dt=event.timeStamp-sheetDrag.lt;if(dt>=16){sheetDrag.v=(event.clientY-sheetDrag.ly)/dt;sheetDrag.ly=event.clientY;sheetDrag.lt=event.timeStamp;}sidebar.style.transform=`translateY(${sheetDrag.dy}px)`;});
-for(const type of ['pointerup','pointercancel'])sidebar.addEventListener(type,event=>{if(sheetDrag?.id!==event.pointerId)return;const close=sheetDrag.dy>80||sheetDrag.dy>24&&sheetDrag.v>.5&&event.timeStamp-sheetDrag.lt<100;sheetDrag=null;sidebar.style.transform='';sidebar.style.transition='';if(close)setRail(false);});
+const sheetVelocity=now=>{const recent=sheetDrag.samples.filter(s=>now-s[0]<=80),a=recent[0],b=recent.at(-1);return recent.length>1&&b[0]>a[0]?(b[1]-a[1])/(b[0]-a[0]):0;};
+sidebar.addEventListener('pointerdown',event=>{if(sheetDrag||!event.isPrimary||event.pointerType!=='touch'||!phone.matches||!railOpen()||event.target.closest('button')||event.clientY>sidebar.querySelector('.panel-heading').getBoundingClientRect().bottom)return;const from=Math.max(0,new DOMMatrix(getComputedStyle(sidebar).transform).m42);sheetDrag={id:event.pointerId,y:event.clientY-from,dy:from,samples:[[event.timeStamp,event.clientY]]};sidebar.setPointerCapture(event.pointerId);sidebar.style.transition='none';sidebar.style.transform=`translateY(${from}px)`;});
+sidebar.addEventListener('pointermove',event=>{if(sheetDrag?.id!==event.pointerId)return;const raw=event.clientY-sheetDrag.y;sheetDrag.dy=Math.max(0,raw);sheetDrag.samples.push([event.timeStamp,event.clientY]);sidebar.style.transform=`translateY(${raw<0?-40*(1-1/(-raw/40+1)):raw}px)`;});
+for(const type of ['pointerup','pointercancel'])sidebar.addEventListener(type,event=>{if(sheetDrag?.id!==event.pointerId)return;const v=sheetVelocity(event.timeStamp),dy=sheetDrag.dy,close=type==='pointerup'&&v>-.2&&(dy>80||dy>24&&dy+v*499>sidebar.offsetHeight/2);sheetDrag=null;sidebar.style.transform='';sidebar.style.transition='';if(close)setRail(false);});
 setRail(railOpen());
 const dataMenu=$('dataMenu');
 dataMenu.addEventListener('click',event=>{if(event.target.closest('button')){dataMenu.open=false;dataMenu.querySelector('summary').focus();}},true);
@@ -659,7 +759,7 @@ if(data!==initialData&&fetchedAt(initialData)>fetchedAt(data)){
  const next=structuredClone(initialData);next.catalog=preserveCatalog(next.catalog);
  adopted=replaceSources(next);persist();
 }
-render();if(storageWarning)notify(storageWarning,true);
+studyFilter();render();if(storageWarning)notify(storageWarning,true);
 if(adopted?.changes.length){
  notify('Το ωρολόγιο ενημερώθηκε αυτόματα από την επίσημη πηγή. Οι επιλογές μαθημάτων διατηρήθηκαν.'+(adopted.unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''),adopted.unresolved>0);
  showUpdateReport(adopted.changes);
@@ -692,7 +792,9 @@ window.addEventListener('afterprint',()=>{
 // Offline and instant loads through the service worker (sw.js). It is asked to check for a new version when the page
 // loads, when it comes back into view and every half hour; a new version shows the update toast. Not in an HTML backup.
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
- const sw=navigator.serviceWorker,toast=$('updateToast');
+ // A first visit installs a worker too, and it can claim this page before its "installed" event arrives: only a page
+ // that already had a worker, or a worker found while another was active, is a new version.
+ const sw=navigator.serviceWorker,toast=$('updateToast'),returning=!!sw.controller;
  let registration=null,taking=false;
  // The text is set again once shown: screen readers skip a live region that only turns visible.
  const offer=()=>{if(!toast.hidden)return;const s=toast.firstElementChild,text=s.textContent;s.textContent='';toast.hidden=false;requestAnimationFrame(()=>s.textContent=text);};
@@ -708,12 +810,13 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
  const start=async()=>{
   try{registration=await sw.register('./sw.js',{updateViaCache:'none'});}catch{return;}
   // A new service worker waiting behind the current one is a new version too.
-  const waiting=()=>{if(registration.waiting&&sw.controller)offer();};
-  waiting();
-  registration.addEventListener('updatefound',()=>{const next=registration.installing;next?.addEventListener('statechange',()=>{if(next.state==='installed')waiting();});});
+  if(registration.waiting&&returning)offer();
+  registration.addEventListener('updatefound',()=>{const next=registration.installing,update=!!registration.active;next?.addEventListener('statechange',()=>{if(next.state==='installed'&&update&&registration.waiting)offer();});});
   check();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
   setInterval(()=>{if(document.visibilityState==='visible')check();},30*60*1000);
  };
  if(document.readyState==='complete')start();else addEventListener('load',start,{once:true});
 }
+// Read by the loader in index.html: a script that threw part-way still fires onload.
+window.plannerBooted=true;

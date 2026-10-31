@@ -7,7 +7,8 @@
   if(reduce.matches){cancelAnimationFrame(tick);tick=0;lenis?.destroy();lenis=null;return;}
   if(lenis||!globalThis.Lenis)return;
   // Nested scrollers (course list, horizontal week) and dialogs keep native scrolling.
-  const l=lenis=new Lenis({lerp:.085,allowNestedScroll:true,anchors:{offset:-76},prevent:node=>!!node.closest?.('dialog')});
+  // Anchors take their offset from the page's own scroll-padding, as a native jump does.
+  const l=lenis=new Lenis({lerp:.12,allowNestedScroll:true,anchors:true,prevent:node=>!!node.closest?.('dialog')});
   // Ticked by hand, not autoRaf: Lenis runs only while it eases a scroll, instead of at every display refresh for the
   // life of the page. Every eased scroll (wheel, anchor) starts in scrollTo; a fresh run starts from no frame time, so
   // its first step is not the whole time since the last one.
@@ -17,9 +18,15 @@
  };
  sync();
  reduce.addEventListener('change',sync);
+ // A key can start a native jump (focus, find, Page Down) mid-glide: the glide must not pull the page back from it.
+ addEventListener('keydown',()=>{if(tick)lenis?.reset();},true);
+ // Whether the sheet has reached the header, as a class: for engines without scroll timelines and for reduced motion,
+ // which both lose the CSS scroll animations (styles.css), and for the browser bar's colour (applyTheme in index.html).
+ const planner=document.getElementById('planner');
+ if(planner)new IntersectionObserver(([entry])=>{document.documentElement.classList.toggle('scroll-docked',entry.isIntersecting);globalThis.applyTheme?.();},{rootMargin:'0px 0px -80%'}).observe(planner);
  // Resolved from this script's own URL; inlined into an HTML backup it has none, and the 3D (never loadable from a
  // saved file) is skipped.
- let week3d=null;try{week3d=new URL('week3d.js?v=perf4',document.currentScript.src).href;}catch{}
+ let week3d=null;try{week3d=new URL('week3d.js?v=polish2',document.currentScript.src).href;}catch{}
  const can3d=week3d&&document.getElementById('week3d')&&'WebGL2RenderingContext' in window;
  // No 3D, no skeleton waiting for it in the hero.
  const no3d=()=>document.documentElement.classList.remove('has-3d');

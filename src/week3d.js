@@ -29,7 +29,7 @@ const FIT=.8;
 const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,780,840],[2,1020,1140],[3,660,780],[3,960,1140],[4,600,720],[4,840,960]]
  .map(([day,start,end],i)=>({id:'sample'+i,day,start,end,lane:0,lanes:1,ects:3+(i*3)%7,sample:true}));
 
-const renderer=new WebGLRenderer({canvas,alpha:true,antialias:devicePixelRatio<2,powerPreference:'high-performance'});
+const renderer=new WebGLRenderer({canvas,alpha:true,antialias:devicePixelRatio<2});
 renderer.setClearColor(0,0);
 // Production setting: reading shader logs forces every compile to finish synchronously on the main thread.
 renderer.debug.checkShaderErrors=false;
@@ -267,7 +267,7 @@ const DECAL=300,WALL=2,SLOPE=9,engravings=new Map();
 function engrave(e,W,H,k){
  const mask=document.createElement('canvas'),bump=document.createElement('canvas');
  mask.width=bump.width=W;mask.height=bump.height=H;
- const g=mask.getContext('2d',{willReadFrequently:true}),font='Geologica,"Noto Sans",system-ui,sans-serif',pad=.09*k,room=W-2*pad,least=.09*k,most=Math.min(.24*k,H-2*pad);
+ const g=mask.getContext('2d',{willReadFrequently:true}),font='Geologica,"Noto Sans",system-ui,sans-serif',pad=.09*k,room=W-2*pad,least=.11*k,most=Math.min(.24*k,H-2*pad);
  const fits=size=>(g.font=`700 ${size}px ${font}`,g.measureText(code).width<=room);
  let code=String(e.course),size=most;
  while(!fits(size)&&size>least)size*=.92;
@@ -287,7 +287,7 @@ function engrave(e,W,H,k){
   if(dx===0&&dy===0){nd[j]=nd[j+1]=128;nd[j+2]=255;}
   else{const nx=SLOPE*dx,ny=-SLOPE*dy,l=1/Math.sqrt(nx*nx+ny*ny+1);nd[j]=(nx*l*.5+.5)*255;nd[j+1]=(ny*l*.5+.5)*255;nd[j+2]=(l*.5+.5)*255;}
   nd[j+3]=255;
-  id[j]=id[j+1]=id[j+2]=255*(1-.62*a[i]);id[j+3]=Math.min(255,a[i]*400);
+  id[j]=id[j+1]=id[j+2]=255*(1-.82*a[i]);id[j+3]=Math.min(255,a[i]*400);
  }
  g.putImageData(img,0,0);bump.getContext('2d').putImageData(normals,0,0);
  return {mask,bump};
@@ -635,9 +635,9 @@ function resize(){
  const stacked=copy.offsetWidth>w*.6,heroH=hero.offsetHeight;
  const top=parseFloat(getComputedStyle(root).getPropertyValue('--bar'))||76;
  // The free box: above the copy when it spans the hero, otherwise right of the headline's longest line.
- const ink=Math.max(...[...copy.querySelectorAll('.line>span')].map(s=>s.offsetWidth)),left=stacked?0:copy.offsetLeft+ink+24;
+ const ink=Math.max(...[...copy.querySelectorAll('.line>span')].map(s=>s.offsetWidth)),left=stacked?0:copy.offsetLeft+ink+40;
  const bottom=stacked?Math.max(top+120,copy.offsetTop-16):heroH*.86,right=stacked?w:w-24;
- const cx=(left+right)/2/w,cy=(top+bottom)/2/h,boxW=(right-left)/w*(stacked?.74:.9),boxH=(bottom-top)/h;
+ const cx=(left+right)/2/w,cy=(top+bottom)/2/h,boxW=(right-left)/w*.82,boxH=(bottom-top)/h;
  const radius=Math.hypot(size.w,size.d)/2*FIT,tan=Math.tan(camera.fov*Math.PI/360);
  view={w,h,stacked,dist:Math.max(radius/(tan*boxH),radius/(tan*camera.aspect*boxW)),ox:-(cx-.5)*w,oy:-(cy-.5)*h};
  measure();
@@ -645,7 +645,8 @@ function resize(){
 }
 
 function progress(){
- return Math.min(1,Math.max(0,scrollY/dock));
+ // The last pixel counts as docked: scroll positions round, and a page parked there must not wait on hidden blocks.
+ return scrollY>=dock-1?1:Math.max(0,scrollY/dock);
 }
 
 // Where the planner draws its week, in viewport pixels; null when the planner is not a grid (phones).
@@ -773,11 +774,13 @@ function step(now){
   moving=spring(feel.nod,Math.max(-.12,Math.min(.12,orbit.pitch.v*.05)),110,13,dt)|moving;
  }
  const intro=springs.intro.x;
- let px=0,py=(1-intro)*-2.6+(still?0:Math.sin(t*.8)*.05)*calm,pz=0,sx=1,sy=1,sz=1;
+ // The drift eases out 15s after the last input, which lets the loop sleep, and eases back in with the next one.
+ drift+=((performance.now()-lastInput<DRIFT_FOR?1:0)-drift)*Math.min(1,dt*2);
+ let px=0,py=(1-intro)*-2.6+(still?0:Math.sin(t*.8)*.05*drift)*calm,pz=0,sx=1,sy=1,sz=1;
  if(R&&e>0){const L=landing(R);px=lerp(0,L.tx,e);py=lerp(py,0,e);pz=lerp(0,L.tz,e);sx=lerp(1,L.sx,e);sz=lerp(1,L.sz,e);sy=lerp(1,.03,e);}
  week.position.set(px,py+feel.lift.x*calm,pz);
  week.scale.set(sx,sy,sz);
- week.rotation.set(((1-intro)*.4+feel.nod.x)*calm,(still?0:Math.sin(t*.21)*.035)*calm,feel.bank.x*calm);
+ week.rotation.set(((1-intro)*.4+feel.nod.x)*calm,(still?0:Math.sin(t*.21)*.035*drift)*calm,feel.bank.x*calm);
  if(pointer.dirty){
   pointer.dirty=false;
   const under=pointer.inside&&pointer.type!=='touch'&&!orbit.drag&&p<.3&&e<.02?cast(pointer.cx,pointer.cy):{slab:null,board:false};
@@ -886,7 +889,8 @@ function govern(ms,work){
 // identical to the display rate at a fraction of the GPU, and the page sleeps between those frames instead of waking at
 // every display refresh. Any of those wakes full rate on the very next frame.
 const IDLE=1000/30;
-let compiled=false,busy=true,chain=false,lastP=-1,idle=0;
+let compiled=false,busy=true,chain=false,lastP=-1,idle=0,drift=1,lastInput=performance.now();
+const DRIFT_FOR=15000;
 function loop(now){
  raf=0;
  if(!compiled)return;
@@ -900,17 +904,21 @@ function loop(now){
  // Only back-to-back full-rate frames measure the GPU: idle frames and the first frame after them are slow on purpose.
  const steady=chain,t0=performance.now();
  busy=chain=!!step(now);
+ // Idle frames only drift: the shadow pass, half of each frame's draws, waits for real movement.
+ renderer.shadowMap.autoUpdate=busy;
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
  if(was&&steady)govern(now-was,performance.now()-t0);
  // Next frame, unless something in this one (a resize from the governor, say) already asked for it: one loop only.
  if(still||raf)return;
  if(busy)raf=requestAnimationFrame(loop);
+ // Nothing left to draw: sleep until wake().
+ else if(drift<.001&&performance.now()-lastInput>=DRIFT_FOR)return;
  // Idle: the timer ends a little early, so the frame lands on the display refresh nearest 30 fps.
  else idle=setTimeout(()=>{idle=0;if(!raf)raf=requestAnimationFrame(loop);},IDLE-4-(performance.now()-now));
 }
 function wake(){
- busy=true;
+ busy=true;lastInput=performance.now();
  if(idle){clearTimeout(idle);idle=0;}
  if(!raf)raf=requestAnimationFrame(loop);
 }
@@ -924,7 +932,8 @@ function stillMode(){
 
 hero.addEventListener('pointerdown',event=>{
  down={x:event.clientX,y:event.clientY};
- if(event.button!==0||event.target.closest('a,button')||!live||travel()>FREE||!cast(event.clientX,event.clientY).board)return;
+ // A second finger must not take the board from the first.
+ if(orbit.drag||event.button!==0||event.target.closest('a,button')||!live||travel()>FREE||!cast(event.clientX,event.clientY).board)return;
  orbit.drag={id:event.pointerId,x:event.clientX,y:event.clientY,lx:event.clientX,ly:event.clientY,moved:false,touch:event.pointerType==='touch',pitch:orbit.pitch.x};
  // Catch: the aim starts where the board is, so a spinning board is caught and stopped by the hand's spring.
  orbit.home=false;orbit.aim.yaw=orbit.yaw.x;orbit.aim.pitch=orbit.pitch.x;
