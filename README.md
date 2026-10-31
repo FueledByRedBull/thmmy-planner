@@ -61,7 +61,7 @@ flowchart LR
 
 - **Nightly.** At 02:17 UTC, [`refresh-data.yml`](.github/workflows/refresh-data.yml) downloads the catalogue and both timetables. It parses them with the app's own [`source-parser.js`](assets/source-parser.js) in headless Chrome, so the result is exactly what the app would produce. It commits only when something changed, and refuses results that look broken (a shrunken catalogue, or a published timetable that came back empty). A few rows with an impossible time are left out and named in the app and the job's summary; more than that refuses the page.
 - **On your next visit,** the planner takes the new snapshot in the way a manual refresh does: your meeting choices are remapped, selected courses that left the catalogue are kept, and *Τι άλλαξε* shows the differences.
-- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins) or directly, chosen in *Πηγές & ενημέρωση*. You can also import an official page you saved yourself.
+- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins), starting with the one chosen in *Πηγές & ενημέρωση* and moving to the other if it fails or returns a page that looks broken. The department's site blocks direct browser requests, so *direct* rarely works. You can also import an official page you saved yourself.
 
 ## Privacy
 

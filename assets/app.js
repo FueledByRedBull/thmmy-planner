@@ -73,7 +73,7 @@ function notify(text,error=false){
 function plainError(error){
  console.error(error);
  const message=String(error?.message||'').replace(/\.$/,'');
- if(error?.name==='AbortError')return 'η υπηρεσία δεν απάντησε εντός 35 δευτερολέπτων';
+ if(error?.name==='AbortError')return 'η υπηρεσία δεν απάντησε εντός 20 δευτερολέπτων';
  if(/^HTTP 429/.test(message))return 'η υπηρεσία δέχεται πολλά αιτήματα αυτή τη στιγμή· δοκίμασε ξανά σε λίγο';
  if(/^HTTP \d/.test(message))return 'η υπηρεσία απάντησε με σφάλμα';
  if(error instanceof TypeError||/NetworkError|Failed to fetch|Load failed/.test(message))return 'δεν υπάρχει σύνδεση ή η υπηρεσία δεν είναι διαθέσιμη';
@@ -398,7 +398,7 @@ function render(){
  $('periodLabel').textContent=`${new Set(snapshot.events.map(e=>e.courseId)).size} μαθήματα με δημοσιευμένες ώρες`;
  const skipped=snapshot.skipped||[];
  $('availabilityNote').hidden=snapshot.published!==false&&!skipped.length;
- $('availabilityNote').textContent=snapshot.published===false?`Η επίσημη σελίδα του ${seasonName(true)} που ανακτήθηκε είναι κενή. Δεν υπάρχουν δημοσιευμένες ώρες σε αυτή την πηγή. Οι επιλογές παραμένουν διαθέσιμες στον πλήρη κατάλογο.`:`Η επίσημη πηγή έχει ${skipped.length===1?'μία γραμμή':skipped.length+' γραμμές'} με μη έγκυρη ώρα, που δεν μπήκαν στο πρόγραμμα: ${skipped.map(s=>`${s.name} (${DAYS[s.day]} ${s.time})`).join(', ')}.`;
+ $('availabilityNote').textContent=snapshot.published===false?`Η επίσημη σελίδα του ${seasonName(true)} που ανακτήθηκε είναι κενή. Δεν υπάρχουν δημοσιευμένες ώρες σε αυτή την πηγή. Οι επιλογές παραμένουν διαθέσιμες στον πλήρη κατάλογο.`:`Η επίσημη πηγή έχει ${skipped.length===1?'μία γραμμή με μη έγκυρη ώρα, που δεν μπήκε':skipped.length+' γραμμές με μη έγκυρη ώρα, που δεν μπήκαν'} στο πρόγραμμα: ${skipped.map(s=>`${s.name} (${DAYS[s.day]} ${s.time})`).join(', ')}.`;
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
@@ -446,11 +446,18 @@ function renderSources(){const labels={fall:'Χειμερινό ωρολόγιο
 function renderGuide(){
  $('guideContent').innerHTML=`<p>Οι παρακάτω έλεγχοι βασίζονται στον οδηγό <b>2024-25</b> που δόθηκε με την εφαρμογή. Η σημερινή προσφορά μαθημάτων και οι ώρες προκύπτουν από τα επίσημα ωρολόγια.</p><div class="guide-rule"><p><b>Προαπαιτούμενα · σ. 21, 25</b><br>Πρέπει να έχουν περαστεί σε προηγούμενο εξάμηνο. Η εφαρμογή συγκρίνει τους κωδικούς του οδηγού με όσα έχεις σημειώσει περασμένα.</p></div><div class="guide-rule"><p><b>Για εισαγωγή από το 2023-24 · σ. 20-21</b><br>Έως 9 μαθήματα με ECTS ανά περίοδο, πέρα από διπλωματική. Προτεραιότητα στα διαθέσιμα υποχρεωτικά και σειρά εξαμήνων. Δηλώνεται και το οφειλόμενο μάθημα Αγγλικών της αντίστοιχης περιόδου. Οι τρέχοντες <a href="https://www.e-ce.uth.gr/studies/undergraduate/" target="_blank" rel="noopener noreferrer">μεταβατικοί κανόνες του Τμήματος</a> το αναφέρουν με 2 ECTS, σε αντίθεση με τα 0 ECTS του οδηγού 2024-25· για εισαγωγή από 2023-24 η εφαρμογή το μετρά στο όριο των 9.</p></div><div class="guide-rule"><p><b>Επιλογής · σ. 21</b><br>Στο 5ο, 7ο και 9ο μπορούν να χρεωθούν επιλογής από τα 5ο/7ο/9ο. Στο 6ο και 8ο, από τα 6ο/8ο. Ορίζεις τη χρέωση στις λεπτομέρειες. Χωρίς ρητή χρέωση, η εφαρμογή δεν χρησιμοποιεί το εξάμηνο του καταλόγου ως εξάμηνο πτυχίου. Τα οφειλόμενα υποχρεωτικά προηγούμενων εξαμήνων μετρούν στο συνολικό όριο δήλωσης, όχι στις πέντε θέσεις επιλογής του 7ου. Έως δύο «Ειδικά Θέματα - Εργασίες» συνολικά, με έγκριση επιβλέποντα και την επίσημη διαδικασία αιτήσεων.</p></div><div class="guide-rule"><p><b>Διπλωματική · σ. 25</b><br>Τουλάχιστον 180 περασμένα ECTS και έγκριση του Τμήματος. Δεν δημιουργούνται πλασματικές εβδομαδιαίες ώρες για διπλωματική ή πρακτική.</p></div><p>Τα «προς έλεγχο» και τα ήδη περασμένα παραμένουν στο ωρολόγιο, αλλά δεν προσμετρώνται στο σχέδιο δήλωσης ή στα ECTS της δήλωσης. Τα περασμένα εξακολουθούν να καλύπτουν τις αντίστοιχες θέσεις πτυχίου και τα προαπαιτούμενα. Οι δοκιμαστικές επιλογές δεν καλύπτουν υποχρεώσεις δήλωσης. Αφαίρεσε τη σήμανση όταν αποφασίσεις να τα δηλώσεις.</p><h3>Τι ελέγχεται αυτόματα</h3><p>Επικαλύψεις ενεργών συναντήσεων, προαπαιτούμενα που λείπουν από τα περασμένα, απουσία από το ωρολόγιο, όριο 9 μαθημάτων για το αντίστοιχο έτος εισαγωγής, Αγγλικά, διαθέσιμα υποχρεωτικά που παραλείφθηκαν, πάνω από 5 μαθήματα χρεωμένα ανά εξάμηνο, πάνω από 2 επιλογής στο 5ο/6ο ή 5 επιλογής στο 7ο/8ο/9ο, ενδείξεις ακάλυπτων προηγούμενων θέσεων επιλογής και πάνω από 2 ειδικά θέματα-εργασίες. Οι ασαφείς ή ελλιπείς χρεώσεις επισημαίνονται χωρίς να θεωρούνται βέβαια κενά. Η Πρακτική Άσκηση χρεώνεται μόνο στο 8ο, σύμφωνα με την τρέχουσα ρύθμιση του Τμήματος.</p><h3>Τι χρειάζεται επιβεβαίωση</h3><p>Κανόνες εισαγωγής πριν το 2023-24, μεταβατικές διατάξεις, μερική φοίτηση, πλήρης σειρά δηλώσεων επιλογής, απαιτήσεις γνωστικών τομέων/αποφοίτησης, αλλαγές μετά το 2024-25 και εγκρίσεις διπλωματικής ή ειδικών θεμάτων. Η λίστα περασμένων δεν είναι αναλυτική βαθμολογία και οι προειδοποιήσεις δεν αποκλείουν την προσθήκη μαθημάτων.</p><p class="subtle">Ο ενσωματωμένος οδηγός περιλαμβάνει ${GUIDE.courses?.length||0} καταχωρίσεις μαθημάτων. Όταν ένα μάθημα δεν καλύπτεται, εμφανίζεται «δεν υπάρχουν επαληθευμένα στοιχεία», όχι «κανένα προαπαιτούμενο».</p>`;
 }
-async function fetchSource(kind){
- const url=SOURCES[kind],controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),35000);
- try{let endpoint=url,headers={};if(state.provider==='jina'){endpoint='https://r.jina.ai/'+url;headers={'X-Respond-With':'html','X-No-Cache':'true'};}else if(state.provider==='allorigins')endpoint='https://allorigins.hexlet.app/raw?url='+encodeURIComponent(url);
+async function fetchSource(kind,provider){
+ const url=SOURCES[kind],controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+ try{let endpoint=url,headers={};if(provider==='jina'){endpoint='https://r.jina.ai/'+url;headers={'X-Respond-With':'html','X-No-Cache':'true'};}else if(provider==='allorigins')endpoint='https://allorigins.hexlet.app/raw?url='+encodeURIComponent(url);
   const response=await fetch(endpoint,{headers,signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);const text=await response.text();if(text.length>4000000)throw new Error('Το αρχείο υπερβαίνει το επιτρεπόμενο μέγεθος.');return text;
  }finally{clearTimeout(timeout);}
+}
+// Tries the services in turn until one gives a page that parses and looks right. If none does, a page that came back
+// wrong says more than a service that could not be reached.
+async function fromAnyService(services,attempt){
+ const errors=[];
+ for(const service of services){try{return {service,value:await attempt(service)};}catch(error){errors.push(error);}}
+ throw errors.find(e=>e.name!=='AbortError'&&!(e instanceof TypeError)&&!/^HTTP/.test(e.message))||errors[0];
 }
 function preserveCatalog(next){const ids=new Set(next.map(c=>c.id));for(const c of data.catalog)if(!ids.has(c.id)&&[...state.passed,...state.selected.fall,...state.selected.spring].includes(c.id))next.push({...c,archived:true});return next;}
 // What a refresh or import changed against the previous data, for the report under the notice.
@@ -512,11 +519,21 @@ function replaceSources(next){
 }
 async function refresh(){
  if(busy)return;busy=true;$('refresh').disabled=true;$('importFile').disabled=true;
- try{notify('Ανάκτηση καταλόγου μαθημάτων…');const catalog=SourceParser.parseCatalog(await fetchSource('catalog'));notify('Ανάκτηση χειμερινού ωρολογίου…');const fall=SourceParser.parseTimetable(await fetchSource('fall'),'fall',catalog);notify('Ανάκτηση εαρινού ωρολογίου…');const spring=SourceParser.parseTimetable(await fetchSource('spring'),'spring',catalog);
+ try{
+  if(navigator.onLine===false)throw new Error('δεν υπάρχει σύνδεση στο διαδίκτυο');
+  // The chosen service first, then whichever worked last. Direct only if chosen: the department's site blocks browsers.
+  let services=[...new Set([state.provider,'jina','allorigins'])];
+  const load=async(kind,parse)=>{const {service,value}=await fromAnyService(services,async name=>parse(await fetchSource(kind,name)));services=[...new Set([service,...services])];return value;};
+  // The same rules as the nightly job (scripts/refresh-data.mjs): a page that looks broken never replaces good data.
+  notify('1/3 · Ανάκτηση καταλόγου μαθημάτων…');
+  const catalog=await load('catalog',html=>{const parsed=SourceParser.parseCatalog(html);if(parsed.length<Math.max(20,data.catalog.filter(c=>!c.archived).length*.8))throw new Error(`η πηγή επέστρεψε μόνο ${parsed.length} μαθήματα στον κατάλογο`);return parsed;});
+  const timetable=season=>html=>{const snapshot=SourceParser.parseTimetable(html,season,catalog),before=data[season].events.length,after=snapshot.events.length;if(data[season].published&&!after||after<before*.5)throw new Error(`η πηγή επέστρεψε μόνο ${after} από τις ${before} συναντήσεις του ${season==='fall'?'χειμερινού':'εαρινού'}`);return snapshot;};
+  notify('2/3 · Ανάκτηση χειμερινού ωρολογίου…');const fall=await load('fall',timetable('fall'));
+  notify('3/3 · Ανάκτηση εαρινού ωρολογίου…');const spring=await load('spring',timetable('spring'));
   const oldCount=data.fall.events.length+data.spring.events.length,{unresolved,changes}=replaceSources({catalog:preserveCatalog(catalog),fall,spring,catalogFetchedAt:new Date().toISOString()});persist();render();
   notify(`Η ανανέωση ολοκληρώθηκε: ${fall.events.length} χειμερινές και ${spring.events.length} εαρινές συναντήσεις (προηγουμένως ${oldCount} συνολικά). Οι επιλογές μαθημάτων διατηρήθηκαν.${unresolved?' Υπάρχουν παλιές επιλογές συναντήσεων που χρειάζονται επανέλεγχο στις λεπτομέρειες των μαθημάτων.':''}${!spring.published?' Η εαρινή πηγή είναι κενή.':''}`,unresolved>0);
   showUpdateReport(changes);
- }catch(error){notify(`Η ανανέωση δεν ολοκληρώθηκε: ${plainError(error)}. Διατηρήθηκαν όλα τα προηγούμενα δεδομένα. Στις «Πηγές & ενημέρωση» μπορείς να αλλάξεις υπηρεσία ή να εισαγάγεις αποθηκευμένη επίσημη σελίδα.`,true);}finally{busy=false;$('refresh').disabled=false;$('importFile').disabled=false;}
+ }catch(error){notify(`Η ανανέωση δεν ολοκληρώθηκε: ${plainError(error)}. ${navigator.onLine===false?'':'Δοκιμάστηκαν όλες οι υπηρεσίες. '}Διατηρήθηκαν όλα τα προηγούμενα δεδομένα. Δοκίμασε ξανά σε λίγο ή εισήγαγε μια αποθηκευμένη επίσημη σελίδα από τις «Πηγές & ενημέρωση».`,true);}finally{busy=false;$('refresh').disabled=false;$('importFile').disabled=false;}
 }
 async function importHtml(){
  const file=$('importFile').files[0];if(!file)return;$('importStatus').textContent='Ανάγνωση αρχείου…';

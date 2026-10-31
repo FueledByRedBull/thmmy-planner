@@ -51,6 +51,19 @@ test('layoutEvents: separate clusters and days do not share lanes, and the input
  assert.ok(input.every(e=>!('lane' in e)));
 });
 
+test('fromAnyService: moves past failures, and reports a wrong page over an unreachable service',async()=>{
+ const from=source.indexOf('async function fromAnyService('),to=source.indexOf('function preserveCatalog(');
+ assert.ok(from>=0&&to>from,'fromAnyService moved in assets/app.js');
+ const fromAnyService=new Function(source.slice(from,to)+';return fromAnyService;')();
+ const tried=[];
+ const found=await fromAnyService(['a','b','c'],async name=>{tried.push(name);if(name!=='b')throw new TypeError('network');return 'page';});
+ assert.deepEqual(found,{service:'b',value:'page'});
+ assert.deepEqual(tried,['a','b']);
+ const failing=errors=>fromAnyService(errors.map((_,i)=>i),async i=>{throw errors[i];});
+ await assert.rejects(failing([new TypeError('network'),new Error('SourceParser: bad page'),new Error('HTTP 429')]),/bad page/);
+ await assert.rejects(failing([new Error('HTTP 429'),new TypeError('network')]),/HTTP 429/);
+});
+
 test('THMMY2 code: every choice survives encode and decode; a malformed code is refused',async()=>{
  const sourcesAt=source.indexOf('const SOURCES='),limitAt=source.indexOf('const TRANSFER_LIMIT'),decodeAt=source.indexOf('async function decodeTransfer');
  assert.ok(sourcesAt>=0&&limitAt>=0&&decodeAt>limitAt,'SOURCES or TRANSFER_LIMIT…decodeCompact moved in assets/app.js');
