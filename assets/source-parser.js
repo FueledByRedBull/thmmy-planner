@@ -282,6 +282,7 @@
     const index = catalogIndex(catalog);
     const events = [];
     const seen = new Map();
+    const skipped = [];
 
     for (const tab of tabsFor(doc)) {
       const semesterHeading = tab.querySelector('h2');
@@ -300,7 +301,14 @@
           if (cells.length !== 5) fail(`semester ${semester} day ${day} has a partial row`);
           const values = cells.map(text);
           if (values.slice(0, 3).some(value => !value)) fail(`semester ${semester} day ${day} has an empty row cell`);
-          const range = timeRange(values[0]);
+          // A bad time on one row is a typo at the source: the row is left out and reported, not the whole refresh lost.
+          let range;
+          try {
+            range = timeRange(values[0]);
+          } catch {
+            skipped.push({ day, time: values[0], name: values[1] });
+            continue;
+          }
           const hrefs = Array.from(cells[1].querySelectorAll('a[href]')).map(node => safeUrl(node.getAttribute('href')));
           const url = hrefs.find(Boolean) || null;
           const course = courseFromUrl(url, index) || courseFromName(values[1], index);
@@ -343,9 +351,13 @@
       }
     }
 
+    // Many bad rows mean the page's format changed, not a typo: that still refuses the page.
+    if (skipped.length > Math.max(3, events.length * 0.2) || (skipped.length && !events.length)) fail(`too many rows with an invalid time range, first: ${skipped[0].time}`);
+
     return {
       events,
       published: events.length > 0,
+      ...(skipped.length ? { skipped } : {}),
       sourceUrl: source,
       fetchedAt: new Date().toISOString()
     };
