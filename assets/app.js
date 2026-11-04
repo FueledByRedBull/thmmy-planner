@@ -57,7 +57,7 @@ const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.starts
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
 const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
-function notify(text,error=false){$('updateReport').hidden=true;$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
+function notify(text,error=false){$('updateReport').hidden=true;$('notice').getAnimations().forEach(a=>a.cancel());$('notice').textContent=text;$('notice').classList.toggle('error',error);$('notice').hidden=false;}
 function available(c){return meetings(c.id).length>0;}
 function courseIssues(c){
  const issues=[],pre=prerequisites(c),sem=Number(state.studySemester);
@@ -128,7 +128,7 @@ function countTo(el,value,suffix=''){
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
  if(odo?.dataset.shape!==shape){
-  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span>${[...'0123456789'].join('<br>')}</span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
+  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
   odo=el.querySelector('.odo');odo.getBoundingClientRect();
  }else el.firstElementChild.textContent=text;
  const digits=text.match(/\d/g)||[];
@@ -233,6 +233,10 @@ function fitCalendar(){
 }
 // Beside the sheet the checks stay open: the summary is a heading there, not a toggle (keyboard included).
 $('checks').firstElementChild.onclick=event=>{if(event.currentTarget.closest('.notes-aside'))event.preventDefault();};
+// The skip link hands keyboard focus to the planner (smooth scrolling takes over the jump itself).
+document.querySelector('.skip').addEventListener('click',()=>$('planner').focus({preventScroll:true}));
+// Opening the checks lets the findings rise in once; re-renders while open leave them still.
+$('checks').addEventListener('toggle',event=>{const d=event.currentTarget;if(!d.open||d.closest('.notes-aside'))return;d.classList.add('opening');setTimeout(()=>d.classList.remove('opening'),420);});
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
