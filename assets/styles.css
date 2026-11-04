@@ -712,7 +712,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .schedule-top{gap:14px;padding:18px 0 14px}
  .stats{grid-template-columns:1fr 1fr;row-gap:12px}
  .stats>span{padding:2px 14px}
- .stats>span:nth-child(3){padding-left:0;border-left:0}
+ .stats>span:nth-child(3){padding-left:0}
  .stats b{font-size:38px}
  .empty-state{margin:0 0 14px;padding:28px 16px}
  .legend-bar{padding:14px 0}
@@ -727,8 +727,9 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 /* Touch: every control reaches the 44px target. */
 @media (pointer:coarse){
- button,.data-menu summary,select{min-height:44px}
- .icon-btn,.header-actions>button,.data-menu>summary{min-width:44px}
+ button,.data-menu summary,select,.season-switch button,.header-actions>button,.dialog-head>button,.brand{min-height:44px}
+ .icon-btn,.header-actions>button,.data-menu>summary,.dialog-head>button{min-width:44px}
+ footer .link-button{padding-block:14px}
 }
 
 /* ---------- Print: one A4 landscape sheet; fitCalendar() sets --print-width and --print-scale ---------- */
@@ -740,7 +741,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
+ .sprite,.skip,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */

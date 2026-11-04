@@ -512,7 +512,7 @@ function stepAir(now,dt,p,R,e){
  if(!armed&&p>=.95&&!airborne().length)armed=true;
  if(armed&&R&&heading<0&&p<.9){armed=false;throwUp(now);}
  const list=airborne();
- if(!list.length){sky=deal=null;return false;}
+ if(!list.length){sky=deal=null;return;}
  // Hovering tiles are dealt once the board has landed, or onto the board wherever it is if the scroll rests or turns back.
  if(deal?.phase==='hover'&&(e>=.995||now-pMoved>200&&p>FREE||heading<0||p<=FREE)){
   // Held to about half a second whatever the week holds: the gap shrinks for big weeks.
