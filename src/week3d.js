@@ -843,7 +843,7 @@ function step(now){
  // Pan clear of the headline (pixels: right on wide screens, up on phones); fades out as the board lands.
  const need=e<.99?clearance():0;
  // The pan follows the drifting outline every frame; only a real pan (resize, zoom: fast) counts as movement, so the
- // idle frame rate can still apply while it tracks the slow drift.
+ // shadow pass can still rest while it tracks the slow drift.
  if(still)springs.push.x=need;else{spring(springs.push,need,220,30,dt);moving=moving||Math.abs(springs.push.v)>24;}
  if(springs.push.x>.5){
   const s=springs.push.x*calm;
@@ -885,11 +885,10 @@ function govern(ms,work){
  if(median>28){renderer.shadowMap.enabled=false;key.castShadow=false;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}
 }
 
-// Idle: when nothing moves but the slow drift and conflict pulse (no spring, scroll, pointer or drag), 30 fps looks
-// identical to the display rate at a fraction of the GPU, and the page sleeps between those frames instead of waking at
-// every display refresh. Any of those wakes full rate on the very next frame.
-const IDLE=1000/30;
-let compiled=false,busy=true,chain=false,lastP=-1,idle=0,drift=1,lastInput=performance.now();
+// While anything moves, the slow drift and conflict pulse included, the board draws at the display's own rate (144 Hz
+// on a 144 Hz monitor). It sleeps once the drift has eased out with nothing else moving, docked under the planner,
+// under reduced motion, and in a hidden tab (the browser pauses animation frames there).
+let compiled=false,busy=true,chain=false,lastP=-1,drift=1,lastInput=performance.now();
 const DRIFT_FOR=15000;
 function loop(now){
  raf=0;
@@ -899,28 +898,26 @@ function loop(now){
  // Docked under the planner (once a deal in progress has finished): hand the week back to the page and sleep (no frames
  // at all) until a scroll, a resize or the course drawer closing wakes it.
  // Docked also re-arms the throw to the sky for the next way back up, and seats any tile still in the air.
- if(docked){clearTarget();last=now;if(p>=1){armed=true;prevP=p;}if(airborne().length)settleAll();return;}
+ if(docked){clearTarget();last=now;chain=false;if(p>=1){armed=true;prevP=p;}if(airborne().length)settleAll();return;}
  if(p!==lastP){lastP=p;busy=true;}
- // Only back-to-back full-rate frames measure the GPU: idle frames and the first frame after them are slow on purpose.
+ // Only back-to-back frames measure the GPU: the first frame after a sleep is slow on purpose.
  const steady=chain,t0=performance.now();
- busy=chain=!!step(now);
+ busy=!!step(now);
  // Idle frames only drift: the shadow pass, half of each frame's draws, waits for real movement.
  renderer.shadowMap.autoUpdate=busy;
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
  if(was&&steady)govern(now-was,performance.now()-t0);
+ chain=!still;
  // Next frame, unless something in this one (a resize from the governor, say) already asked for it: one loop only.
  if(still||raf)return;
- if(busy)raf=requestAnimationFrame(loop);
  // Nothing left to draw: sleep until wake().
- else if(drift<.001&&performance.now()-lastInput>=DRIFT_FOR)return;
- // Idle: the timer ends a little early, so the frame lands on the display refresh nearest 30 fps.
- else idle=setTimeout(()=>{idle=0;if(!raf)raf=requestAnimationFrame(loop);},IDLE-4-(performance.now()-now));
+ if(!busy&&drift<.001&&performance.now()-lastInput>=DRIFT_FOR){chain=false;return;}
+ raf=requestAnimationFrame(loop);
 }
 function wake(){
  busy=true;lastInput=performance.now();
- if(idle){clearTimeout(idle);idle=0;}
- if(!raf)raf=requestAnimationFrame(loop);
+ if(!raf){chain=false;raf=requestAnimationFrame(loop);}
 }
 function stillMode(){
  // Reduced motion: no scroll choreography, the stage scrolls away with the hero as a still picture.
@@ -991,11 +988,11 @@ hero.addEventListener('click',event=>{
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
-canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);clearTimeout(idle);raf=-1;});
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);raf=-1;});
 document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
-// Waker for the idle sleep: a scroll moves the board at once, not at the next idle frame. (Under reduced motion the
+// Waker for the sleeping board: a scroll moves it at once. (Under reduced motion the
 // board is a still picture that scrolling does not change.)
 addEventListener('scroll',()=>{if(!docked&&!reduce.matches)wake();},{passive:true});
 // Wakers for the docked sleep: scrolling back up (the dock marker, see dockMark), and the drawer that hides the stage

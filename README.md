@@ -78,7 +78,7 @@ Measured in headless Chrome with the CPU slowed 4× and a fast-4G connection:
 | 3D week ready | ~0.9 s | ~0.6 s |
 | Transferred | ~272 KB (157 KB of it the 3D week) | 0 KB |
 
-The 3D week loads after the page is ready and compiles its shaders, the studio reflection's included, in parallel off the main thread. It draws at 30 fps and sleeps between frames when only its slow drift moves, stops drawing 15 seconds after the last input, smooth scrolling runs only while a scroll is easing, and nothing runs at all once you scroll to the planner.
+The 3D week loads after the page is ready and compiles its shaders, the studio reflection's included, in parallel off the main thread. While anything on it moves, its slow drift included, it draws at your display's own refresh rate, so a 144 Hz or 240 Hz monitor gets every frame. The drift eases out 15 seconds after the last input and the board stops drawing. Smooth scrolling runs only while a scroll is easing, and nothing runs at all once you scroll to the planner or switch tabs.
 
 ## Project structure
 
@@ -100,6 +100,7 @@ data/
   guide.json              study-guide rules behind the checks
 src/week3d.js             source of the 3D week (Three.js)
 scripts/refresh-data.mjs  the nightly data refresh
+scripts/screenshots.mjs   retakes the images in docs/screenshots (node scripts/screenshots.mjs <local URL>)
 scripts/*.test.mjs        tests: week logic and transfer codes (app.test), the source parser in headless Chrome (parser.test)
 .github/workflows/        refresh-data.yml (nightly data), tests.yml (node --test on every push)
 docs/screenshots/         images for this README

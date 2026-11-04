@@ -66,7 +66,10 @@ const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.crea
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
 // Notices float under the header, so they are seen wherever the page is scrolled; a finished one can be dismissed.
 function notify(text,error=false){
- $('updateReport').hidden=true;const notice=$('notice');notice.textContent=text;notice.classList.toggle('error',error);notice.hidden=false;
+ $('updateReport').hidden=true;const notice=$('notice');
+ // A notice replacing one still on screen plays its entrance again, so the change is seen.
+ if(!notice.hidden)notice.getAnimations().forEach(a=>{a.cancel();a.play();});
+ notice.textContent=text;notice.classList.toggle('error',error);notice.hidden=false;
  if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>{notice.hidden=true;};notice.append(close);}
 }
 // Failures in the student's language; the technical text stays in the console.
@@ -160,7 +163,7 @@ function countTo(el,value,suffix=''){
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
  if(odo?.dataset.shape!==shape){
-  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span>${[...'0123456789'].join('<br>')}</span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
+  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
   odo=el.querySelector('.odo');odo.getBoundingClientRect();
  }else el.firstElementChild.textContent=text;
  const digits=text.match(/\d/g)||[];
@@ -267,6 +270,8 @@ function fitCalendar(){
 }
 // Beside the sheet the checks stay open: the summary is a heading there, not a toggle (keyboard included).
 $('checks').firstElementChild.onclick=event=>{if(event.currentTarget.closest('.notes-aside'))event.preventDefault();};
+// The skip link hands keyboard focus to the planner (smooth scrolling takes over the jump itself).
+document.querySelector('.skip').addEventListener('click',()=>$('planner').focus({preventScroll:true}));
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
