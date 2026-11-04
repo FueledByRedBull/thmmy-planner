@@ -489,8 +489,7 @@ function throwUp(now){
 }
 function stepAir(now,dt,p,R,e){
  rising=false;
- if(reduce.matches)return false;
- let moving=false;
+ if(reduce.matches)return;
  if(p!==prevP){heading=Math.sign(p-prevP);prevP=p;pMoved=now;}
  // Flung: only at the top of the page, while the board is the user's to spin, and only after a sustained hard spin.
  const omega=orbit.yaw.v;
@@ -535,7 +534,6 @@ function stepAir(now,dt,p,R,e){
  }
  for(const slab of list){
   const a=slab.air,c=a.c,m=slab.mesh;
-  moving=true;
   if(a.mode==='hover'||a.mode==='deal'&&now<a.t0){
    // A tile lifted before its intro moment waits, unseen, at its start height above the board.
    if(now<slab.start){m.visible=false;place(slab);continue;}
@@ -613,7 +611,6 @@ function stepAir(now,dt,p,R,e){
  }
  if(sky&&!airborne().some(s=>s.air.kind==='sky'))sky=null;
  if(deal&&!airborne().some(s=>s.air.kind==='deal'))deal=null;
- return moving;
 }
 
 // Scroll distance at which the planner sheet docks under the header: the morph's end point.
@@ -731,31 +728,28 @@ function step(now){
  const dt=Math.min(.05,(now-(last||now))/1000);
  last=now;
  const t=now/1000,still=reduce.matches;
- let moving=false;
  if(still)shown.x=shown.v=0;
- else if(spring(shown,progress(),160,25.3,dt))moving=true;
- else{shown.x=progress();shown.v=0;}
+ else if(!spring(shown,progress(),160,25.3,dt)){shown.x=progress();shown.v=0;}
  const p=Math.min(1,Math.max(0,shown.x));
  const R=still?null:gridRect();
  // e: how far the board has travelled onto the planner (complete a little before the sheet docks).
  const e=R?smooth((p-.04)/.84):0,tilt=R?0:smooth(p),calm=1-e;
  if(!still){
-  moving=spring(springs.intro,1,26,9,dt)|moving;
+  spring(springs.intro,1,26,9,dt);
   const follow=pointer.inside&&!orbit.drag;
-  moving=spring(springs.cx,follow?pointer.x:0,38,9,dt)|moving;
-  moving=spring(springs.cy,follow?pointer.y:0,38,9,dt)|moving;
+  spring(springs.cx,follow?pointer.x:0,38,9,dt);
+  spring(springs.cy,follow?pointer.y:0,38,9,dt);
   const a=orbit.aim;
   const held=orbit.drag&&p<=FREE;
   if(held){
    // Held: the board follows the hand on a stiff spring, so it has weight (a little lag, a little overshoot).
-   moving=spring(orbit.yaw,a.yaw,170,19,dt)|spring(orbit.pitch,a.pitch,170,19,dt)|moving;
+   spring(orbit.yaw,a.yaw,170,19,dt);spring(orbit.pitch,a.pitch,170,19,dt);
   }else if(p>FREE||orbit.home){
    // Home the shortest way round.
    orbit.yaw.x=Math.atan2(Math.sin(orbit.yaw.x),Math.cos(orbit.yaw.x));
    const going=spring(orbit.yaw,0,60,15,dt)|spring(orbit.pitch,0,60,15,dt)|spring(orbit.zoom,1,60,15,dt);
    a.yaw=orbit.yaw.x;a.pitch=orbit.pitch.x;a.zoom=orbit.zoom.x;
    if(!going)orbit.home=false;
-   moving=going|moving;
   }else{
    // Thrown: it keeps the hand's speed and slows with drag plus a constant grip, so it comes to a firm stop
    // instead of creeping; pitch past its limits springs back like rubber.
@@ -765,12 +759,11 @@ function step(now){
    if(lim!==orbit.pitch.x)orbit.pitch.v+=(-160*(orbit.pitch.x-lim)-18*orbit.pitch.v)*dt;else orbit.pitch.v=slow(orbit.pitch.v);
    orbit.pitch.x+=orbit.pitch.v*dt;
    a.yaw=orbit.yaw.x;a.pitch=orbit.pitch.x;
-   moving=(Math.abs(orbit.yaw.v)+Math.abs(orbit.pitch.v)+Math.abs(orbit.pitch.x-lim)>1e-3)|moving;
-   moving=spring(orbit.zoom,a.zoom,120,18,dt)|moving;
+   spring(orbit.zoom,a.zoom,120,18,dt);
   }
-  moving=spring(feel.lift,held&&orbit.drag.moved&&!reduce.matches?.24:0,held?95:150,held?15:13,dt)|moving;
-  moving=spring(feel.bank,Math.max(-.16,Math.min(.16,-orbit.yaw.v*.05)),110,13,dt)|moving;
-  moving=spring(feel.nod,Math.max(-.12,Math.min(.12,orbit.pitch.v*.05)),110,13,dt)|moving;
+  spring(feel.lift,held&&orbit.drag.moved&&!reduce.matches?.24:0,held?95:150,held?15:13,dt);
+  spring(feel.bank,Math.max(-.16,Math.min(.16,-orbit.yaw.v*.05)),110,13,dt);
+  spring(feel.nod,Math.max(-.12,Math.min(.12,orbit.pitch.v*.05)),110,13,dt);
  }
  const intro=springs.intro.x;
  let px=0,py=(1-intro)*-2.6+(still?0:Math.sin(t*.8)*.05)*calm,pz=0,sx=1,sy=1,sz=1;
@@ -796,9 +789,9 @@ function step(now){
   slab.mesh.visible=!slab.dealt;
   if(!still){
    // One landing everywhere: a tile above the board falls, accelerating, and squashes as it lands (no overshoot into it).
-   if(slab.y>0||slab.v){slab.v-=G*dt;slab.y+=slab.v*dt;if(slab.y<=0){slab.y=slab.v=0;slab.sq.x=.22;}moving=true;}
+   if(slab.y>0||slab.v){slab.v-=G*dt;slab.y+=slab.v*dt;if(slab.y<=0){slab.y=slab.v=0;slab.sq.x=.22;}}
    const lift={x:slab.lift,v:slab.lv};
-   moving=spring(lift,hovered===slab?.32:0,220,20,dt)|moving;
+   spring(lift,hovered===slab?.32:0,220,20,dt);
    slab.lift=lift.x;slab.lv=lift.v;
   }
   slab.mesh.position.y=slab.y+slab.lift;
@@ -806,10 +799,10 @@ function step(now){
    // Jelly: each slab leans against the spin on its base (taller ones sway more) and squashes as the board lands.
    const m=slab.mesh.position,r=Math.hypot(m.x,m.z)||1,give=slab.h*1.6;
    const lean=Math.max(-.2,Math.min(.2,orbit.yaw.v*.035*give*r/4));
-   moving=spring(slab.rx,lean*m.z/r+orbit.pitch.v*.03*give,170,14,dt)|spring(slab.rz,-lean*m.x/r,170,14,dt)|moving;
+   spring(slab.rx,lean*m.z/r+orbit.pitch.v*.03*give,170,14,dt);spring(slab.rz,-lean*m.x/r,170,14,dt);
    slab.mesh.rotation.set(slab.rx.x*calm,0,slab.rz.x*calm);
    // A tile landing back on the board (from a hop or a drop) squashes and springs back.
-   moving=spring(slab.sq,0,260,16,dt)|moving;
+   spring(slab.sq,0,260,16,dt);
    const sq=Math.max(-.2,Math.min(.3,slab.sq.x));
    slab.mesh.scale.set(1+sq*.35,(1+Math.max(-.14,Math.min(.14,feel.lift.v*.1*give))*calm)*(1-sq),1+sq*.35);
   }
@@ -819,7 +812,6 @@ function step(now){
   slab.mesh.scale.set(1,Math.max(.001,slab.s),1);
   if(slab.decal)slab.decal.material.opacity=Math.min(slab.decal.material.opacity,slab.s);
   if(slab.s<=0)dispose(slab);
-  moving=true;
  }
  // The board, its edges, labels and floor shadow dissolve as the slabs settle into blocks.
  const dissolve=1-smooth((e-.55)/.4);
@@ -839,9 +831,8 @@ function step(now){
  camera.lookAt(0,0,0);
  // Pan clear of the headline (pixels: right on wide screens, up on phones); fades out as the board lands.
  const need=e<.99?clearance():0;
- // The pan follows the drifting outline every frame; only a real pan (resize, zoom: fast) counts as movement, so the
- // idle frame rate can still apply while it tracks the slow drift.
- if(still)springs.push.x=need;else{spring(springs.push,need,220,30,dt);moving=moving||Math.abs(springs.push.v)>24;}
+ // The pan follows the drifting outline every frame.
+ if(still)springs.push.x=need;else spring(springs.push,need,220,30,dt);
  if(springs.push.x>.5){
   const s=springs.push.x*calm;
   camera.setViewOffset(view.w,view.h,view.ox*calm-(view.stacked?0:s),view.oy*calm+(view.stacked?s:0),view.w,view.h);
@@ -850,7 +841,7 @@ function step(now){
  // Free tiles move in the viewer's frame: the air layer turns with the camera (see `air`).
  air.rotation.y=az;air.updateMatrixWorld();week.updateMatrixWorld();camera.updateMatrixWorld();
  if(!R&&sky)settleAll();
- moving=stepAir(now,dt,p,R,e)|moving;
+ stepAir(now,dt,p,R,e);
  // Hand-over: the real blocks fade in over the last tenth of the scroll while the canvas fades out. While tiles are
  // thrown to the sky or being dealt, the canvas stays fully on and the planner's own blocks stay hidden (a dealt tile's
  // block shows on its own, see stamp), so nothing shows twice.
@@ -858,13 +849,11 @@ function step(now){
  const want=R&&!sky&&!deal?smooth((p-.9)/.1):0;
  handover=still||Math.abs(want-handover)<.01?want:handover+(want-handover)*(1-Math.exp(-dt*16));
  handed=handover===want;
- if(!handed)moving=true;
  const land=handover;
  setTarget(R?.el||null,chrome,land);
  setStage(1-land);
  // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while any is still leaving.
  if(!still){if(rising){if(clip){clip='';stage.style.clipPath='';}}else clipStage(R);}
- return moving;
 }
 
 // Frame-time governor: drop resolution if the GPU cannot keep up with the display (aiming no higher than 144 Hz, so a
@@ -882,11 +871,10 @@ function govern(ms,work){
  if(median>28){renderer.shadowMap.enabled=false;key.castShadow=false;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}
 }
 
-// Idle: when nothing moves but the slow drift and conflict pulse (no spring, scroll, pointer or drag), 30 fps looks
-// identical to the display rate at a fraction of the GPU, and the page sleeps between those frames instead of waking at
-// every display refresh. Any of those wakes full rate on the very next frame.
-const IDLE=1000/30;
-let compiled=false,busy=true,chain=false,lastP=-1,idle=0;
+// While the board is on screen it draws at the display's own rate (144 Hz on a 144 Hz monitor), the slow drift and
+// conflict pulse included. It sleeps only when nothing can move: docked under the planner, under reduced motion, or in
+// a hidden tab (the browser pauses animation frames there).
+let compiled=false,chain=false;
 function loop(now){
  raf=0;
  if(!compiled)return;
@@ -895,24 +883,20 @@ function loop(now){
  // Docked under the planner (once a deal in progress has finished): hand the week back to the page and sleep (no frames
  // at all) until a scroll, a resize or the course drawer closing wakes it.
  // Docked also re-arms the throw to the sky for the next way back up, and seats any tile still in the air.
- if(docked){clearTarget();last=now;if(p>=1){armed=true;prevP=p;}if(airborne().length)settleAll();return;}
- if(p!==lastP){lastP=p;busy=true;}
- // Only back-to-back full-rate frames measure the GPU: idle frames and the first frame after them are slow on purpose.
+ if(docked){clearTarget();last=now;chain=false;if(p>=1){armed=true;prevP=p;}if(airborne().length)settleAll();return;}
+ // Only back-to-back frames measure the GPU: the first frame after a sleep is slow on purpose.
  const steady=chain,t0=performance.now();
- busy=chain=!!step(now);
+ step(now);
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
  if(was&&steady)govern(now-was,performance.now()-t0);
+ chain=!still;
  // Next frame, unless something in this one (a resize from the governor, say) already asked for it: one loop only.
  if(still||raf)return;
- if(busy)raf=requestAnimationFrame(loop);
- // Idle: the timer ends a little early, so the frame lands on the display refresh nearest 30 fps.
- else idle=setTimeout(()=>{idle=0;if(!raf)raf=requestAnimationFrame(loop);},IDLE-4-(performance.now()-now));
+ raf=requestAnimationFrame(loop);
 }
 function wake(){
- busy=true;
- if(idle){clearTimeout(idle);idle=0;}
- if(!raf)raf=requestAnimationFrame(loop);
+ if(!raf){chain=false;raf=requestAnimationFrame(loop);}
 }
 function stillMode(){
  // Reduced motion: no scroll choreography, the stage scrolls away with the hero as a still picture.
@@ -982,12 +966,12 @@ hero.addEventListener('click',event=>{
  const slab=pick(event.clientX,event.clientY);
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
-canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);clearTimeout(idle);raf=-1;});
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);raf=-1;});
 document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
-// Waker for the idle sleep: a scroll moves the board at once, not at the next idle frame. (Under reduced motion the
-// board is a still picture that scrolling does not change.)
+// Waker for a sleeping board: a scroll moves it at once. (Under reduced motion the board is a still picture that
+// scrolling does not change.)
 addEventListener('scroll',()=>{if(!docked&&!reduce.matches)wake();},{passive:true});
 // Wakers for the docked sleep: scrolling back up (the dock marker, see dockMark), and the drawer that hides the stage
 // closing.
