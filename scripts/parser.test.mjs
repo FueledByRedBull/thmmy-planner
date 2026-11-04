@@ -95,10 +95,19 @@ test('parseTimetable: an identical repeated row is one event; an empty timetable
  assert.deepEqual([empty.events.length,empty.published],[0,false]);
 });
 
+test('parseTimetable: a row with a bad time is left out and reported; many of them refuse the page',{skip},async()=>{
+ const one=await parseTimetable(timetablePage([[row('9:00-11:00','Φυσική'),row('16:00 – 16:00','Φυσική')]]));
+ assert.equal(one.events.length,1);
+ assert.deepEqual(one.skipped.map(s=>s.time),['16:00 – 16:00']);
+ assert.equal((await parseTimetable(timetablePage([[row('9:00-11:00','Φυσική')]]))).skipped,undefined);
+ const many=Array.from({length:4},(_,i)=>row(`1${i}:00-1${i}:00`,'Φυσική'));
+ assert.match((await parseTimetable(timetablePage([[row('9:00-11:00','Φυσική'),...many]]))).error,/too many rows/);
+});
+
 test('parseTimetable: refuses broken or mismatched pages',{skip},async()=>{
  const error=async(...args)=>(await parseTimetable(...args)).error;
  assert.match(await error(timetablePage([[row('9:00-11:00','Φυσική')]]),'spring'),/does not match spring/);
- assert.match(await error(timetablePage([[row('11:00-9:00','Φυσική')]])),/does not advance/);
+ assert.match(await error(timetablePage([[row('11:00-9:00','Φυσική')]])),/invalid time range/);
  assert.match(await error(timetablePage([[row('25:00-26:00','Φυσική')]])),/invalid time range/);
  assert.match(await error(timetablePage([[row('9:00-11:00','Χημεία')]])),/not in the catalog/);
  assert.match(await error(timetablePage([],{days:DAYS.slice(0,4)})),/five day blocks/);

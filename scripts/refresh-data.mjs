@@ -89,6 +89,7 @@ function summary(previous,next){
   const before=ids(previous[season].events),after=ids(next[season].events);
   const plus=[...after].filter(id=>!before.has(id)).length,minus=[...before].filter(id=>!after.has(id)).length;
   lines.push(`${season==='fall'?'Fall':'Spring'}: ${after.size} meetings${next[season].published?'':' (not published)'}, ${plus} new or changed, ${minus} removed or changed.`);
+  if(next[season].skipped?.length)lines.push(`${season==='fall'?'Fall':'Spring'}: left out ${next[season].skipped.length} source rows with an invalid time: ${next[season].skipped.map(s=>`${s.name} (${s.time})`).join(', ')}.`);
  }
  return lines.join('\n');
 }

@@ -59,9 +59,9 @@ flowchart LR
   app --- you["Your choices<br/>browser storage"]
 ```
 
-- **Nightly.** At 02:17 UTC, [`refresh-data.yml`](.github/workflows/refresh-data.yml) downloads the catalogue and both timetables. It parses them with the app's own [`source-parser.js`](assets/source-parser.js) in headless Chrome, so the result is exactly what the app would produce. It commits only when something changed, and refuses results that look broken (a shrunken catalogue, or a published timetable that came back empty).
+- **Nightly.** At 02:17 UTC, [`refresh-data.yml`](.github/workflows/refresh-data.yml) downloads the catalogue and both timetables. It parses them with the app's own [`source-parser.js`](assets/source-parser.js) in headless Chrome, so the result is exactly what the app would produce. It commits only when something changed, and refuses results that look broken (a shrunken catalogue, or a published timetable that came back empty). A few rows with an impossible time are left out and named in the app and the job's summary; more than that refuses the page.
 - **On your next visit,** the planner takes the new snapshot in the way a manual refresh does: your meeting choices are remapped, selected courses that left the catalogue are kept, and *Τι άλλαξε* shows the differences.
-- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins) or directly, chosen in *Πηγές & ενημέρωση*. You can also import an official page you saved yourself.
+- **On demand,** *Ανανέωση από ΤΗΜΜΥ* fetches the same pages from the browser through a public CORS proxy (r.jina.ai or allorigins), starting with the one chosen in *Πηγές & ενημέρωση* and moving to the other if it fails or returns a page that looks broken. The department's site blocks direct browser requests, so *direct* rarely works. You can also import an official page you saved yourself.
 
 ## Privacy
 
@@ -78,7 +78,7 @@ Measured in headless Chrome with the CPU slowed 4× and a fast-4G connection:
 | 3D week ready | ~0.9 s | ~0.6 s |
 | Transferred | ~272 KB (157 KB of it the 3D week) | 0 KB |
 
-The 3D week loads after the page is ready and compiles its shaders, the studio reflection's included, in parallel off the main thread. While it is on screen it draws at your display's own refresh rate, so a 144 Hz or 240 Hz monitor gets every frame. Smooth scrolling runs only while a scroll is easing, and nothing runs at all once you scroll to the planner or switch tabs.
+The 3D week loads after the page is ready and compiles its shaders, the studio reflection's included, in parallel off the main thread. While anything on it moves, its slow drift included, it draws at your display's own refresh rate, so a 144 Hz or 240 Hz monitor gets every frame. The drift eases out 15 seconds after the last input and the board stops drawing. Smooth scrolling runs only while a scroll is easing, and nothing runs at all once you scroll to the planner or switch tabs.
 
 ## Project structure
 
