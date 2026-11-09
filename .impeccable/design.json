@@ -359,8 +359,8 @@
       "studio-floor": {
         "role": "neutral",
         "displayName": "Studio Floor",
-        "canonical": "#e1e1e1",
-        "oklch": "oklch(91.0% 0.000 89.9)",
+        "canonical": "#e2e2e2",
+        "oklch": "oklch(91.3% 0.000 89.9)",
         "tonalRamp": [
           "#0b0b0b",
           "#242424",
@@ -372,11 +372,11 @@
           "#eeeeee"
         ]
       },
-      "studio-glow": {
+      "close": {
         "role": "neutral",
-        "displayName": "Studio Glow",
-        "canonical": "#fcfcfc",
-        "oklch": "oklch(99.1% 0.000 89.9)",
+        "displayName": "Close",
+        "canonical": "#0e0e0e",
+        "oklch": "oklch(16.4% 0.000 89.9)",
         "tonalRamp": [
           "#0b0b0b",
           "#242424",
@@ -727,8 +727,8 @@
       "dark-studio-floor": {
         "role": "neutral",
         "displayName": "Dark studio Floor",
-        "canonical": "#040404",
-        "oklch": "oklch(10.7% 0.000 89.9)",
+        "canonical": "#050505",
+        "oklch": "oklch(11.5% 0.000 89.9)",
         "tonalRamp": [
           "#0b0b0b",
           "#242424",
@@ -740,11 +740,11 @@
           "#eeeeee"
         ]
       },
-      "dark-studio-glow": {
+      "dark-close": {
         "role": "neutral",
-        "displayName": "Dark studio Glow",
-        "canonical": "#1e1e1e",
-        "oklch": "oklch(23.5% 0.000 89.9)",
+        "displayName": "Dark close",
+        "canonical": "#050505",
+        "oklch": "oklch(11.5% 0.000 89.9)",
         "tonalRamp": [
           "#0b0b0b",
           "#242424",
@@ -904,7 +904,7 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Two-line hero headline only; line-mask reveal."
+        "purpose": "Two-line hero headline only, at poster size in weight 800; line-mask reveal, each line standing up toward the reader."
       },
       "display-phone": {
         "displayName": "Display (phone)",
@@ -912,7 +912,7 @@
       },
       "stat": {
         "displayName": "Stat",
-        "purpose": "Week totals as odometer digits."
+        "purpose": "Week totals as odometer digits, weight 800."
       },
       "stat-phone": {
         "displayName": "Stat (phone)",
@@ -956,7 +956,7 @@
       },
       "lede": {
         "displayName": "Lede",
-        "purpose": "Hero sub-sentence, max 31ch."
+        "purpose": "Hero sub-sentence (the week's facts once courses are chosen), max 40ch."
       },
       "body": {
         "displayName": "Body",
@@ -981,39 +981,22 @@
     },
     "shadows": [
       {
-        "name": "rest",
-        "value": "0 1px 2px #0e0e0e12,0 1px 1px #0e0e0e0a",
-        "dark": "0 1px 2px #0008",
-        "purpose": "Event blocks only (they are objects on the board); controls, rows and callouts rest flat."
-      },
-      {
         "name": "lifted",
         "value": "0 12px 28px -12px #0e0e0e2e,0 2px 6px -2px #0e0e0e14",
         "dark": "0 14px 30px -14px #000d,0 2px 6px -2px #0009",
-        "purpose": "Hovered event blocks, the hero tooltip, a block in flight, the dealt block before it settles."
+        "purpose": "Hovered event blocks (at rest they are flat, with no shadow), the hero tooltip, a block in flight."
       },
       {
         "name": "floating",
         "value": "0 32px 64px -24px #0e0e0e40,0 6px 16px -6px #0e0e0e17",
         "dark": "0 36px 72px -28px #000,0 6px 16px -6px #000a",
-        "purpose": "Dialogs, menus, rail drawer, rail button, update toast."
+        "purpose": "Dialogs, menus, rail drawer, rail button, update toast, and the shadow a dealt block presses down from."
       },
       {
         "name": "highlight",
         "value": "inset 0 1px 0 #ffffffcc",
         "dark": "inset 0 1px 0 #ffffff12",
         "purpose": "Top-edge highlight paired with floating surfaces (dialogs, menus, drawer, update toast)."
-      },
-      {
-        "name": "block-lip",
-        "value": "linear-gradient(180deg,#ffffff2e,#ffffff00 9px) under inset 0 1px 0 #ffffff59,inset 0 0 0 1px #0e0e0e14",
-        "dark": "linear-gradient(180deg,#ffffff1c,#ffffff00 9px) under inset 0 1px 0 #ffffff33,inset 0 0 0 1px #ffffff17",
-        "purpose": "The event blocks' white top sheen, gone 9px down, with a 1px top highlight and a 1px inner edge (--block-lip, --block-rim, --block-edge)."
-      },
-      {
-        "name": "sheet-rise",
-        "value": "0 -1px 0 color-mix(in srgb,var(--line-strong) 50%,transparent),0 -30px 60px -34px #0e0e0e59",
-        "purpose": "Planner sheet top edge over the hero."
       }
     ],
     "motion": [
@@ -1045,11 +1028,11 @@
       {
         "name": "flight",
         "value": "660ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
-        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()); the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block is revealed with the press-in (block-deal) at +600ms, the flight's landing. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
+        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()), swelling toward the viewer mid-flight (scale 1 -> 1.2 -> 1 over the flight) and coming down onto its slot; the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block is revealed with the press-in (block-deal) at +600ms, the flight's landing. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
       },
       {
         "name": "season-redeal",
-        "value": "old blocks: block-leave, 8ms apart, capped at 120ms (not on the phone agenda); new blocks: block-deal from 120ms, min(40, 360/n)ms apart by day (about .5s in all); 3D: old slabs shrink away, new slabs fall in with the squash, 40ms apart (tile-deal)",
+        "value": "old blocks: block-leave, 8ms apart, capped at 120ms (not on the phone agenda); new blocks: block-deal from 120ms, min(40, 360/n)ms apart by day (about .5s in all); 3D: old slabs shrink away, new slabs come in from the viewer's side of the glass with the squash, 40ms apart (tile-deal)",
         "purpose": "Season switch re-deals the week; it replaces the 3D page-turn view transition, now removed. While the 3D week stands in for the blocks it lands in 3D alone. Instant under reduced motion."
       },
       {
@@ -1065,7 +1048,7 @@
       {
         "name": "dialog-exit",
         "value": "desktop: opacity 0, translateY(8px) scale(.98), 160ms var(--ease) cubic-bezier(.16,1,.3,1); phone sheets: translateY(100%), 200ms var(--ease) cubic-bezier(.16,1,.3,1); backdrop opacity .16s var(--ease) cubic-bezier(.16,1,.3,1) (dialog.closing::backdrop)",
-        "purpose": "closeDialog() via exit(): every close path (buttons, Escape through the cancel event, finished actions) animates out, then closes. Entry is dialog-in .28s var(--ease) from translateY(10px) scale(.97) / phone sheet-up .38s cubic-bezier(.32,.72,0,1)."
+        "purpose": "closeDialog() via exit(): every close path (buttons, Escape through the cancel event, finished actions) animates out, then closes. Entry is dialog-in .28s var(--ease) from perspective(1100px) translate3d(0,14px,-90px) rotateX(5deg) (desktop: it comes forward out of the page) / phone sheet-up .38s cubic-bezier(.32,.72,0,1)."
       },
       {
         "name": "block-leave",
@@ -1084,18 +1067,18 @@
       },
       {
         "name": "hero-reveal",
-        "value": "line-in 1.2s ease, .1s/.19s stagger; sub and CTA fade-up at .42s/.54s; sheet-in 1.2s at .36s",
-        "purpose": "First-viewport entrance."
+        "value": "line-in .9s var(--ease) from translateY(110%) rotateX(64deg) about the baseline (900px perspective on the mask), .1s/.19s stagger; sub and CTA fade-up .6s at .3s/.38s; sheet-in 1.2s at .36s from translateY(9svh)",
+        "purpose": "First-viewport entrance: the poster's title stands up line by line at the top left, the facts and the action rise at the foot, and the sheet slides up under them."
       },
       {
         "name": "scroll-linked",
         "value": "animation-timeline: scroll(root)",
-        "purpose": "Hero copy lifts away over 60svh, the header's sheet-coloured ground fades in (no edge line) as the sheet docks, rail button rises as the sheet docks."
+        "purpose": "Hero copy recedes over 60svh (scale .9 about its top-left corner, 4svh up, fading out), the header's sheet-coloured ground fades in (no edge line) as the sheet docks, rail button rises as the sheet docks."
       },
       {
         "name": "scroll-morph",
         "value": "p follows the scroll on a critically damped spring (k 160, c 25.3), never 1:1, so a fast or back-and-forth scroll plays at the motion's own pace; e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks), held at 0 while a deal or throw runs (a dealt block shows on its own via --dealt); the crossfade share itself is eased (16/s), so it never pops when a deal or throw ends",
-        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns; slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
+        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns, the lens closing from 36 to 24 degrees with e (lerped) while the camera backs off to match (a dolly zoom: the board keeps its size, its perspective drains out; the landing stays exact); slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
       },
       {
         "name": "free-view",
@@ -1114,8 +1097,8 @@
       },
       {
         "name": "copy-clearance",
-        "value": "spring pan; board quad >= 4px right of the copy box (12px above on phones); fades out as e rises",
-        "purpose": "Keeps headline, sub and CTA in front at any orbit or zoom; the home pose needs no pan."
+        "value": "spring pan; each part of the copy (a title line, the facts, the button) cleared on its own: board quad >= 12px right of that part at its own height (12px above the facts on phones); fades out as e rises",
+        "purpose": "Keeps title, facts and action in front at any orbit or zoom; the board's corner may stand under the title's long first line, beside the short second one. The home pose needs no pan."
       },
       {
         "name": "slab-height",
@@ -1154,18 +1137,33 @@
       },
       {
         "name": "tile-throw",
-        "value": "fires once p < .9, every time the page scrolls up from near the planner (re-arms with the week whole at p >= .95); up to the top edge in ~0.3s; fall 300ms each, 40ms stagger by day (10ms heading back down)",
-        "purpose": "Scrolling up from near the planner (docked or not) throws the slabs off the top of the screen, only once the scroll is below 90% so overshooting the planner's top never throws the week; they fall back onto the board when the scroll rests 160ms, the board nears the hero (p < .25) or the page heads back down. Desktop and tablet only; not under reduced motion."
+        "value": "fires once p < .9, every time the page scrolls up from near the planner (re-arms with the week whole at p >= .95); each leaves along its own line, up and outward from where it sits on screen, to the edge in ~0.3s, closing on the lens by up to seven tenths of its distance (about 3x its size); return from beyond the edge and from 2.2x its landed size, 300ms each, 40ms stagger by day (10ms heading back down); rested = eased progress moving under a fifth of a pixel per frame for 160ms",
+        "purpose": "Scrolling up from near the planner (docked or not) throws the slabs out of view, up and outward and at the viewer, past the edges of the screen, only once the scroll is below 90% so overshooting the planner's top never throws the week; they come back onto the board when the scroll rests 160ms, the board nears the hero (p < .25) or the page heads back down. Desktop and tablet only; not under reduced motion."
       },
       {
         "name": "tile-deal",
-        "value": "DEAL 40ms per tile, by day then start time; landing: gravity 22 from above, squash .22 (spring 260/16), no overshoot; intro from 520ms, at most 16 steps; scroll down: lift once p > .05 (intro tiles come along: falling ones lifted where they are, unshown ones keep their moment and arrive from above into the hover), 12ms apart, hover .55 units (spring 240, damping exp(-28·dt)), dealt at e >= .995 (or scroll rest 200ms, scroll up, back at the top), gap min(40, 360/n)ms (about .5s in all), fall 200ms on u·(.35+.65u), then hand-over: tile hides, block --dealt: 1, scale(1.06) -> none from its centre, box-shadow var(--shadow-md) -> rest, 180ms var(--ease) cubic-bezier(.16,1,.3,1)",
-        "purpose": "One landing for the 3D tiles: the intro, rebuilds, the hop back after a spin and the fall from the sky all land this way. The first committed scroll down from the top (a jiggle never does) lifts the tiles, taking any still in the intro along, and deals them onto the landed planner, each handing over to its own block; the canvas stays on, other blocks stay hidden and the stage does not dock until the deal ends; handed-over tiles come back if the board leaves the landed pose. Desktop and tablet only; not under reduced motion."
+        "value": "DEAL 40ms per tile, by day then start time; landing: gravity 22 from the viewer's side of the glass (about 11 units out along the tile's own line of sight to the camera, plus a little from above, so it starts large and close and shrinks onto its slot, tumbling and righting itself), squash .22 (spring 260/16), no overshoot, then a thud that dips and tips the board; intro from 380ms, at most 16 steps; scroll down: lift once p > .05 (intro tiles come along: falling ones lifted where they are, unshown ones keep their moment and arrive from the viewer's side of the glass into the hover), 12ms apart, hover .55 units (spring 240, damping exp(-28·dt)), dealt at e >= .995 (or scroll rest 200ms, scroll up, back at the top), gap min(40, 360/n)ms (about .5s in all), fall 200ms on u·(.35+.65u), then hand-over: tile hides, block --dealt: 1, scale(1.1) -> none from its centre, box-shadow var(--shadow-lg) -> none, 200ms var(--ease) cubic-bezier(.16,1,.3,1)",
+        "purpose": "One landing for the 3D tiles: the intro, rebuilds, the hop back after a spin and the return after a throw all land this way. The first committed scroll down from the top (a jiggle never does) lifts the tiles, taking any still in the intro along, and deals them onto the landed planner, each handing over to its own block; the canvas stays on, other blocks stay hidden and the stage does not dock until the deal ends; handed-over tiles come back if the board leaves the landed pose. Desktop and tablet only; not under reduced motion."
       },
       {
         "name": "block-deal",
-        "value": "opacity 0 -> 1, scale(1.06) -> none from the centre (transform-origin center; blocks keep a top origin for the hover lift), box-shadow var(--shadow-md) -> rest, 220ms var(--ease) cubic-bezier(.16,1,.3,1), fill backwards (stampIn()); DEAL 40ms stagger, at most 12 steps",
+        "value": "opacity 0 -> 1, scale(1.1) -> none from the centre (transform-origin center; blocks keep a top origin for the hover lift), box-shadow var(--shadow-lg) -> none, 240ms var(--ease) cubic-bezier(.16,1,.3,1), fill backwards (stampIn()); DEAL 40ms stagger, at most 12 steps",
         "purpose": "One landing for the 2D week's blocks, the echo of the 3D deal: new blocks arrive a touch larger and press down to size, Monday to Friday. A course flying in from the list is revealed this way at the flight's landing. Skipped, like every 2D block animation (lift-away, flight, clash pulse), while the 3D week stands in for the blocks (--blocks below 1, no focus in #calendarWrap): one landing per change. Not under reduced motion."
+      },
+      {
+        "name": "hero-depth",
+        "value": "lens 36 -> 24 degrees with e, camera backing off to match (dolly zoom), framing: board radius x FIT .7 inside the poster's free box (see hero-framing); load dolly: camera starts 2.1x further back on a spring (34/7) with a small overshoot; thud on every landing: board dips and tips toward the slot (spring 150/11); pointer: camera parallax .26 / .12, key light leans with it (x 4, z 3 units), slabs within reach of the pointer rise up to .2 units (falloff exp(-d²/2.6)), the slab under it .46 on a 240/15 spring; canvas fade .7s, hero skeleton fade .6s, skeleton posed to the 36 degree lens",
+        "purpose": "Depth along the line of sight in the hero: the lens is wide in the hero and long on the planner, the board arrives from deep in the studio, every landing moves it, and the pointer pulls the slabs and the light. The pointer effects fade with the landing and, like the load and the thud, are off under reduced motion; the still picture draws its shadows on each of its few frames."
+      },
+      {
+        "name": "hero-framing",
+        "value": "free box, wide: left = end of the title's last line + 2% of the width, top = half-way down its first line, right = 104% of the width, bottom = 95% of the hero (the sheet's edge cuts the board); phones: full width from 4px under the title to 12px above the facts; board radius x FIT .7 inside it, 82% of its width used",
+        "purpose": "The poster's composition for the 3D week: right of the title's short second line and from half-way down its long first one, out past the right edge and down to the sheet; between the title and the facts on phones. Measured from layout positions, so the copy's entrance and scroll transforms never move it."
+      },
+      {
+        "name": "block-rise",
+        "value": "animation-timeline: view(), linear; each sign-off block from translateY(104%) to rest, animation-range entry calc(i * 4%) to entry calc(52% + i * 4%) for block i (0 to 12); the field clips at the baseline (overflow: clip); in the two-row phone layout block-up instead: from translateY(30%) and opacity 0",
+        "purpose": "The page's closing title is built from blocks, one per letter and one for the full stop; as the footer scrolls in they come up from under the baseline one after another, the week dealt one last time. Only where scroll timelines exist (@supports animation-timeline: view()); static otherwise and under reduced motion."
       }
     ],
     "breakpoints": [
@@ -1280,9 +1278,9 @@
       "name": "Event Block",
       "kind": "custom",
       "refersTo": "event-block",
-      "description": "A course on the week: full course hue under a lit white top lip that ends 9px down beneath a 1px top highlight, ink or white text by contrast against the fill (the dark-theme mix in dark), meta at full strength; review and conflict rings sit inside the block, the focus ring outside it (an outline, or a shadow ring on a block with a state ring, so the state ring stays visible); review adds a 10px hatched strip at the right edge, clear of the text. Hover lifts 1px over 150ms, only on fine hovering pointers; a press scales it to .985.",
+      "description": "A course on the week: a flat field of the full course hue (no lip, rim, inner edge or shadow at rest; the 3D tile is the object, the block is its print), ink or white text by contrast against the fill (the dark-theme mix in dark), meta at full strength; review and conflict rings sit inside the block, the focus ring outside it (an outline, or a shadow ring on a block with a state ring, so the state ring stays visible); review adds a 10px hatched strip at the right edge, clear of the text. Hover lifts 1px to the lifted shadow over 150ms, only on fine hovering pointers; a press scales it to .985.",
       "html": "<div class=\"ds-week\"><button class=\"ds-event\" style=\"--c:#8f5cff;--on:#ffffff\"><small>09:00-11:00</small><strong>Γραμμική Άλγεβρα</strong><span>Διάλεξη · Αμφ. Ηλία Χούστη</span></button><button class=\"ds-event ds-conflict\" style=\"--c:#1fd1c1;--on:#0e0e0e\"><small>11:00-13:00 ⚠</small><strong>Συστήματα Βάσεων Δεδομένων Ι</strong><span>Διάλεξη · Αμφ. 3</span></button><button class=\"ds-event ds-review\" style=\"--c:#ffd43b;--on:#0e0e0e\"><small>14:00</small><strong>ECE121</strong></button></div>",
-      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:linear-gradient(180deg,#ffffff2e,#ffffff00 9px) var(--c);color:var(--on);box-shadow:var(--shadow-sm),inset 0 1px 0 #ffffff59,inset 0 0 0 1px #0e0e0e14;text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:12px;font-weight:600}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:12px}@media (hover:hover) and (pointer:fine){.ds-event:hover{transform:translateY(-1px);box-shadow:var(--shadow-md),inset 0 1px 0 #ffffff59,inset 0 0 0 1px #0e0e0e14;transition-duration:.15s}}.ds-event:active{transform:scale(.985)}.ds-event:focus-visible:not(.ds-conflict,.ds-review){outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-conflict:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),var(--shadow-sm),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px),linear-gradient(180deg,#ffffff2e,#ffffff00 9px);background-size:10px 100%,auto;background-position:right top,0 0;background-repeat:no-repeat}.ds-review:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),var(--shadow-sm),inset 0 1px 0 #ffffff59,inset 0 0 0 1px #0e0e0e14}"
+      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:var(--c);color:var(--on);text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:12px;font-weight:600}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:12px}@media (hover:hover) and (pointer:fine){.ds-event:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);transition-duration:.15s}}.ds-event:active{transform:scale(.985)}.ds-event:focus-visible:not(.ds-conflict,.ds-review){outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-conflict:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px);background-size:10px 100%;background-position:right top;background-repeat:no-repeat}.ds-review:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text)}"
     },
     {
       "name": "Stat Odometer",
@@ -1290,7 +1288,7 @@
       "refersTo": "button",
       "description": "Week totals at display scale, each number captioned underneath by its label, cells parted by space, not lines; overlaps turn red.",
       "html": "<div class=\"ds-stats\"><span><small>Μαθήματα</small><b>22</b></span><span><small>Ώρες</small><b>53</b></span><span class=\"ds-bad\"><small>Επικαλύψεις</small><b>27</b></span><span><small>ECTS</small><b>126</b></span></div>",
-      "css": ".ds-stats{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--text)}.ds-stats>span{display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:2px 22px 4px}.ds-stats>span:first-child{padding-left:0}.ds-stats small{color:var(--text-3);font-size:12.5px;font-weight:500}.ds-stats b{font-size:clamp(40px,4.4vw,66px);font-weight:560;line-height:1.2;letter-spacing:-.04em}.ds-bad small,.ds-bad b{color:var(--danger)}"
+      "css": ".ds-stats{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--text)}.ds-stats>span{display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:2px 22px 4px}.ds-stats>span:first-child{padding-left:0}.ds-stats small{color:var(--text-3);font-size:12.5px;font-weight:500}.ds-stats b{font-size:clamp(44px,5.8vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}.ds-bad small,.ds-bad b{color:var(--danger)}"
     },
     {
       "name": "Dialog Card",
@@ -1303,16 +1301,19 @@
   ],
   "narrative": {
     "northStar": "The Week in the Studio",
-    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks, giant grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. The tiles are objects and the board is their tray: whenever the week changes place or content, the tiles leave the tray and are dealt back Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second, with one landing. In 3D a tile falls, accelerating under gravity, and squashes as it lands; on the 2D week a block arrives a touch larger and presses down to size. The intro, the hop back after a spin, the fall back from the sky, the scroll down onto the planner, new blocks and the season switch all deal this way. Elsewhere motion is physical and springy: digits roll, the season thumb and blocks moving to a new slot settle with a small overshoot, and a course flies on an arc into its slot. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block lifts away where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
+    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves. The first screen is composed as a poster: the title sits at the top left at poster size, in the heaviest weight, on the same left edge as the sheet's content; the week stands right of its short second line and from half-way down its long first one, out past the right edge and down to the sheet, whose edge cuts it; and the week's facts and the one action sit at the foot, just above the sheet's edge. The grounds are flat: the studio is one tone and the sheet another, meeting at a seam, with no glow behind the board and no shadow on the sheet's edge. The page closes where it began, on a black field from edge to edge.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks that are flat fields of colour (the 3D tile is the object, the block is its print), giant heavy grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. The tiles are objects and the board is their tray: whenever the week changes place or content, the tiles leave the tray and are dealt back Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second, with one landing. In 3D a tile comes in from the viewer's side of the glass, large and close, and shrinks onto its slot, accelerating under gravity, and squashes as it lands; on the 2D week a block arrives a touch larger and presses down to size. The intro, the hop back after a spin, the return after a throw, the scroll down onto the planner, new blocks and the season switch all deal this way. Elsewhere motion is physical and springy: digits roll, the season thumb and blocks moving to a new slot settle with a small overshoot, and a course flies on an arc into its slot, swelling toward the viewer on the way. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block lifts away where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
     "keyCharacteristics": [
       "Neutral studio greys with an off-white (light) or ink (dark) planner sheet; no tinted neutrals.",
       "Ink is the primary action colour; hot pink is a single neon note, never a fill for large surfaces.",
       "Nine vivid course hues, full-strength on event blocks, with ink or white text chosen by contrast.",
-      "Geologica everywhere, tabular figures by default, display sizes with tight negative tracking.",
+      "Geologica everywhere, tabular figures by default, display sizes in the heaviest weight (800) with tight negative tracking.",
       "Pill controls, soft rectangles for surfaces, 12px for event blocks.",
-      "Surfaces part by a step of tone, not by lines or resting shadows; only things that really float (dialogs, menus, drawers, tooltips, the rail button, the sheet over the hero) cast a shadow. The calendar grid keeps its lines.",
+      "Surfaces part by a step of tone, not by lines or resting shadows; only things that really float (dialogs, menus, drawers, tooltips, the rail button, the toast) cast a shadow. Event blocks are flat fields of colour. The calendar grid keeps its lines.",
+      "A poster first screen: the title at the top left at poster size on the sheet's left edge, the 3D week right of its short second line and out past the right edge, the facts and the one action at the foot. The studio and the sheet are two flat tones meeting at a seam, with no gradient, glow or shadow between them.",
+      "The page closes on a black field in both themes, where the title is rebuilt from blocks in the week's own colours.",
       "The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.",
-      "One landing: tiles and blocks are dealt Monday to Friday, 40ms apart, the whole deal held to about half a second; a 3D tile falls under gravity and squashes, a 2D block presses from 1.06 to size.",
+      "One landing: tiles and blocks are dealt Monday to Friday, 40ms apart, the whole deal held to about half a second; a 3D tile closes from the viewer's side of the glass under gravity and squashes, a 2D block presses from 1.1 to size.",
+      "Motion has depth along the line of sight: things arrive from, and leave toward, the viewer's side of the glass (a tile shrinking onto its slot, a throw that comes at the lens, a dialog coming forward out of the page, a headline standing up toward the reader), and nothing just slides in the screen plane; it always resolves to the flat, exact planner.",
       "Three curves: the spring (~5% overshoot) for things that settle into a new value or slot, the ease-out for transitions, presses and exits, the there-and-back in-out for one-shot pulses; everything static under reduced motion."
     ],
     "rules": [
@@ -1323,7 +1324,7 @@
       },
       {
         "name": "The Colour Is the Course Rule",
-        "body": "Saturation belongs to the course palette. Chrome stays grey and ink; no course is ever grey, and no course hue is pure green, amber or red, so courses can never be mistaken for a state.",
+        "body": "Saturation belongs to the course palette. Chrome stays grey and ink; no course is ever grey, and no course hue is pure green, amber or red, so courses can never be mistaken for a state. A selected rail row borrows its course's hue as an 11% wash, the one place chrome takes a course colour, so the list and the week read as one.",
         "section": "colors"
       },
       {
@@ -1353,7 +1354,7 @@
       },
       {
         "name": "The Press, Don't Lift Rule",
-        "body": "Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (1px, over 150ms) on hover, because they are objects on the board, and only where a fine pointer can hover ((hover: hover) and (pointer: fine)), so a tap never leaves a block stuck raised.",
+        "body": "Controls press (scale 0.96 on active) and never rise on hover. Only event blocks lift (1px, over 150ms, to the lifted shadow) on hover, as the pieces of the week itself, and only where a fine pointer can hover ((hover: hover) and (pointer: fine)), so a tap never leaves a block stuck raised.",
         "section": "elevation"
       },
       {
@@ -1374,12 +1375,14 @@
       "**Do** pick block text colour by contrast (ink or white) for any course hue, including user-chosen ones, measured against the fill the text sits on (the dark-theme mix in dark mode).",
       "**Do** pair every success, warning and danger state with an icon, dashes or an outline.",
       "**Do** use the spring easing (`linear()` with ~5% overshoot, fallback cubic-bezier(.16,1,.3,1)) for things that settle into a new value or slot (digits, the season thumb, a block shifting lanes), the ease-out (cubic-bezier(.16,1,.3,1)) for the 2D press-in and for exits, and the there-and-back curve (cubic-bezier(.77,0,.175,1)) only for one-shot pulses that return to rest; make every animation, view transition, smooth scroll and 3D loop disappear under reduced motion.",
-      "**Do** deal tiles and blocks onto the week Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second (bigger weeks close the gap), with one landing per change: in 3D a fall that accelerates under gravity and ends in a squash, never a spring that overshoots into the board; in 2D a press from scale 1.06 to size about the block's centre, with a fade and the lifted shadow coming down to rest (220ms on the ease-out). While the 3D week stands in for the planner's blocks, the change lands in 3D alone.",
+      "**Do** deal tiles and blocks onto the week Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second (bigger weeks close the gap), with one landing per change: in 3D an arrival from the viewer's side of the glass that accelerates under gravity and ends in a squash, never a spring that overshoots into the board; in 2D a press from scale 1.1 to size about the block's centre, with a fade and the floating shadow coming away as the block lies flat (240ms on the ease-out). While the 3D week stands in for the planner's blocks, the change lands in 3D alone.",
       "**Do** make exits shorter than their entrances (160-200ms) and send things out the way they came in, on the ease-out; the one exception is a removed block, whose opacity runs on the CSS `ease` keyword so the fade stays readable while its scale stays on the ease-out. For the opposite direction use mirrored keyframes, never `animation-direction: reverse`, which turns the ease-out into an ease-in.",
       "**Do** keep five equal day columns and step narrow lanes down (time and name, time and code, code, number) rather than widening a busy day.",
       "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
       "**Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.",
-      "**Do** use tabular figures and display-scale numerals for the week's totals."
+      "**Do** use tabular figures and display-scale numerals for the week's totals.",
+      "**Do** keep the first screen a poster: the title at poster size at the top left on the page margin (`--gutter`), the facts and the one action at the foot just above the sheet's edge, the week in the space between and beside them, never behind the copy.",
+      "**Do** keep grounds and blocks flat: the studio and the sheet are two flat tones meeting at a seam, and an event block is a field of its course colour."
     ],
     "donts": [
       "**Don't** add a second accent colour or fill buttons, panels or headers with neon pink.",
@@ -1388,7 +1391,8 @@
       "**Don't** use square or small-radius buttons; nothing pressable sits between pill and rectangle.",
       "**Don't** lift controls on hover or use hard offset shadows; controls press, only event blocks lift.",
       "**Don't** draw state or highlight rings outside an event block.",
-      "**Don't** tint the neutrals cool or warm; the studio greys are neutral."
+      "**Don't** tint the neutrals cool or warm; the studio greys are neutral.",
+      "**Don't** put a gradient, glow, shadow or top line between the studio and the sheet, or a lip, rim, inner edge or resting shadow on an event block."
     ]
   }
 }

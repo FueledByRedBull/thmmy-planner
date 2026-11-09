@@ -40,7 +40,7 @@ Pick your courses, see how they meet across the week, and check them against the
     <td width="28%">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/phone-dark.webp">
-        <img src="docs/screenshots/phone-light.webp" alt="The planner on a phone: the 3D week above the headline.">
+        <img src="docs/screenshots/phone-light.webp" alt="The planner on a phone: the headline, the 3D week under it, then the week's facts and the way in.">
       </picture>
     </td>
   </tr>
