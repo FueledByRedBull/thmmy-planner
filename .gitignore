@@ -1,5 +1,12 @@
 node_modules/
 .claude/
+.agents/
+.codex/
+.handoff/
+.taste-skill/
+AGENTS.md
+CLAUDE.md
+CLAUDE.local.md
 .impeccable/review/
 .impeccable/questions/
 THMMY-programma.html

@@ -186,6 +186,8 @@ function fly(block,delay){
  const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:420,delay,fill:'backwards'};
  // Horizontal and vertical travel run on different curves, so the path bends into an arc.
  ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
+ // The arc also leaves the page: the block swells toward the viewer mid-flight and comes back down onto its slot.
+ ghost.animate({scale:['1','1.2','1']},{...timing,easing:'cubic-bezier(.45,0,.55,1)'});
  shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
  stampIn(block,delay+380);
  return true;
@@ -193,8 +195,8 @@ function fly(block,delay){
 // One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
 // above, a block arrives a touch larger and presses down to size. Blocks are dealt Monday to Friday, DEAL ms apart.
 const DEAL=40;
-// It comes down from the lifted shadow to its own rest shadow, so it reads as landing rather than zooming.
-function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.06)',boxShadow:'var(--shadow-md)'},{opacity:1,transform:'none'}],{duration:220,delay,easing:EASE,fill:'backwards'});}
+// It comes down from the floating shadow to lie flat, so it reads as landing rather than zooming.
+function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.1)',boxShadow:'var(--shadow-lg)'},{opacity:1,transform:'none'}],{duration:240,delay,easing:EASE,fill:'backwards'});}
 // A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
 // itself, so it looks exactly as it did.
 function leave(block,rect,delay=0){
@@ -325,6 +327,13 @@ function renderSchedule(){
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
  window.weekModel={min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
+ // The sign-off is built from the week's own tiles: its blocks take the lessons' colours, Monday to Friday, each as
+ // tall as its lesson is long. With no lessons they keep their plain grey.
+ const lessons=window.weekModel.events.slice().sort((a,b)=>a.day-b.day||a.start-b.start),longest=Math.max(60,...lessons.map(e=>e.end-e.start));
+ document.querySelectorAll('.sign-off b:not(.stop)').forEach((el,i)=>{
+  const e=lessons[i%Math.max(1,lessons.length)];
+  el.style.setProperty('--c',e?e.color:'');el.style.setProperty('--h',e?(.6+.4*(e.end-e.start)/longest).toFixed(2):'');
+ });
  // landing: when the last newcomer arrives (a flight lands at ~380ms, a dealt block at ~150ms past its stagger).
  const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
  let entering=0,landing=150;const clashing=[],placed=[];
