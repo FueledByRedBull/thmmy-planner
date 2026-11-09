@@ -24,7 +24,7 @@ const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Πα�
 // Board metrics in world units: day grid width, gap between days, one hour, time axis band, day label band, outer pad, thickness.
 const GRID=7.6,GAP=.06,HOUR=.46,AXIS=.82,HEAD=.66,PAD=.26,BOARD=.2;
 // Camera framing knob: how much of the target box the board's radius may fill.
-const FIT=.8;
+const FIT=.7;
 // A sample week shown before any course is chosen; rendered as chrome so it never reads as real data.
 const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,780,840],[2,1020,1140],[3,660,780],[3,960,1140],[4,600,720],[4,840,960]]
  .map(([day,start,end],i)=>({id:'sample'+i,day,start,end,lane:0,lanes:1,ects:3+(i*3)%7,sample:true}));
@@ -41,7 +41,11 @@ renderer.shadowMap.type=PCFShadowMap;
 let pixelRatio=Math.min(devicePixelRatio,coarse.matches?1.5:1.75);
 renderer.setPixelRatio(pixelRatio);
 
-const scene=new Scene(),camera=new PerspectiveCamera(24,1,.5,200),week=new Group();
+// Lens (vertical field of view, degrees): wide in the hero, so the near slabs loom and the far ones fall away, closing
+// to a long lens as the board lands flat on the planner. The camera backs off as the lens closes (a dolly zoom), so
+// the board keeps its size while its depth drains out. All framing is measured at the landing lens.
+const LENS=[36,24],LAND=Math.tan(LENS[1]*Math.PI/360);
+const scene=new Scene(),camera=new PerspectiveCamera(LENS[0],1,.5,200),week=new Group();
 // The studio reflection is baked once at startup (see start below); the generator and room are freed after.
 // The bake's shaders (the room, its background, the blur and the GGX filter) first compile in parallel, so the bake
 // itself only renders instead of stalling the page on each compile. This reaches into PMREMGenerator internals
@@ -49,6 +53,10 @@ const scene=new Scene(),camera=new PerspectiveCamera(24,1,.5,200),week=new Group
 // bake uses (a half-float target, no tone mapping), and the bake then reuses them.
 async function environment(){
  const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment(),eye=new PerspectiveCamera(90,1,.1,100),tone=renderer.toneMapping;
+ // Three light cards join the room before the bake: a long softbox overhead, which draws a crisp streak along every
+ // clearcoat edge, and a pink and a cool card low at the sides, which put colour into the reflections.
+ const card=(color,power,x,y,z,w,h,d)=>{const m=new Mesh(new BoxGeometry(w,h,d),new MeshBasicMaterial({color:new Color(color).multiplyScalar(power)}));m.position.set(x,y,z);room.add(m);};
+ card('#ffffff',14,1,12.5,4,11,.1,.6);card('#ff4fa8',5,-13,3.5,2,.1,4,8);card('#7fb2ff',3.5,12.5,4,-3,.1,4,7);
  pmrem._setSize(256);
  const target=pmrem._allocateTargets(),plane=pmrem._lodMeshes[0].geometry;
  const box=pmrem._backgroundBox=new Mesh(new BoxGeometry(),new MeshBasicMaterial({name:'PMREM.Background',side:BackSide,depthWrite:false,depthTest:false}));
@@ -82,7 +90,11 @@ scene.add(key,key.target,rim,fill,floor,week,air);
 
 let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:-1},board=null,labels=null,edges=null;
 const slabs=new Map(),dying=new Set(),geometries=new Map();
-const springs={intro:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0}};
+// `dolly` brings the board in from deep in the studio on load, a little past its mark and back; `field` is how far the
+// pointer's pull on the slabs is switched on.
+const springs={intro:{x:reduce.matches?1:0,v:0},dolly:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0},field:{x:0,v:0}};
+// Where the pointer's ray meets the board's top, in the board's own coordinates.
+const field={x:0,z:0,on:false};
 // The choreography follows the scroll on a critically damped spring instead of 1:1: `shown` is the progress the board,
 // camera and tiles act on. A slow scroll is tracked closely; a fast or back-and-forth one is played at the motion's own
 // pace (never faster than about four tenths of a second end to end, never reversing on a jitter) and always ends where the page
@@ -97,20 +109,29 @@ let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targetEl=nul
 const sidebar=document.getElementById('courseSidebar'),drawer=matchMedia('(max-width: 1180px)');
 const copy=hero.querySelector('.hero-copy'),copyParts=[...copy.querySelectorAll('.line>span,.hero-sub,.hero-cta')];
 const corner=new Vector3();
-// Keep the headline in front at any orbit or zoom: project the board's outline and pan the camera just enough that it
-// never enters the copy's box (right of it on wide screens, above it when the copy spans a phone).
+// Keep the copy in front at any orbit or zoom: project the board's outline and pan the camera just enough that it
+// never enters the copy (right of each of its parts on wide screens, above the facts and the button on phones).
 function clearance(){
  if(parseFloat(getComputedStyle(copy).opacity)<=.05)return 0;
- const boxes=copyParts.map(el=>el.getBoundingClientRect()),box={l:Math.min(...boxes.map(b=>b.left)),r:Math.max(...boxes.map(b=>b.right)),t:Math.min(...boxes.map(b=>b.top)),b:Math.max(...boxes.map(b=>b.bottom))};
+ const boxes=copyParts.map(el=>el.getBoundingClientRect());
  week.updateMatrixWorld();camera.updateMatrixWorld();
  const quad=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx,sz])=>{corner.set(sx*size.w/2,0,sz*size.d/2).applyMatrix4(week.matrixWorld).project(camera);return[(corner.x+1)/2*view.w,(1-corner.y)/2*view.h];});
- // Clip the projected quad to the copy's band, then measure how far it reaches into the copy.
- const axis=view.stacked?0:1,lo=view.stacked?box.l:box.t,hi=view.stacked?box.r:box.b;
- const cut=(poly,keep,edge)=>{const out=[];poly.forEach((a,i)=>{const b=poly[(i+1)%poly.length],ia=keep(a),ib=keep(b);if(ia)out.push(a);if(ia!==ib){const k=(edge-a[axis])/(b[axis]-a[axis]);out.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]);}});return out;};
- const band=cut(cut(quad,p=>p[axis]>=lo,lo),p=>p[axis]<=hi,hi);
- if(!band.length)return 0;
+ // The part of the projected quad that lies in a band of the screen (axis 0: between two x, axis 1: between two y).
+ const cut=(poly,axis,keep,edge)=>{const out=[];poly.forEach((a,i)=>{const b=poly[(i+1)%poly.length],ia=keep(a),ib=keep(b);if(ia)out.push(a);if(ia!==ib){const k=(edge-a[axis])/(b[axis]-a[axis]);out.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]);}});return out;};
+ const within=(axis,lo,hi)=>cut(cut(quad,axis,p=>p[axis]>=lo,lo),axis,p=>p[axis]<=hi,hi);
  // Margins sit inside the home framing's own gap, so the untouched hero never moves; only orbit or zoom engage it.
- return view.stacked?Math.max(0,Math.max(...band.map(p=>p[1]))-(box.t-12)):Math.max(0,box.r+4-Math.min(...band.map(p=>p[0])));
+ // Phones: the week stands between the title and the facts. It is lifted off the facts under it, but never further
+ // than the room it has under the title.
+ if(view.stacked){
+  const low=boxes.slice(-2),title=boxes.slice(0,-2),band=within(0,Math.min(...low.map(b=>b.left)),Math.max(...low.map(b=>b.right)));
+  if(!band.length)return 0;
+  const above=within(0,Math.min(...title.map(b=>b.left)),Math.max(...title.map(b=>b.right)));
+  const room=above.length?Math.max(0,Math.min(...above.map(p=>p[1]))-Math.max(...title.map(b=>b.bottom))-8):Infinity;
+  return Math.min(room,Math.max(0,Math.max(...band.map(p=>p[1]))-(Math.min(...low.map(b=>b.top))-12)));
+ }
+ // Wide screens: each part of the copy (a line of the title, the facts, the button) is cleared on its own, so the
+ // board's corner may stand under the long first line, beside the short second one.
+ return Math.max(0,...boxes.map(b=>{const band=within(1,b.top,b.bottom);return band.length?b.right+12-Math.min(...band.map(p=>p[0])):0;}));
 }
 // Free view: drag the hero board to orbit it (pinch or Ctrl+wheel zooms), double-click to reset. It glides home as soon
 // as the page scrolls, so the landing on the planner always starts from the hero pose. Offsets from the hero pose:
@@ -123,7 +144,13 @@ const clampPitch=x=>Math.min(PITCH[1],Math.max(PITCH[0],x));
 // Past its limits, pitch meets a rubber band (at most .1 rad further) instead of a wall.
 const STRETCH=.1,rubber=x=>x<PITCH[0]?PITCH[0]-STRETCH*(1-1/((PITCH[0]-x)/STRETCH+1)):x>PITCH[1]?PITCH[1]+STRETCH*(1-1/((x-PITCH[1])/STRETCH+1)):x;
 // Physical feel: the board lifts while held and drops back with a bounce, banks into its spin and nods with its tilt.
-const feel={lift:{x:0,v:0},bank:{x:0,v:0},nod:{x:0,v:0}};
+// It also gives under every landing: `thud` is the dip, and the same blow tips it toward the slot that took it.
+const feel={lift:{x:0,v:0},bank:{x:0,v:0},nod:{x:0,v:0},thud:{x:0,v:0}};
+function thud(slab){
+ if(reduce.matches)return;
+ const blow=.5+slab.h;
+ feel.thud.v-=.9*blow;feel.nod.v+=slab.home.z*.05*blow;feel.bank.v-=slab.home.x*.05*blow;
+}
 let suppressClick=false,down=null;
 
 function palette(){
@@ -217,7 +244,7 @@ function slabMaterial(e){
  const c=new Color(e.color),hsl={};
  c.getHSL(hsl,SRGBColorSpace);
  c.setHSL(hsl.h,hsl.s,hsl.l*.9,SRGBColorSpace);
- const m=new MeshPhysicalMaterial({color:c,roughness:.16,clearcoat:1,clearcoatRoughness:.03,transparent:e.review,opacity:e.review?.6:1});
+ const m=gel(new MeshPhysicalMaterial({color:c,roughness:.16,clearcoat:1,clearcoatRoughness:.03,transparent:e.review,opacity:e.review?.6:1}));
  if(e.conflict)m.emissive.set(pal.danger);
  return m;
 }
@@ -235,10 +262,37 @@ function tint(slab,k,pulse){
  m.color.copy(slab.base).multiplyScalar(1-k*.94);
  m.clearcoat=1-k*.9;m.envMapIntensity=1-k*.9;m.roughness=.16+k*.5;
  if(e.review)m.opacity=.6+.4*k;
+ // Its edges give way to the flat fill as the tile lands.
+ m.userData.rim.value=RIM*(1-k);
  if(e.conflict){m.emissive.copy(danger).lerp(slab.flat,k);m.emissiveIntensity=lerp(pulse,1,k);}
  else{m.emissive.copy(slab.flat);m.emissiveIntensity=k;}
 }
 
+// Lit acrylic: the faces of a tile that turn away from the eye pick up its own colour, as light gathers at the edges
+// of a sheet of perspex. One shader for every tile; the strength is each material's own (see tint).
+const RIM=.3;
+function gel(m){
+ m.userData.rim={value:0};
+ m.onBeforeCompile=shader=>{
+  shader.uniforms.uRim=m.userData.rim;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float uRim;')
+   .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance+=diffuseColor.rgb*uRim*pow(1.-saturate(dot(normal,normalize(vViewPosition))),3.4);');
+ };
+ m.customProgramCacheKey=()=>'gel';
+ return m;
+}
+
+// The way a tile comes in: from the viewer's side of the glass, down its own line of sight (and a little from above),
+// so it starts large and close, over the very spot on screen where it will sit, and lands small on the board. Over
+// the landed week, seen from straight above, that is a plain drop. Returns how far away the lens is along it.
+function approach(home,out){
+ week.updateMatrixWorld();
+ // Before the first frame the camera has no pose yet: the hero's own direction and resting distance.
+ let far=view.dist*LAND/Math.tan(LENS[0]*Math.PI/360);
+ if(camera.position.lengthSq()<1)out.set(-.46,.53,.71);else{far=week.worldToLocal(out.copy(camera.position)).sub(home).length();out.divideScalar(far);}
+ out.y+=.12;out.normalize();
+ return far;
+}
 function makeSlab(e,order,meetings){
  const lane=colW(e.day)/e.lanes,w=lane-.08,d=Math.max(.14,(e.end-e.start)/60*HOUR-.06),h=.18+(Math.min(5,Math.max(1,meetings||1))-1)*.22;
  const mesh=new Mesh(slabGeometry(w,d,h,.13),slabMaterial(e));
@@ -246,9 +300,11 @@ function makeSlab(e,order,meetings){
  mesh.position.set(colX(e.day)+(e.lane+.5)*lane,0,timeZ((e.start+e.end)/2));
  const edge=e.conflict||e.review?new LineSegments(new EdgesGeometry(mesh.geometry,35),new LineBasicMaterial({color:e.conflict?pal.danger:pal.warning})):null;
  if(edge)mesh.add(edge);
- const still=reduce.matches;
- const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),air:null,base:mesh.material.color.clone(),flat:flatColor(e),y:still?0:2.4+order*.05,v:0,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?520:0)+Math.min(order,16)*DEAL)};
- mesh.position.y=slab.y;mesh.visible=still;mesh.userData.slab=slab;
+ const still=reduce.matches,from=new Vector3(),far=approach(mesh.position,from);
+ // `y` is how far out the tile still is along `from`, its way in (see approach), never more than three quarters of the
+ // way to the lens, however zoomed in the board or late in the deal the tile; it tumbles by `spin`, less the nearer it gets.
+ const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),from,spin:{x:(Math.random()-.5)*.024,z:(Math.random()-.5)*.024},air:null,base:mesh.material.color.clone(),flat:flatColor(e),y:still?0:Math.min(11+order*.15,far*.75),v:still?0:-14,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?380:0)+Math.min(order,16)*DEAL)};
+ mesh.position.addScaledVector(slab.from,slab.y);mesh.visible=still;mesh.userData.slab=slab;
  week.add(mesh);
  decal(slab);
  return slab;
@@ -376,9 +432,9 @@ function spring(s,to,k,c,dt){
 // ---- Tiles in the air -------------------------------------------------------------------------------------------
 // Flung: spinning too fast, a tile loses its grip (the rim and the tall ones first), leaves along the spin, tumbles,
 // lands on the studio floor just past the board's edge, slides and settles flat; once the spin calms, the tiles hop
-// back to their slots one by one, Monday to Friday. Thrown: scrolling up off the docked planner throws every tile off
-// the top of the screen; they drop back one by one as soon as the scroll rests, the board nears the hero, or the page
-// heads back down, so any stopping point ends with a full board.
+// back to their slots one by one, Monday to Friday. Thrown: scrolling up off the docked planner throws every tile at
+// the viewer and out past the top or a side of the screen; they come back one by one as soon as the scroll rests, the
+// board nears the hero, or the page heads back down, so any stopping point ends with a full board.
 // Dealt: scrolling down from the top lifts the tiles off the board; they hover over it while it travels and, once it
 // lies exactly on the planner, are dealt in one by one, Monday to Friday, each handing over to its own planner block
 // as it lands. If the scroll rests, turns back or returns to the top first, they are dealt onto the board wherever it is.
@@ -417,6 +473,7 @@ function seat(slab,squash=.22){
  week.add(slab.mesh);
  slab.mesh.position.copy(slab.home);slab.mesh.quaternion.identity();slab.mesh.scale.set(1,1,1);slab.mesh.visible=true;
  slab.air=null;slab.y=slab.v=slab.lift=slab.lv=0;slab.rx.x=slab.rx.v=slab.rz.x=slab.rz.v=0;slab.sq.x=squash;slab.sq.v=0;
+ if(squash)thud(slab);
 }
 function settleAll(){for(const slab of airborne())seat(slab,0);sky=deal=null;}
 // A tile dealt onto the landed planner hands over to its own block: the tile hides, the block appears with a press.
@@ -426,7 +483,7 @@ function stamp(slab){
  slab.dealt=anyDealt=true;slab.mesh.visible=false;
  el.style.setProperty('--dealt','1');
  // From the block's centre, where the tile landed (blocks keep their origin at the top for the hover lift).
- el.animate([{transform:'scale(1.06)',transformOrigin:'center',boxShadow:'var(--shadow-md)'},{transform:'none',transformOrigin:'center'}],{duration:180,easing:'cubic-bezier(.16,1,.3,1)'});
+ el.animate([{transform:'scale(1.1)',transformOrigin:'center',boxShadow:'var(--shadow-lg)'},{transform:'none',transformOrigin:'center'}],{duration:200,easing:'cubic-bezier(.16,1,.3,1)'});
 }
 // Back to the 3D tiles (the board left the planner, or the tiles are about to be thrown).
 function undeal(){
@@ -465,20 +522,33 @@ function fling(slab,omega){
  a.w.copy(v2.crossVectors(UP,dir).normalize()).multiplyScalar(6+Math.random()*4);
  a.mode='fly';
 }
-// Screen-up in air coordinates (into out), and how far along it a tile centred at c must still travel for all of it
-// (whatever its tumble) to be clear of the top of the view; zero or less once it is.
-const sw1=new Vector3(),sw2=new Vector3(),swq=new Quaternion();
-function skyward(slab,c,out){
- out.setFromMatrixColumn(camera.matrixWorld,1).applyQuaternion(swq.copy(air.quaternion).invert());
- const w=air.localToWorld(sw1.copy(c)),ndc=sw2.copy(w).project(camera),dist=camera.position.distanceTo(w),s=slab.air.s;
- return (1.1-ndc.y)*dist*Math.tan(camera.fov*Math.PI/360)+Math.hypot(slab.w*s.x,slab.h*s.y,slab.d*s.z)/2;
+// A thrown tile's own way out of view, in air coordinates (into out): up and outward on screen (dx, dy, set when it is
+// thrown). Returns how far along it a tile centred at c must still travel for all of it (whatever its tumble) to be
+// clear of the view's edge; zero or less once it is. `grow` is how many times larger than at c it will be drawn.
+const sw1=new Vector3(),sw2=new Vector3(),sw3=new Vector3(),swq=new Quaternion();
+function skyward(slab,c,out,grow=1){
+ const a=slab.air,s=a.s;
+ out.setFromMatrixColumn(camera.matrixWorld,1).multiplyScalar(a.dy).addScaledVector(sw3.setFromMatrixColumn(camera.matrixWorld,0),a.dx).applyQuaternion(swq.copy(air.quaternion).invert());
+ const w=air.localToWorld(sw1.copy(c)),ndc=sw2.copy(w).project(camera);
+ // Behind the lens it is out of sight already (and its projection is mirrored, so the sums below would never end).
+ if(ndc.z>1)return 0;
+ const unit=camera.position.distanceTo(w)*Math.tan(camera.fov*Math.PI/360);
+ const side=Math.abs(a.dx)>1e-3?(1.1-ndc.x*Math.sign(a.dx))*unit*camera.aspect/Math.abs(a.dx):Infinity;
+ return Math.min(side,(1.1-ndc.y)*unit/a.dy)+Math.hypot(slab.w*s.x,slab.h*s.y,slab.d*s.z)/2*grow;
 }
+// The lens, in air coordinates.
+const eye=out=>air.worldToLocal(out.copy(camera.position));
 function throwUp(now){
  undeal();
  const list=[...slabs.values()].filter(s=>!s.air&&s.mesh.visible&&now>=s.start).sort(sweep);
  if(!list.length)return;
  list.forEach((slab,i)=>{
-  const a=takeOff(slab,'sky'),reach=Math.max(.5,skyward(slab,a.c,v1));
+  const a=takeOff(slab,'sky');
+  // Each leaves along its own line: up, and outward from where it sits on screen, so the week bursts past the lens
+  // instead of rising as one sheet. `near` is the share of its distance to the lens it still has.
+  const at=air.localToWorld(v2.copy(a.c)).project(camera),ax=at.x*camera.aspect*.8,ay=1+Math.max(0,at.y)*.5,al=Math.hypot(ax,ay);
+  a.dx=ax/al;a.dy=ay/al;a.near=1;
+  const reach=Math.max(.5,skyward(slab,a.c,v1));
   a.mode='up';a.t0=now+i*12;a.pace=reach/.3;a.v.copy(v1).multiplyScalar(reach/.3+SKY_G*.15);
   a.v.addScaledVector(v2.setFromMatrixColumn(camera.matrixWorld,0).applyQuaternion(q1.copy(air.quaternion).invert()),(Math.random()-.5)*1.4);
   a.w.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(3+Math.random()*2);
@@ -491,7 +561,9 @@ function stepAir(now,dt,p,R,e){
  rising=false;
  if(reduce.matches)return false;
  let moving=false;
- if(p!==prevP){heading=Math.sign(p-prevP);prevP=p;pMoved=now;}
+ // The eased progress creeps for a second after the page has stopped: a step under a fifth of a pixel is rest, so
+ // the tiles come back as soon as the scroll does.
+ if(Math.abs(p-prevP)>.2/dock){heading=Math.sign(p-prevP);prevP=p;pMoved=now;}
  // Flung: only at the top of the page, while the board is the user's to spin, and only after a sustained hard spin.
  const omega=orbit.yaw.v;
  if(p<=FREE&&!orbit.home&&!sky)for(const slab of slabs.values()){
@@ -588,17 +660,23 @@ function stepAir(now,dt,p,R,e){
    // The camera swings while the page scrolls, so "up" is the screen's up as it is now: the throw keeps its own speed,
    // but never falls below the pace it set out at (the edge in .3s), so a tile cannot slow to a hang short of it; it is
    // only parked once the whole of it is out of sight.
+   // It also comes at the viewer: it closes on the lens as it goes (seven tenths of the way there at most), so it
+   // leaves the screen three times its size, past the glass. Closing on the lens keeps its place on screen and only
+   // grows it.
+   if(a.near>.3){const k=Math.exp(-dt*4.6);a.near*=k;c.lerp(eye(v2),1-k);}
    const left=skyward(slab,c,v1),short=a.pace-a.v.dot(v1);
    rising=true;
    if(short>0)a.v.addScaledVector(v1,short);
    if(left<=0){m.visible=false;if(sky?.phase==='drop'){a.mode='drop';a.t0=now;a.reach=undefined;}else a.mode='wait';}
   }else if(a.mode==='drop'){
-   // Falls in from wholly above the top edge onto a slot that moves with the scroll, accelerating like a dropped tile
-   // but already moving as it comes into view (no hang at the edge), the same fall as the deal.
-   const to=slot(slab,v2),reach=Math.max(.5,skyward(slab,to,v3));
+   // Comes back the way it left, onto a slot that moves with the scroll: from wholly beyond the edge it went out by
+   // and from the viewer's side of the glass (starting 55% of the way to the lens, so 2.2 times its landed size),
+   // shrinking onto its slot, accelerating like a dropped tile but already moving as it comes into view (no hang at
+   // the edge), the same fall as the deal.
+   const to=slot(slab,v2),reach=Math.max(.5,skyward(slab,to,v3,2.2));
    if(a.reach===undefined){a.reach=reach;a.fq=a.q.clone();a.fs=a.s.clone();m.visible=true;}
-   const u=Math.min(1,(now-a.t0)/300);
-   c.copy(to).addScaledVector(v3,a.reach*(1-u*(.35+.65*u)));
+   const u=Math.min(1,(now-a.t0)/300),out=1-u*(.35+.65*u);
+   c.copy(to).addScaledVector(v3,a.reach*out).lerp(eye(v1),.55*out);
    a.q.slerpQuaternions(a.fq,slotQ(q1),smooth(u));a.s.lerpVectors(a.fs,week.scale,u);
    if(u>=1){seat(slab);continue;}
   }
@@ -632,13 +710,17 @@ function resize(){
  if(key!==sized){sized=key;renderer.setSize(w,h,false);}
  camera.aspect=w/h;
  // Desktop parks the week right of the headline; when the copy spans the hero, the week fills the space above it.
- const stacked=copy.offsetWidth>w*.6,heroH=hero.offsetHeight;
- const top=parseFloat(getComputedStyle(root).getPropertyValue('--bar'))||76;
- // The free box: above the copy when it spans the hero, otherwise right of the headline's longest line.
- const ink=Math.max(...[...copy.querySelectorAll('.line>span')].map(s=>s.offsetWidth)),left=stacked?0:copy.offsetLeft+ink+40;
- const bottom=stacked?Math.max(top+120,copy.offsetTop-16):heroH*.86,right=stacked?w:w-24;
+ const stacked=!grid.matches,heroH=hero.offsetHeight;
+ // Layout positions within the hero, which the copy's entrance and scroll transforms do not move. The walk is needed:
+ // a title line has its own perspective, which makes it the offset parent of its text.
+ const place=el=>{let l=0,t=0;for(let n=el;n&&n!==hero;n=n.offsetParent){l+=n.offsetLeft;t+=n.offsetTop;}return{l,t,r:l+el.offsetWidth,b:t+el.offsetHeight};};
+ const lines=[...copy.querySelectorAll('.line>span')].map(place),first=lines[0],end=lines[lines.length-1],facts=place(copy.querySelector('.hero-sub'));
+ // The free box. Wide screens: right of the title's short last line and from half-way down its long first one (on
+ // screen the board is a diamond, so its top corner stands clear of the first line's end; see clearance), out over
+ // the right edge and down to the sheet. Phones: between the title and the facts.
+ const left=stacked?0:end.r+w*.02,right=stacked?w:w*1.04,top=stacked?end.b+4:(first.t+first.b)/2,bottom=stacked?Math.max(top+120,facts.t-12):heroH*.95;
  const cx=(left+right)/2/w,cy=(top+bottom)/2/h,boxW=(right-left)/w*.82,boxH=(bottom-top)/h;
- const radius=Math.hypot(size.w,size.d)/2*FIT,tan=Math.tan(camera.fov*Math.PI/360);
+ const radius=Math.hypot(size.w,size.d)/2*FIT,tan=LAND;
  view={w,h,stacked,dist:Math.max(radius/(tan*boxH),radius/(tan*camera.aspect*boxW)),ox:-(cx-.5)*w,oy:-(cy-.5)*h};
  measure();
  wake();
@@ -664,7 +746,7 @@ function gridRect(){
 
 // Group scale and offset that put the board's day grid exactly on R for a straight-down camera.
 function landing(R){
- const hh=view.dist*Math.tan(camera.fov*Math.PI/360),hw=hh*view.w/view.h;
+ const hh=view.dist*LAND,hw=hh*view.w/view.h;
  const wx=px=>(px/view.w*2-1)*hw,wz=py=>(py/view.h*2-1)*hh;
  const gx0=colX(0),gx1=colX(4)+colW(4),gz0=timeZ(hours.min),gz1=timeZ(hours.max);
  const sx=(wx(R.r)-wx(R.l))/(gx1-gx0),sz=(wz(R.b)-wz(R.t))/(gz1-gz0);
@@ -727,6 +809,13 @@ function cast(x,y){
  return{slab:slab&&!slab.e.sample?slab:null,board:!!hit};
 }
 const pick=(x,y)=>cast(x,y).slab;
+// Where the ray of the last cast meets the board's top, into `field`; false when it runs away from the board.
+function touch(){
+ const o=week.worldToLocal(v1.copy(ray.ray.origin)),d=week.worldToLocal(v2.copy(ray.ray.origin).add(ray.ray.direction)).sub(o);
+ if(d.y>-1e-4)return false;
+ field.x=o.x-d.x*o.y/d.y;field.z=o.z-d.z*o.y/d.y;
+ return true;
+}
 
 function step(now){
  const dt=Math.min(.05,(now-(last||now))/1000);
@@ -741,7 +830,8 @@ function step(now){
  // e: how far the board has travelled onto the planner (complete a little before the sheet docks).
  const e=R?smooth((p-.04)/.84):0,tilt=R?0:smooth(p),calm=1-e;
  if(!still){
-  moving=spring(springs.intro,1,26,9,dt)|moving;
+  moving=spring(springs.intro,1,26,9,dt)|spring(springs.dolly,1,34,7,dt)|moving;
+  moving=spring(springs.field,field.on&&p<.3&&e<.02?1:0,120,18,dt)|spring(feel.thud,0,150,11,dt)|moving;
   const follow=pointer.inside&&!orbit.drag;
   moving=spring(springs.cx,follow?pointer.x:0,38,9,dt)|moving;
   moving=spring(springs.cy,follow?pointer.y:0,38,9,dt)|moving;
@@ -778,13 +868,14 @@ function step(now){
  drift+=((performance.now()-lastInput<DRIFT_FOR?1:0)-drift)*Math.min(1,dt*2);
  let px=0,py=(1-intro)*-2.6+(still?0:Math.sin(t*.8)*.05*drift)*calm,pz=0,sx=1,sy=1,sz=1;
  if(R&&e>0){const L=landing(R);px=lerp(0,L.tx,e);py=lerp(py,0,e);pz=lerp(0,L.tz,e);sx=lerp(1,L.sx,e);sz=lerp(1,L.sz,e);sy=lerp(1,.03,e);}
- week.position.set(px,py+feel.lift.x*calm,pz);
+ week.position.set(px,py+(feel.lift.x+feel.thud.x)*calm,pz);
  week.scale.set(sx,sy,sz);
  week.rotation.set(((1-intro)*.4+feel.nod.x)*calm,(still?0:Math.sin(t*.21)*.035*drift)*calm,feel.bank.x*calm);
  if(pointer.dirty){
   pointer.dirty=false;
   const under=pointer.inside&&pointer.type!=='touch'&&!orbit.drag&&p<.3&&e<.02?cast(pointer.cx,pointer.cy):{slab:null,board:false};
   setHover(under.slab);
+  field.on=under.board&&touch();
   hero.style.cursor=orbit.drag?.moved&&p<=FREE?'grabbing':under.slab?'pointer':under.board&&p<=FREE?'grab':'';
   if(hovered)tip.style.transform=`translate(${pointer.cx+16}px,${pointer.cy+16}px)`;
  }
@@ -799,18 +890,21 @@ function step(now){
   slab.mesh.visible=!slab.dealt;
   if(!still){
    // One landing everywhere: a tile above the board falls, accelerating, and squashes as it lands (no overshoot into it).
-   if(slab.y>0||slab.v){slab.v-=G*dt;slab.y+=slab.v*dt;if(slab.y<=0){slab.y=slab.v=0;slab.sq.x=.22;}moving=true;}
-   const lift={x:slab.lift,v:slab.lv};
-   moving=spring(lift,hovered===slab?.32:0,220,20,dt)|moving;
+   if(slab.y>0||slab.v){slab.v-=G*dt;slab.y+=slab.v*dt;if(slab.y<=0){slab.y=slab.v=0;slab.sq.x=.22;thud(slab);}moving=true;}
+   // The slabs reach for the pointer: the one under it jumps up at the viewer (and overshoots), its neighbours rise
+   // with it, less the further they stand from the pointer's place on the board.
+   const lift={x:slab.lift,v:slab.lv},pull=springs.field.x>.01?.2*springs.field.x*Math.exp(-((slab.home.x-field.x)**2+(slab.home.z-field.z)**2)/2.6):0;
+   moving=spring(lift,hovered===slab?.46:pull,240,15,dt)|moving;
    slab.lift=lift.x;slab.lv=lift.v;
   }
-  slab.mesh.position.y=slab.y+slab.lift;
+  slab.mesh.position.copy(slab.home).addScaledVector(slab.from,slab.y).y+=slab.lift;
   if(!still){
    // Jelly: each slab leans against the spin on its base (taller ones sway more) and squashes as the board lands.
-   const m=slab.mesh.position,r=Math.hypot(m.x,m.z)||1,give=slab.h*1.6;
+   const m=slab.home,r=Math.hypot(m.x,m.z)||1,give=slab.h*1.6,roll=slab.y*slab.y;
    const lean=Math.max(-.2,Math.min(.2,orbit.yaw.v*.035*give*r/4));
    moving=spring(slab.rx,lean*m.z/r+orbit.pitch.v*.03*give,170,14,dt)|spring(slab.rz,-lean*m.x/r,170,14,dt)|moving;
-   slab.mesh.rotation.set(slab.rx.x*calm,0,slab.rz.x*calm);
+   // On its way in a tile tumbles, and rights itself before it lands (the square of what is left of the way).
+   slab.mesh.rotation.set((slab.rx.x+slab.spin.x*roll)*calm,0,(slab.rz.x+slab.spin.z*roll)*calm);
    // A tile landing back on the board (from a hop or a drop) squashes and springs back.
    moving=spring(slab.sq,0,260,16,dt)|moving;
    const sq=Math.max(-.2,Math.min(.3,slab.sq.x));
@@ -834,8 +928,10 @@ function step(now){
  floor.material.opacity=pal.shadow*calm;
  // Camera: the hero's three-quarter orbit, straight down once landed (phones keep the gentle tilt).
  // The elevation never reaches straight down or the board's own plane, whatever the springs overshoot.
- const az0=-.58+(springs.cx.x*.2+orbit.yaw.x)*calm,el0=Math.min(Math.PI/2-.04,Math.max(.06,.56+(orbit.pitch.x-springs.cy.x*.08)*calm));
- const az=R?lerp(az0,0,e):az0+.58*tilt,el=R?lerp(el0,Math.PI/2-.0015,e):el0+.76*tilt,r=view.dist*(1+.06*tilt)*lerp(orbit.zoom.x,1,e);
+ const az0=-.58+(springs.cx.x*.26+orbit.yaw.x)*calm,el0=Math.min(Math.PI/2-.04,Math.max(.06,.56+(orbit.pitch.x-springs.cy.x*.12)*calm));
+ // The lens closes as the board lands and the camera backs off to match; on load it comes in from further back.
+ camera.fov=lerp(LENS[0],LENS[1],e);
+ const az=R?lerp(az0,0,e):az0+.58*tilt,el=R?lerp(el0,Math.PI/2-.0015,e):el0+.76*tilt,r=view.dist*LAND/Math.tan(camera.fov*Math.PI/360)*(1+.06*tilt)*lerp(orbit.zoom.x,1,e)*(1+(1-springs.dolly.x)*1.1*calm);
  camera.setViewOffset(view.w,view.h,view.ox*calm,view.oy*calm,view.w,view.h);
  camera.updateProjectionMatrix();
  camera.position.set(r*Math.cos(el)*Math.sin(az),r*Math.sin(el),r*Math.cos(el)*Math.cos(az));
@@ -850,6 +946,9 @@ function step(now){
   camera.setViewOffset(view.w,view.h,view.ox*calm-(view.stacked?0:s),view.oy*calm+(view.stacked?s:0),view.w,view.h);
   camera.updateProjectionMatrix();
  }
+ // The key light leans with the pointer (on the same springs as the camera), so highlights slide across the clearcoat
+ // and the shadows shift as the hand moves; it is back in place by the time the board lands.
+ key.position.set(-6+springs.cx.x*4*calm,13,8+springs.cy.x*3*calm);
  // Free tiles move in the viewer's frame: the air layer turns with the camera (see `air`).
  air.rotation.y=az;air.updateMatrixWorld();week.updateMatrixWorld();camera.updateMatrixWorld();
  if(!R&&sky)settleAll();
@@ -903,8 +1002,10 @@ function loop(now){
  // Only back-to-back frames measure the GPU: the first frame after a sleep is slow on purpose.
  const steady=chain,t0=performance.now();
  busy=!!step(now);
- // Idle frames only drift: the shadow pass, half of each frame's draws, waits for real movement.
- renderer.shadowMap.autoUpdate=busy;
+ // Idle frames only drift: the shadow pass, half of each frame's draws, waits for real movement. A still picture
+ // (reduced motion) never moves, and each of its few frames draws the shadows: with no shadow map ever drawn, the
+ // shadowed materials fail to draw at all and the board stays blank.
+ renderer.shadowMap.autoUpdate=busy||still;
  renderer.render(scene,camera);
  if(!live){live=true;stage.classList.add('live');}
  if(was&&steady)govern(now-was,performance.now()-t0);
@@ -923,7 +1024,7 @@ function stillMode(){
  // Reduced motion: no scroll choreography, the stage scrolls away with the hero as a still picture.
  stage.classList.toggle('still',reduce.matches);
  if(reduce.matches){clip='';stage.style.clipPath='';}
- if(reduce.matches){settleAll();springs.intro.x=1;for(const slab of slabs.values()){slab.y=slab.lift=0;slab.start=0;}for(const slab of [...dying])dispose(slab);clearTarget();setStage(1);docked=false;stage.classList.remove('docked');}
+ if(reduce.matches){settleAll();springs.intro.x=springs.dolly.x=1;springs.field.x=feel.thud.x=0;for(const slab of slabs.values()){slab.y=slab.v=slab.lift=0;slab.start=0;slab.mesh.rotation.set(0,0,0);}for(const slab of [...dying])dispose(slab);clearTarget();setStage(1);docked=false;stage.classList.remove('docked');}
  wake();
 }
 
