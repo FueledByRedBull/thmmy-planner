@@ -14,7 +14,7 @@ import {
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const canvas=document.getElementById('week3d'),stage=canvas.parentElement,hero=document.querySelector('.hero'),tip=document.getElementById('heroTip');
-const planner=document.getElementById('planner'),calendarWrap=document.getElementById('calendarWrap'),emptyState=document.getElementById('emptyState');
+const planner=document.getElementById('planner'),calendarWrap=document.getElementById('calendarWrap');
 // A 1px marker just above the docking point (placed by measure): it comes into view the moment the page scrolls back up
 // off the docked planner, which wakes the sleeping week without a scroll listener.
 const dockMark=Object.assign(document.createElement('div'),{className:'dock-mark'});
@@ -23,8 +23,9 @@ const root=document.documentElement,reduce=matchMedia('(prefers-reduced-motion: 
 const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή'];
 // Board metrics in world units: day grid width, gap between days, one hour, time axis band, day label band, outer pad, thickness.
 const GRID=7.6,GAP=.06,HOUR=.46,AXIS=.82,HEAD=.66,PAD=.26,BOARD=.2;
-// Camera framing knob: how much of the target box the board's radius may fill.
-const FIT=.7;
+// Camera framing knobs: how much of the target box the board's radius may fill (higher: a smaller board), beside the
+// title on wide screens and between the title and the facts on phones.
+const FIT=.62,FIT_STACKED=.7;
 // A sample week shown before any course is chosen; rendered as chrome so it never reads as real data.
 const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,780,840],[2,1020,1140],[3,660,780],[3,960,1140],[4,600,720],[4,840,960]]
  .map(([day,start,end],i)=>({id:'sample'+i,day,start,end,lane:0,lanes:1,ects:3+(i*3)%7,sample:true}));
@@ -92,7 +93,7 @@ let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:
 const slabs=new Map(),dying=new Set(),geometries=new Map();
 // `dolly` brings the board in from deep in the studio on load, a little past its mark and back; `field` is how far the
 // pointer's pull on the slabs is switched on.
-const springs={intro:{x:reduce.matches?1:0,v:0},dolly:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0},field:{x:0,v:0}};
+const springs={intro:{x:reduce.matches?1:0,v:0},dolly:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0},drop:{x:0,v:0},field:{x:0,v:0}};
 // Where the pointer's ray meets the board's top, in the board's own coordinates.
 const field={x:0,z:0,on:false};
 // The choreography follows the scroll on a critically damped spring instead of 1:1: `shown` is the progress the board,
@@ -105,14 +106,16 @@ let handover=0,handed=true;
 const travel=()=>Math.max(progress(),shown.x);
 let pointer={x:0,y:0,inside:false,dirty:false,type:'mouse'},hovered=null,raf=0,last=0,live=false,firstBuild=true;
 const ray=new Raycaster(),ndc=new Vector2();
-let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targetEl=null,targetKey='',clip='';
+let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targeted=false,targetKey='',clip='';
 const sidebar=document.getElementById('courseSidebar'),drawer=matchMedia('(max-width: 1180px)');
 const copy=hero.querySelector('.hero-copy'),copyParts=[...copy.querySelectorAll('.line>span,.hero-sub,.hero-cta')];
 const corner=new Vector3();
 // Keep the copy in front at any orbit or zoom: project the board's outline and pan the camera just enough that it
-// never enters the copy (right of each of its parts on wide screens, above the facts and the button on phones).
+// never enters the copy. Returns the pan in pixels: x to the right, y down the screen (negative: up). Wide screens:
+// under the title's first line, which spans the hero, and right of every other part. Phones: above the facts.
+const CLEAR={x:0,y:0};
 function clearance(){
- if(parseFloat(getComputedStyle(copy).opacity)<=.05)return 0;
+ CLEAR.x=CLEAR.y=0;
  const boxes=copyParts.map(el=>el.getBoundingClientRect());
  week.updateMatrixWorld();camera.updateMatrixWorld();
  const quad=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx,sz])=>{corner.set(sx*size.w/2,0,sz*size.d/2).applyMatrix4(week.matrixWorld).project(camera);return[(corner.x+1)/2*view.w,(1-corner.y)/2*view.h];});
@@ -124,14 +127,18 @@ function clearance(){
  // than the room it has under the title.
  if(view.stacked){
   const low=boxes.slice(-2),title=boxes.slice(0,-2),band=within(0,Math.min(...low.map(b=>b.left)),Math.max(...low.map(b=>b.right)));
-  if(!band.length)return 0;
+  if(!band.length)return CLEAR;
   const above=within(0,Math.min(...title.map(b=>b.left)),Math.max(...title.map(b=>b.right)));
   const room=above.length?Math.max(0,Math.min(...above.map(p=>p[1]))-Math.max(...title.map(b=>b.bottom))-8):Infinity;
-  return Math.min(room,Math.max(0,Math.max(...band.map(p=>p[1]))-(Math.min(...low.map(b=>b.top))-12)));
+  CLEAR.y=-Math.min(room,Math.max(0,Math.max(...band.map(p=>p[1]))-(Math.min(...low.map(b=>b.top))-12)));
+  return CLEAR;
  }
- // Wide screens: each part of the copy (a line of the title, the facts, the button) is cleared on its own, so the
- // board's corner may stand under the long first line, beside the short second one.
- return Math.max(0,...boxes.map(b=>{const band=within(1,b.top,b.bottom);return band.length?b.right+12-Math.min(...band.map(p=>p[0])):0;}));
+ // Wide screens: the first line runs from edge to edge, so the board (and the tiles standing on its far corner) stays
+ // under it; every other part (the short second line, the facts, the button) is cleared sideways on its own band.
+ const [head,...rest]=boxes;
+ CLEAR.y=Math.max(0,head.bottom+view.h*.03-Math.min(...quad.map(p=>p[1])));
+ CLEAR.x=Math.max(0,...rest.map(b=>{const band=within(1,b.top-CLEAR.y,b.bottom-CLEAR.y);return band.length?b.right+12-Math.min(...band.map(p=>p[0])):0;}));
+ return CLEAR;
 }
 // Free view: drag the hero board to orbit it (pinch or Ctrl+wheel zooms), double-click to reset. It glides home as soon
 // as the page scrolls, so the landing on the planner always starts from the hero pose. Offsets from the hero pose:
@@ -578,7 +585,7 @@ function stepAir(now,dt,p,R,e){
  if(p<=FREE&&!sky&&!deal)topArmed=true;
  if(topArmed&&heading>0&&p>.05&&R){topArmed=false;if(!airborne().length)lift(now);}
  // The tiles are only handed over to the planner's blocks while the board lies exactly on them.
- if(anyDealt&&(e<.995||R?.el!==calendarWrap))undeal();
+ if(anyDealt&&(e<.995||!R))undeal();
  // Thrown: every time the page scrolls up from near the planner. The throw arms whenever the week is whole (nothing
  // in the air or being dealt) at 95% or beyond, docked or not, and fires once the scroll is well into the hero (below
  // 90%), so overshooting the planner's top on the way back to it never throws the week.
@@ -627,7 +634,7 @@ function stepAir(now,dt,p,R,e){
    const u=Math.min(1,(now-a.t0)/200);
    c.lerpVectors(a.from,to,u*(.35+.65*u));
    a.q.slerpQuaternions(a.fq,slotQ(q1),smooth(u));a.s.lerpVectors(a.fs,week.scale,u);
-   if(u>=1){const onPlanner=e>=.995&&R?.el===calendarWrap&&!slab.e.sample;seat(slab,onPlanner?0:.22);if(onPlanner)stamp(slab);continue;}
+   if(u>=1){const onPlanner=e>=.995&&R&&!slab.e.sample;seat(slab,onPlanner?0:.22);if(onPlanner)stamp(slab);continue;}
    place(slab);continue;
   }
   if(now<a.t0&&a.mode!=='floor'&&a.mode!=='hop')continue;
@@ -715,12 +722,12 @@ function resize(){
  // a title line has its own perspective, which makes it the offset parent of its text.
  const place=el=>{let l=0,t=0;for(let n=el;n&&n!==hero;n=n.offsetParent){l+=n.offsetLeft;t+=n.offsetTop;}return{l,t,r:l+el.offsetWidth,b:t+el.offsetHeight};};
  const lines=[...copy.querySelectorAll('.line>span')].map(place),first=lines[0],end=lines[lines.length-1],facts=place(copy.querySelector('.hero-sub'));
- // The free box. Wide screens: right of the title's short last line and from half-way down its long first one (on
- // screen the board is a diamond, so its top corner stands clear of the first line's end; see clearance), out over
- // the right edge and down to the sheet. Phones: between the title and the facts.
- const left=stacked?0:end.r+w*.02,right=stacked?w:w*1.04,top=stacked?end.b+4:(first.t+first.b)/2,bottom=stacked?Math.max(top+120,facts.t-12):heroH*.95;
+ // The free box. Wide screens: under the title's first line, which spans the hero, from the end of its short second
+ // line (on screen the board is a diamond: its near corner comes down beside the facts; see clearance) out over the
+ // right edge and down to the sheet. Phones: between the title and the facts.
+ const left=stacked?0:end.r-w*.03,right=stacked?w:w*1.04,top=stacked?end.b+4:first.b+h*.02,bottom=stacked?Math.max(top+120,facts.t-12):heroH*.97;
  const cx=(left+right)/2/w,cy=(top+bottom)/2/h,boxW=(right-left)/w*.82,boxH=(bottom-top)/h;
- const radius=Math.hypot(size.w,size.d)/2*FIT,tan=LAND;
+ const radius=Math.hypot(size.w,size.d)/2*(stacked?FIT_STACKED:FIT),tan=LAND;
  view={w,h,stacked,dist:Math.max(radius/(tan*boxH),radius/(tan*camera.aspect*boxW)),ox:-(cx-.5)*w,oy:-(cy-.5)*h};
  measure();
  wake();
@@ -731,17 +738,14 @@ function progress(){
  return scrollY>=dock-1?1:Math.max(0,scrollY/dock);
 }
 
-// Where the planner draws its week, in viewport pixels; null when the planner is not a grid (phones).
+// Where the planner draws its week, in viewport pixels; null when there is no grid to land on (phones, and a week
+// with no lessons yet: there the sheet simply slides over the board, and its own words are never under the canvas).
 function gridRect(){
- if(!grid.matches)return null;
- if(!calendarWrap.hidden){
-  const cols=calendarWrap.querySelectorAll('.day-column');
-  if(cols.length<5)return null;
-  const a=cols[0].getBoundingClientRect(),b=cols[4].getBoundingClientRect();
-  return a.height?{l:a.left,r:b.right,t:a.top,b:a.bottom,el:calendarWrap}:null;
- }
- if(!emptyState.hidden){const r=emptyState.getBoundingClientRect();return r.height?{l:r.left+24,r:r.right-24,t:r.top+24,b:r.bottom-24,el:emptyState}:null;}
- return null;
+ if(!grid.matches||calendarWrap.hidden)return null;
+ const cols=calendarWrap.querySelectorAll('.day-column');
+ if(cols.length<5)return null;
+ const a=cols[0].getBoundingClientRect(),b=cols[4].getBoundingClientRect();
+ return a.height?{l:a.left,r:b.right,t:a.top,b:a.bottom}:null;
 }
 
 // Group scale and offset that put the board's day grid exactly on R for a straight-down camera.
@@ -758,21 +762,18 @@ function setStage(opacity){
  if(q!==stageOp){stageOp=q;stage.style.opacity=q>=1?'':String(q);}
 }
 // The planner's own week takes over in two steps: its grid chrome (day heads, hour axis, lines) as the board
-// dissolves, its blocks only once the slabs sit exactly on them. The empty state has a single fade.
+// dissolves, its blocks only once the slabs sit exactly on them.
 function clearTarget(){
- if(!targetEl)return;
- targetEl.style.removeProperty('--chrome');targetEl.style.removeProperty('--blocks');targetEl.style.opacity='';
- targetEl=null;targetKey='';
+ if(!targeted)return;
+ calendarWrap.style.removeProperty('--chrome');calendarWrap.style.removeProperty('--blocks');
+ targeted=false;targetKey='';
 }
-function setTarget(el,chrome,blocks){
- if(targetEl!==el)clearTarget();
- if(!el)return;
- targetEl=el;
+function setTarget(chrome,blocks){
+ targeted=true;
  const c=Math.round(chrome*100)/100,b=Math.round(blocks*100)/100,next=c+'|'+b;
  if(next===targetKey)return;
  targetKey=next;
- if(el===calendarWrap){el.style.setProperty('--chrome',String(c));el.style.setProperty('--blocks',String(b));}
- else el.style.opacity=b>=1?'':String(b);
+ calendarWrap.style.setProperty('--chrome',String(c));calendarWrap.style.setProperty('--blocks',String(b));
 }
 // The canvas is cut away over the sheet's toolbar and stats band (and the rail), so the board slides under the
 // planner's chrome instead of across it; on phones the cut runs to the bottom, so the sheet covers the board.
@@ -780,7 +781,7 @@ function clipStage(R){
  const top=Math.round(planner.getBoundingClientRect().top),W=view.w,H=view.h;
  let holes='';
  if(top<H){
-  const bottom=R?Math.max(top,Math.round(R.el.getBoundingClientRect().top)):H;
+  const bottom=R?Math.max(top,Math.round(calendarWrap.getBoundingClientRect().top)):H;
   holes+=` M0 ${top}H${W}V${bottom}H0Z`;
   if(R&&!drawer.matches){const s=sidebar.getBoundingClientRect();if(s.width&&s.bottom>bottom)holes+=` M${Math.round(s.left)} ${bottom}H${Math.round(s.right)}V${Math.round(s.bottom)}H${Math.round(s.left)}Z`;}
  }
@@ -937,13 +938,15 @@ function step(now){
  camera.position.set(r*Math.cos(el)*Math.sin(az),r*Math.sin(el),r*Math.cos(el)*Math.cos(az));
  camera.lookAt(0,0,0);
  // Pan clear of the headline (pixels: right on wide screens, up on phones); fades out as the board lands.
- const need=e<.99?clearance():0;
+ // Measured only with the page at rest at the top: once it scrolls, the copy leaves with the hero and the board keeps
+ // the pan it had, which the landing then fades (as does the still picture of reduced motion).
+ const need=e<.99&&scrollY<2?clearance():CLEAR;
  // The pan follows the drifting outline every frame; only a real pan (resize, zoom: fast) counts as movement, so the
  // shadow pass can still rest while it tracks the slow drift.
- if(still)springs.push.x=need;else{spring(springs.push,need,220,30,dt);moving=moving||Math.abs(springs.push.v)>24;}
- if(springs.push.x>.5){
-  const s=springs.push.x*calm;
-  camera.setViewOffset(view.w,view.h,view.ox*calm-(view.stacked?0:s),view.oy*calm+(view.stacked?s:0),view.w,view.h);
+ if(still){springs.push.x=need.x;springs.drop.x=need.y;}
+ else{spring(springs.push,need.x,220,30,dt);spring(springs.drop,need.y,220,30,dt);moving=moving||Math.abs(springs.push.v)+Math.abs(springs.drop.v)>24;}
+ if(Math.abs(springs.push.x)+Math.abs(springs.drop.x)>.5){
+  camera.setViewOffset(view.w,view.h,(view.ox-springs.push.x)*calm,(view.oy-springs.drop.x)*calm,view.w,view.h);
   camera.updateProjectionMatrix();
  }
  // The key light leans with the pointer (on the same springs as the camera), so highlights slide across the clearcoat
@@ -962,7 +965,7 @@ function step(now){
  handed=handover===want;
  if(!handed)moving=true;
  const land=handover;
- setTarget(R?.el||null,chrome,land);
+ if(R)setTarget(chrome,land);else clearTarget();
  setStage(1-land);
  // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while any is still leaving.
  if(!still){if(rising){if(clip){clip='';stage.style.clipPath='';}}else clipStage(R);}

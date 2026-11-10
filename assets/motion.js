@@ -21,12 +21,23 @@
  // A key can start a native jump (focus, find, Page Down) mid-glide: the glide must not pull the page back from it.
  addEventListener('keydown',()=>{if(tick)lenis?.reset();},true);
  // Whether the sheet has reached the header, as a class: for engines without scroll timelines and for reduced motion,
- // which both lose the CSS scroll animations (styles.css), and for the browser bar's colour (applyTheme in index.html).
- const planner=document.getElementById('planner');
- if(planner)new IntersectionObserver(([entry])=>{document.documentElement.classList.toggle('scroll-docked',entry.isIntersecting);globalThis.applyTheme?.();},{rootMargin:'0px 0px -80%'}).observe(planner);
+ // which both lose the CSS scroll animations (styles.css), for the header's ink over a light field in the dark theme,
+ // and for the browser bar's colour (applyTheme in index.html). The line the sheet crosses is the middle of the
+ // header's fade (styles.css, dock: 160px to 20px under the bar), so the bar's ink and its ground change together.
+ const planner=document.getElementById('planner'),root=document.documentElement;
+ let docking=null,margin=1;
+ const watchDock=()=>{
+  const line=parseFloat(getComputedStyle(root).getPropertyValue('--bar'))+90,next=Math.min(0,line-innerHeight);
+  // Phones resize on every address-bar move: only a changed line needs a new observer.
+  if(next===margin)return;
+  margin=next;docking?.disconnect();
+  docking=new IntersectionObserver(([entry])=>{root.classList.toggle('scroll-docked',entry.isIntersecting);globalThis.applyTheme?.();},{rootMargin:`0px 0px ${margin}px`});
+  docking.observe(planner);
+ };
+ if(planner){watchDock();addEventListener('resize',watchDock);}
  // Resolved from this script's own URL; inlined into an HTML backup it has none, and the 3D (never loadable from a
  // saved file) is skipped.
- let week3d=null;try{week3d=new URL('week3d.js?v=poster1',document.currentScript.src).href;}catch{}
+ let week3d=null;try{week3d=new URL('week3d.js?v=revamp2',document.currentScript.src).href;}catch{}
  const can3d=week3d&&document.getElementById('week3d')&&'WebGL2RenderingContext' in window;
  // No 3D, no skeleton waiting for it in the hero.
  const no3d=()=>document.documentElement.classList.remove('has-3d');

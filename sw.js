@@ -6,7 +6,8 @@
 //   into view and every half hour. A changed page has its files fetched first, then becomes current and open pages
 //   are told, so the "new version" reload is instant and works offline. The previous version's files are kept for
 //   tabs still open on it.
-// - Everything cross-origin (the timetable refresh goes through public proxies) and anything but GET is left alone.
+// - Everything cross-origin (the timetable refresh goes through public proxies), anything but GET and ranged requests
+//   (the film in the steps row, which index.html names without a leading ./ so it is not fetched ahead) are left alone.
 // Kill switch: if this file ever misbehaves, publish one whose install/activate call self.registration.unregister().
 const CACHE='thmmy-planner-1',SCOPE=new URL('./',self.location).href,INDEX=SCOPE;
 
@@ -45,6 +46,8 @@ self.addEventListener('activate',event=>event.waitUntil((async()=>{
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  if(request.method!=='GET'||!request.url.startsWith(SCOPE))return;
+ // Video is asked for in byte ranges, and a partial response cannot be cached: the film is left to the network.
+ if(request.headers.has('range'))return;
  if(request.mode==='navigate'){
   // The planner is one page: any query on it gets the cached page; other in-scope documents go to the network.
   if(url.pathname===new URL(SCOPE).pathname||url.pathname===new URL('index.html',SCOPE).pathname)event.respondWith(page());

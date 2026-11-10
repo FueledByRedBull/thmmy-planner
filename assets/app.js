@@ -150,6 +150,21 @@ const rootStyle=getComputedStyle(document.documentElement),EASE=rootStyle.getPro
 const SPRING=rootStyle.getPropertyValue('--spring').trim();
 let justToggled='',renderedSeason='';
 const heroSub=document.querySelector('.hero-sub'),heroDefault=heroSub.textContent;
+// The hero's sentence: what the chosen week holds at this moment, read off the timetable alone (it knows no holidays
+// or exam weeks). Empty with no lessons chosen.
+function nowLine(date=new Date()){
+ const day=(date.getDay()+6)%7,minute=date.getHours()*60+date.getMinutes();
+ const events=activeEvents().slice().sort((a,b)=>a.day-b.day||a.start-b.start);
+ if(!events.length)return '';
+ const what=e=>{const c=course(e.courseId);return `${c?c.name:e.courseId}${e.room?', '+e.room:''}.`;};
+ const current=events.find(e=>e.day===day&&e.start<=minute&&minute<e.end);
+ if(current)return `Τώρα, ως τις ${time(current.end)}: ${what(current)}`;
+ const later=events.find(e=>e.day===day&&e.start>minute);
+ if(later)return `Σήμερα στις ${time(later.start)}: ${what(later)}`;
+ const next=events.find(e=>e.day>day)||events[0];
+ return `${(next.day-day+7)%7===1?'Αύριο':DAYS[next.day]} στις ${time(next.start)}: ${what(next)}`;
+}
+const showNow=()=>{const text=nowLine()||heroDefault;if(heroSub.textContent!==text)heroSub.textContent=text;};
 // Leave the way it came in, then hide; instant under reduced motion. The fill holds the last frame until hidden.
 function exit(el,to,hide,duration=160){
  if(reducedMotion.matches){hide();return;}
@@ -289,7 +304,7 @@ function renderSchedule(){
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id)),hadConflicts=parseInt($('conflictStat').dataset.text)>0;
  document.querySelector('.stats').classList.toggle('is-empty',!chosen().length);
  $('conflictJump').setAttribute('aria-label',`Επικαλύψεις: ${pairs.length}. Μετάβαση στον έλεγχο προγράμματος`);
- heroSub.textContent=chosen().length?`${chosen().length===1?'1 μάθημα':chosen().length+' μαθήματα'} · ${(Math.round(contactMinutes(events)/6)/10).toLocaleString('el-GR')} ώρες · ${pairs.length?(pairs.length===1?'1 επικάλυψη':pairs.length+' επικαλύψεις'):'χωρίς επικαλύψεις'}.`:heroDefault;
+ showNow();
  const noLab=chosen().map(course).filter(c=>c&&needsLab(c));
  // Also on the printed sheet: a week without its labs must say so on paper.
  $('labNote').hidden=!noLab.length;$('labNote').innerHTML=noLab.length?`${icon('warn')}<span>Χωρίς εργαστήριο στο πρόγραμμα: ${noLab.map(c=>`<button class="link-button" data-detail="${esc(c.id)}">${esc(c.id)}</button>`).join(', ')}. Οι ώρες και οι επικαλύψεις δεν το μετρούν ακόμα.</span>`:'';
@@ -405,7 +420,10 @@ function renderChecks(pairs){
  $('checkContent').innerHTML=`<p><b>Προς δήλωση: ${planned.length} μαθήματα</b>${review.length?` · ${review.length} προς έλεγχο, εκτός υπολογισμού δήλωσης`:""}${passed.length?` · ${passed.length} ${passed.length===1?'περασμένο':'περασμένα'}, μόνο στο ωρολόγιο`:''}.</p><p class="subtle">${credits} γνωστά ECTS προς δήλωση${unknown?` · ${unknown} μαθήματα με άγνωστα ECTS`:''}. Οι ώρες και οι επικαλύψεις περιλαμβάνουν όλα τα μαθήματα του ωρολογίου, μαζί με τα προς έλεγχο και τα περασμένα. Οι ώρες μετρούν τον χρόνο παρουσίας χωρίς διπλή μέτρηση επικαλύψεων. Οι επικαλύψεις μετρούν ζεύγη συναντήσεων.</p>`+(issues.length?issueGroups:`<p class="subtle">Δεν εντοπίστηκαν ενδείξεις με τα καταχωρισμένα στοιχεία.</p>${selected.length?'<p><button class="primary" data-print>Εκτύπωση προγράμματος</button></p>':''}`)+'<p class="subtle">Συμβουλευτικός έλεγχος με βάση τον οδηγό 2024-25 και τους τρέχοντες μεταβατικούς κανόνες δήλωσης για εισαγωγή από 2023-24 (έλεγχος 18/09/2026). Δεν πιστοποιεί δικαίωμα δήλωσης. Η ανανέωση αφορά το ωρολόγιο και τον κατάλογο, όχι τους κανόνες του οδηγού. <button class="link-button" data-guide>Πεδίο ελέγχων και πηγές</button></p>';
 }
 function render(){
- for(const b of document.querySelectorAll('[data-season]'))b.setAttribute('aria-pressed',String(b.dataset.season===state.season));
+ for(const b of document.querySelectorAll('button[data-season]'))b.setAttribute('aria-pressed',String(b.dataset.season===state.season));
+ // The poster's field is the season's colour (styles.css); the key lets index.html colour the very first paint.
+ const root=document.documentElement;
+ if(root.dataset.season!==state.season){root.dataset.season=state.season;try{localStorage.setItem('thmmy-planner-season',state.season);}catch{}globalThis.applyTheme?.();}
  const snapshot=data[state.season];$('syncMeta').textContent='Τελευταία ενημέρωση: '+dateText(snapshot.fetchedAt);
  // The printed title says which season and data date it shows (styles.css, print).
  $('scheduleTitle').dataset.print=document.querySelector(`.season-switch [data-season="${state.season}"]`).textContent+' · πηγή '+dateText(snapshot.fetchedAt);
@@ -416,6 +434,8 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
+ // The back pages' two live figures; an HTML backup leaves those pages (and their pictures) out.
+ if($('stepsCatalog')){$('stepsCatalog').textContent=data.catalog.length;$('placeMeta').textContent=dateText(snapshot.fetchedAt);}
  renderList();renderSchedule();renderSources();
 }
 function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
@@ -558,6 +578,8 @@ async function downloadCopy(){
  try{
  const root=document.documentElement.cloneNode(true),json=v=>JSON.stringify(v).replace(/</g,'\\u003c');root.querySelector('#initial-data').textContent=json(data);root.querySelector('#guide-data').textContent=json(GUIDE);root.querySelector('#initial-state').textContent=json({...state,storageId:crypto.randomUUID()});root.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));root.querySelector('#notice').hidden=true;root.querySelector('#updateReport').hidden=true;root.querySelector('#refresh').disabled=false;
  root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelector('.dock-mark')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
+ // The back pages are pictures and a film, which a single file cannot carry: the copy is the planner alone.
+ root.querySelectorAll('.poster').forEach(section=>section.remove());
  const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status+'.');return response;};
  await Promise.all([
   ...[...root.querySelectorAll('script[src]')].map(async script=>{const code=await(await fetchAsset(new URL(script.getAttribute('src'),document.baseURI))).text();script.removeAttribute('src');script.textContent=code;}),
@@ -691,7 +713,7 @@ $('theme').onchange=()=>{
 for(let i=1;i<=10;i++)$('semesterFilter').add(new Option(`${i}ο εξάμηνο`,i));for(let i=1;i<=16;i++)$('studySemester').add(new Option(i===16?'16ο ή μεταγενέστερο':`${i}ο εξάμηνο`,i));
 // event.detail is 0 for keyboard activation: those stay instant, with no morph or flight.
 let detailOpener=null;
-document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail){detailOpener={event:b.dataset.event,detail:b.dataset.detail};if(event.detail===0)openDetail(b.dataset.detail);else morphOpen(b,b.dataset.detail);}else if(b.dataset.toggle)toggleCourse(b.dataset.toggle,event.detail!==0);else if(b.hasAttribute('data-show-all')){$('semesterFilter').value='';$('listFilter').value='all';renderList();}else if(b.hasAttribute('data-open-passed'))openProfile(true);else if(b.hasAttribute('data-open-profile'))openProfile();else if(b.hasAttribute('data-print'))window.print();else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;state.season=next;persist();render();}});
+document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.detail){detailOpener={event:b.dataset.event,detail:b.dataset.detail};if(event.detail===0)openDetail(b.dataset.detail);else morphOpen(b,b.dataset.detail);}else if(b.dataset.toggle)toggleCourse(b.dataset.toggle,event.detail!==0);else if(b.hasAttribute('data-show-all')){$('semesterFilter').value='';$('listFilter').value='all';renderList();}else if(b.hasAttribute('data-open-passed'))openProfile(true);else if(b.hasAttribute('data-open-profile'))openProfile();else if(b.hasAttribute('data-print'))window.print();else if(b.dataset.resetMeetings)resetMeetings(b.dataset.resetMeetings);else if(b.dataset.close)closeDialog($(b.dataset.close));else if(b.hasAttribute('data-guide'))$('guideDialog').showModal();else if(b.hasAttribute('data-sources'))$('sourcesDialog').showModal();else if(b.hasAttribute('data-transfer'))$('transferButton').click();else if(b.classList.contains('step-name'))openStep(b.closest('.step'),event.detail!==0);else if(b.dataset.season){const next=b.dataset.season;if(next===state.season)return;state.season=next;persist();render();}});
 // Escape closes through the same exit. The browser only lets the page delay it after a click or key that opened it.
 for(const dialog of document.querySelectorAll('dialog')){
  dialog.addEventListener('cancel',event=>{if(!event.cancelable)return;event.preventDefault();closeDialog(dialog);});
@@ -717,6 +739,34 @@ $('search').addEventListener('keydown',event=>{if(event.key!=='Enter')return;con
 $('sourcesButton').onclick=()=>$('sourcesDialog').showModal();$('guideButton').onclick=()=>$('guideDialog').showModal();$('provider').onchange=e=>{state.provider=e.target.value;persist();};$('refresh').onclick=refresh;$('importFile').onchange=importHtml;$('saveCopy').onclick=downloadCopy;$('printButton').onclick=()=>window.print();
 // The course rail: docked beside the week on wide screens; up to 1180px a drawer (side panel on tablets,
 // bottom sheet on phones). The floating button reaches it from anywhere in a long week.
+// The steps row: one panel is open at a time. The row re-flows at once; for a pointer, where the browser can, a view
+// transition carries the change (snapshots moved by the compositor), so no layout property is ever animated. Opened
+// from the keyboard it simply changes.
+const steps=[...document.querySelectorAll('.step')],film=document.querySelector('.step video');
+function openStep(step,animate){
+ if(step.classList.contains('open'))return;
+ const swap=()=>{for(const s of steps){const on=s===step;s.classList.toggle('open',on);s.querySelector('.step-name').setAttribute('aria-expanded',String(on));}playFilm();};
+ const root=document.documentElement;
+ if(!animate||!document.startViewTransition||reducedMotion.matches||printLayoutActive){swap();return;}
+ root.dataset.vt='steps';
+ document.startViewTransition(swap).finished.finally(()=>{if(root.dataset.vt==='steps')delete root.dataset.vt;});
+}
+// The film of the week being dealt plays only while its panel is open and on screen, and never under reduced motion
+// (there it keeps its poster and gets the browser's own controls).
+let filmSeen=false;
+function playFilm(){
+ if(!film)return;
+ const on=filmSeen&&film.closest('.step').classList.contains('open')&&!reducedMotion.matches&&document.visibilityState==='visible';
+ film.controls=reducedMotion.matches;
+ if(on)film.play().catch(()=>{});else film.pause();
+}
+if(film){
+ new IntersectionObserver(([entry])=>{filmSeen=entry.isIntersecting;playFilm();},{threshold:.35}).observe(film);
+ reducedMotion.addEventListener('change',playFilm);document.addEventListener('visibilitychange',playFilm);
+}
+// The hero's sentence follows the clock.
+setInterval(()=>{if(document.visibilityState==='visible')showNow();},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')showNow();});
 const drawerMode=matchMedia('(max-width:1180px)'),phone=matchMedia('(max-width:860px)');
 let railOpener=null;
 function railOpen(){return drawerMode.matches?document.body.classList.contains('rail-open'):!document.body.classList.contains('wide-layout');}
