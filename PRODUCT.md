@@ -27,22 +27,23 @@ It is built on the department's own published timetables (e-ce.uth.gr) and study
 
 ## Capabilities and Constraints
 
-- The capabilities are course catalog search and filters (semester, offered/selected/all/passed), fall/spring season switch, and a week calendar with overlap detection. The app also offers color by semester or course, course detail dialogs, a study profile, a program/registration check panel, a study-guide rules dialog, sources and refresh, data transfer (export/import code), a self-contained HTML copy download, a light/dark/system theme, and print.
+- The capabilities are course catalog search and filters (semester, offered/selected/all/passed), fall/spring season switch, and a week calendar with overlap detection. The app also offers color by semester or course, course detail dialogs, a study profile, a program/registration check panel, a study-guide rules dialog, sources and refresh, data transfer (export/import code), a self-contained HTML copy download (the planner alone, without the back pages), a light/dark/system theme, and print.
 - **Must keep working:** the GitHub Pages version (static `index.html` + `assets/` + `data/`) and print/PDF output.
 - The standalone `THMMY-programma.html` is not a required target and may drift from the redesigned version.
-- Keep the footprint small: no new dependencies, fonts or font weights without the owner's say. The CSP in `index.html` limits scripts, styles, and fonts to self-hosted assets, so any new asset must be vendored or the CSP updated deliberately.
+- Keep the footprint small: no new dependencies, fonts or font weights without the owner's say. The CSP in `index.html` limits scripts, styles, fonts, pictures and media to self-hosted assets, so any new asset must be vendored or the CSP updated deliberately.
 - The UI language is Greek (`lang="el"`), and all copy is Greek.
 
 ## Brand Commitments
 
 - Name: "Η εβδομάδα μου · ΤΗΜΜΥ". The ΗΜΜΥ mark and the "ΠΑΝΕΠΙΣΤΗΜΙΟ ΘΕΣΣΑΛΙΑΣ" line appear in the current masthead.
 - Voice: short, direct, second-person Greek ("Διάλεξε μαθήματα. Δες πώς συναντιούνται μέσα στην εβδομάδα.").
-- The look is established and documented in DESIGN.md (Geologica, neutral studio greys, one neon-pink accent, saturated per-course colours, pill controls, the 3D board hero that morphs into the 2D week). Polish within it; do not redesign.
+- The look is documented in DESIGN.md and is a poster: flat fields of colour (yellow for the winter semester, green for the spring), no gradients, glows or shadows at rest, type at poster scale (Geologica), one neon-pink accent, saturated per-course colours, pill controls, real pictures (the planner's own screens and found photographs of Volos, credited where they stand), and the 3D board hero that morphs into the 2D week. The owner ordered this direction, replacing the earlier studio-grey look; polish within it, and treat a new direction as the owner's call. A blue winter field was tried and rejected by the owner; it does not return.
 
 ## Evidence on Hand
 
 - `data/courses.json` holds the catalog plus fall and spring timetables. `data/guide.json` holds the 2024–25 study-guide rules, checks, and uncertainties.
 - Self-hosted Geologica (Greek and Latin subsets, variable 300-800) is in `assets/fonts/`. Noto Sans is only named in the font stack as a fallback; it is not bundled.
+- The back pages' found pictures come from Wikimedia Commons: one photograph under CC BY-SA 3.0 and three public-domain postcards. Their credits stand next to them and in the README.
 - There are no testimonials, usage numbers, or endorsements. Do not fabricate any, and do not imply the department officially endorses the app.
 
 ## Product Principles

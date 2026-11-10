@@ -83,7 +83,7 @@ The 3D week loads after the page is ready and compiles its shaders, the studio r
 ## Project structure
 
 ```text
-index.html                the page: app shell, preloads, content security policy
+index.html                the page: app shell, back pages, preloads, content security policy
 sw.js                     service worker: instant repeat visits, offline use, update prompt
 manifest.webmanifest      install metadata
 assets/
@@ -95,12 +95,14 @@ assets/
   vendor/lenis.min.js
   fonts/                  Geologica subsets, with OFL.txt
   icons/                  app icons
+  img/                    the back pages' pictures: planner screens (step-*, film-poster) and found photographs of Volos
+  film/                   week.webm, the film of the week being dealt (steps row)
 data/
   courses.json            catalogue and timetables, refreshed nightly
   guide.json              study-guide rules behind the checks
 src/week3d.js             source of the 3D week (Three.js)
 scripts/refresh-data.mjs  the nightly data refresh
-scripts/screenshots.mjs   retakes the images in docs/screenshots (node scripts/screenshots.mjs <local URL>)
+scripts/screenshots.mjs   retakes the images in docs/screenshots (node scripts/screenshots.mjs <local URL>); with --page, the page's own pictures and film in assets/img and assets/film
 scripts/*.test.mjs        tests: week logic and transfer codes (app.test), the source parser in headless Chrome (parser.test)
 .github/workflows/        refresh-data.yml (nightly data), tests.yml (node --test on every push)
 docs/screenshots/         images for this README
@@ -123,6 +125,8 @@ python -m http.server 8000
 npm install --no-save esbuild@0.28.2 three@0.186.1
 npx esbuild src/week3d.js --bundle --minify --format=esm --legal-comments=eof --outfile=assets/week3d.js
 ```
+
+**The page's own pictures and film.** `assets/img/step-*.webp`, `assets/img/film-poster.webp` and `assets/film/week.webm` show the planner itself (dark theme, sample week). After a visible change to the planner or to the hero's field, serve the folder and run `node scripts/screenshots.mjs <local URL> --page` (Node 22 or newer and Chrome, as for the other screenshots), then bump their `?v=` in `index.html`. The film's address has no leading `./` on purpose, so the service worker does not fetch it ahead of time; it streams when its panel is opened.
 
 **The data refresh** runs locally too (Node 22 or newer and Chrome; set `CHROME_PATH` if Chrome is not in its usual place):
 
@@ -148,6 +152,9 @@ Design decisions live in [`DESIGN.md`](DESIGN.md) and [`PRODUCT.md`](PRODUCT.md)
 - Timetables and catalogue: the public pages of the department at [e-ce.uth.gr](https://www.e-ce.uth.gr/).
 - [Geologica](https://github.com/googlefonts/geologica), SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
 - [Three.js](https://threejs.org/) (MIT, notice at the end of `assets/week3d.js`), [Lenis](https://github.com/darkroomengineering/lenis) (MIT) and [Tabler Icons](https://tabler.io/icons) (MIT).
+- Pictures on the page's back pages, all from Wikimedia Commons and converted to WebP for the page:
+  - *Το Πανεπιστήμιο Θεσσαλίας (οι πρώην καπναποθήκες Παπαστράτου) στην παραλία του Βόλου*, a photograph by Ioannis Houvardas, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0) ([source](https://commons.wikimedia.org/wiki/File:%CE%A4%CE%BF_%CE%A0%CE%B1%CE%BD%CE%B5%CF%80%CE%B9%CF%83%CF%84%CE%AE%CE%BC%CE%B9%CE%BF_%CE%98%CE%B5%CF%83%CF%83%CE%B1%CE%BB%CE%AF%CE%B1%CF%82_(%CE%BF%CE%B9_%CF%80%CF%81%CF%8E%CE%B7%CE%BD_%CE%BA%CE%B1%CF%80%CE%BD%CE%B1%CF%80%CE%BF%CE%B8%CE%AE%CE%BA%CE%B5%CF%82_%CE%A0%CE%B1%CF%80%CE%B1%CF%83%CF%84%CF%81%CE%AC%CF%84%CE%BF%CF%85)_%CF%83%CF%84%CE%B7%CE%BD_%CF%80%CE%B1%CF%81%CE%B1%CE%BB%CE%AF%CE%B1_%CF%84%CE%BF%CF%85_%CE%92%CF%8C%CE%BB%CE%BF%CF%85_-_panoramio.jpg)).
+  - Three postcards of Volos, public domain: *Aspiotis 363*, *Volos street scene c1910* and *Stefanos Stournaras Volos Quai No378 c1920 (front)*.
 
 This is an unofficial tool. The official course declaration is made in the university's Electronic Secretariat (Ηλεκτρονική Γραμματεία).
 

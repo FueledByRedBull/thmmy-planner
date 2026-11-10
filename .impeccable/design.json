@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-04T12:00:00Z",
+  "generatedAt": "2026-11-10T12:00:00Z",
   "title": "Design System: Η εβδομάδα μου · ΤΗΜΜΥ",
   "extensions": {
     "colorMeta": {
@@ -356,20 +356,36 @@
           "#ffe9e7"
         ]
       },
-      "studio-floor": {
-        "role": "neutral",
-        "displayName": "Studio Floor",
-        "canonical": "#e2e2e2",
-        "oklch": "oklch(91.3% 0.000 89.9)",
+      "field-winter": {
+        "role": "secondary",
+        "displayName": "Field Winter",
+        "canonical": "#ffd23f",
+        "oklch": "oklch(87.9% 0.162 90.9)",
         "tonalRamp": [
-          "#0b0b0b",
-          "#242424",
-          "#404040",
-          "#5d5d5d",
-          "#808080",
-          "#a4a4a4",
-          "#cacaca",
-          "#eeeeee"
+          "#100a00",
+          "#2e2300",
+          "#4f3e01",
+          "#725b04",
+          "#9b7c07",
+          "#c7a00d",
+          "#f2c62c",
+          "#ffeebd"
+        ]
+      },
+      "field-spring": {
+        "role": "secondary",
+        "displayName": "Field Spring",
+        "canonical": "#a7ff9c",
+        "oklch": "oklch(92.1% 0.156 141.7)",
+        "tonalRamp": [
+          "#001000",
+          "#032d00",
+          "#094e02",
+          "#147207",
+          "#409637",
+          "#67bc5d",
+          "#8de483",
+          "#ccffc5"
         ]
       },
       "close": {
@@ -724,20 +740,20 @@
           "#fee9e8"
         ]
       },
-      "dark-studio-floor": {
-        "role": "neutral",
-        "displayName": "Dark studio Floor",
-        "canonical": "#050505",
-        "oklch": "oklch(11.5% 0.000 89.9)",
+      "dark-field-spring": {
+        "role": "secondary",
+        "displayName": "Dark field Spring",
+        "canonical": "#0a6436",
+        "oklch": "oklch(44.3% 0.108 153.8)",
         "tonalRamp": [
-          "#0b0b0b",
-          "#242424",
-          "#404040",
-          "#5d5d5d",
-          "#808080",
-          "#a4a4a4",
-          "#cacaca",
-          "#eeeeee"
+          "#001004",
+          "#002d14",
+          "#024d28",
+          "#1c6f40",
+          "#459362",
+          "#6bb885",
+          "#91e0aa",
+          "#c6ffd6"
         ]
       },
       "dark-close": {
@@ -904,11 +920,11 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Two-line hero headline only, at poster size in weight 800; line-mask reveal, each line standing up toward the reader."
+        "purpose": "Two-line hero headline only, at poster size in weight 800, one row per line; the first line runs margin to margin; line-mask reveal, each line standing up toward the reader."
       },
-      "display-phone": {
-        "displayName": "Display (phone)",
-        "purpose": "Hero headline at 860px and below."
+      "poster-heading": {
+        "displayName": "Poster Heading",
+        "purpose": "Back-page headings (steps, postcards), weight 800."
       },
       "stat": {
         "displayName": "Stat",
@@ -918,13 +934,49 @@
         "displayName": "Stat (phone)",
         "purpose": "Week totals at 860px and below."
       },
-      "title-lg": {
-        "displayName": "Title Large",
-        "purpose": "Empty-state title."
+      "panel-heading": {
+        "displayName": "Panel Heading",
+        "purpose": "The open step's name and the place panel's heading, weight 800."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Dialog titles, panel headings (course rail, weekly schedule) and the empty-state title."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The hero's sentence (what the week holds now, or the invitation), max 30ch; 18px on phones. Closed step names are 20px 700."
       },
       "title-sm": {
         "displayName": "Title Small",
         "purpose": "Checks summary and dialog subheads."
+      },
+      "poster-text": {
+        "displayName": "Poster Text",
+        "purpose": "Back-page paragraphs, max 44ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text at 16px with tabular figures; everything read as text in the planner; paragraphs at 1.6 line height."
+      },
+      "note": {
+        "displayName": "Note",
+        "purpose": "Subtle text, stat captions, footer."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons, selects, menu items, season switch."
+      },
+      "event-title": {
+        "displayName": "Event Title",
+        "purpose": "Course names inside event blocks."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Day-head meta, sync time, tooltips, photograph credits."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Tags, badges, counters; sentence case."
       },
       "print-title": {
         "displayName": "Print Title",
@@ -945,38 +997,6 @@
       "print-meta": {
         "displayName": "Print Meta",
         "purpose": "Print only: event times, rooms, day meta."
-      },
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Dialog titles."
-      },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Panel headings: course rail, weekly schedule."
-      },
-      "lede": {
-        "displayName": "Lede",
-        "purpose": "Hero sub-sentence (the week's facts once courses are chosen), max 40ch."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Default text, tabular figures; paragraphs at 1.6 line height."
-      },
-      "control": {
-        "displayName": "Control",
-        "purpose": "Buttons, selects, menu items, season switch."
-      },
-      "event-title": {
-        "displayName": "Event Title",
-        "purpose": "Course names inside event blocks."
-      },
-      "meta": {
-        "displayName": "Meta",
-        "purpose": "Course meta, sync time, footer, tooltips."
-      },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Tags, badges, counters; sentence case."
       }
     },
     "shadows": [
@@ -990,7 +1010,7 @@
         "name": "floating",
         "value": "0 32px 64px -24px #0e0e0e40,0 6px 16px -6px #0e0e0e17",
         "dark": "0 36px 72px -28px #000,0 6px 16px -6px #000a",
-        "purpose": "Dialogs, menus, rail drawer, rail button, update toast, and the shadow a dealt block presses down from."
+        "purpose": "Dialogs, menus, rail drawer, update toast, and the shadow a dealt block presses down from."
       },
       {
         "name": "highlight",
@@ -1027,8 +1047,8 @@
       },
       {
         "name": "flight",
-        "value": "660ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
-        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()), swelling toward the viewer mid-flight (scale 1 -> 1.2 -> 1 over the flight) and coming down onto its slot; the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block is revealed with the press-in (block-deal) at +600ms, the flight's landing. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
+        "value": "420ms; x cubic-bezier(.55,0,.3,1), y cubic-bezier(.2,.8,.25,1)",
+        "purpose": "Added course flies on an arc from its rail swatch into each new slot (fly()), swelling toward the viewer mid-flight (scale 1 -> 1.2 -> 1 over the flight) and coming down onto its slot; the ghost starts at a 3px corner (swatch-like) and opens to 10px in flight, then the block is revealed with the press-in (block-deal) at +380ms, as the flight lands. A ghost whose course is deselected or whose season is left mid-flight is removed. The 3px is a motion detail, not a radius token."
       },
       {
         "name": "season-redeal",
@@ -1057,7 +1077,7 @@
       },
       {
         "name": "clash-pulse",
-        "value": "outline-offset -2px -> -6px -> -2px, 400ms there-and-back, once; delay = landing (600ms + stagger after a flight, 150ms + stagger after a dealt block)",
+        "value": "outline-offset -2px -> -6px -> -2px, 400ms there-and-back, once; delay = landing (380ms + stagger after a flight, 150ms + stagger after a dealt block)",
         "purpose": "Only a block already on the week that has just become conflicting pulses; the newcomer never does. Same season only."
       },
       {
@@ -1068,17 +1088,17 @@
       {
         "name": "hero-reveal",
         "value": "line-in .9s var(--ease) from translateY(110%) rotateX(64deg) about the baseline (900px perspective on the mask), .1s/.19s stagger; sub and CTA fade-up .6s at .3s/.38s; sheet-in 1.2s at .36s from translateY(9svh)",
-        "purpose": "First-viewport entrance: the poster's title stands up line by line at the top left, the facts and the action rise at the foot, and the sheet slides up under them."
+        "purpose": "First-viewport entrance: the poster's title stands up line by line at the top left, the sentence and the action rise at the foot, and the sheet slides up under them."
       },
       {
         "name": "scroll-linked",
-        "value": "animation-timeline: scroll(root)",
-        "purpose": "Hero copy recedes over 60svh (scale .9 about its top-left corner, 4svh up, fading out), the header's sheet-coloured ground fades in (no edge line) as the sheet docks, rail button rises as the sheet docks."
+        "value": "animation-timeline: scroll(root); animation-range: calc(var(--dock) - var(--bar) - 160px) to calc(var(--dock) - var(--bar) - 20px)",
+        "purpose": "The header's sheet-coloured ground fades in over the bar (no edge line) as the sheet docks. Where scroll timelines are missing, and under reduced motion, assets/motion.js sets .scroll-docked instead (an IntersectionObserver whose line is the bar height plus 90px, the middle of the fade, rebuilt on resize): the ground then fades over 180ms, or at once, and in the dark theme over the winter field the bar's ink changes from the field's dark ink to the theme's with it."
       },
       {
         "name": "scroll-morph",
         "value": "p follows the scroll on a critically damped spring (k 160, c 25.3), never 1:1, so a fast or back-and-forth scroll plays at the motion's own pace; e = smooth((p - .04) / .84); labels out e .35-.65; board/edges dissolve e .55-.95; slab tops to flat fill e .3-.9; planner chrome in e .82-.97 (--chrome); blocks crossfade p .9-1 (--blocks), held at 0 while a deal or throw runs (a dealt block shows on its own via --dealt); the crossfade share itself is eased (16/s), so it never pops when a deal or throw ends",
-        "purpose": "Above 860px the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns, the lens closing from 36 to 24 degrees with e (lerped) while the camera backs off to match (a dolly zoom: the board keeps its size, its perspective drains out; the landing stays exact); slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet. Focus in the week or print forces the 2D week visible."
+        "purpose": "Above 860px, with lessons chosen (an empty week has no grid to land on: gridRect() is null and the sheet slides over the board), the fixed 3D stage (z 2, pointer-events none, clip-path path evenodd cutting the toolbar/stats band and docked rail) swings the camera straight down and lands the board on the live rect of the planner day columns, the lens closing from 36 to 24 degrees with e (lerped) while the camera backs off to match (a dolly zoom: the board keeps its size, its perspective drains out; the landing stays exact); slabs flatten (y scale .03) and take the exact flat fill of their blocks (emissive = DOM fill; albedo, clearcoat and env drop). Docked: stage hidden, rendering stops until a 1px .dock-mark just above the docking point (placed by measure(), watched by an IntersectionObserver; hidden in print, removed from the HTML backup) comes into view, a resize, or the drawer closing. Reverses on scroll up. Phones: tilt-away under the sheet (the stage is under it, z 0). Reduced motion: the still picture scrolls away with the hero, under the sheet. Focus in the week or print forces the 2D week visible."
       },
       {
         "name": "free-view",
@@ -1093,12 +1113,12 @@
       {
         "name": "drawer-handoff",
         "value": "body.rail-open",
-        "purpose": "Open tablet drawer or phone sheet: 3D stage hidden and not rendered (treated as docked); planner forced fully in (--chrome:1, --blocks:1, empty state opaque) so the fixed layer never draws over the drawer."
+        "purpose": "Open tablet drawer or phone sheet: 3D stage hidden and not rendered (treated as docked); planner forced fully in (--chrome:1, --blocks:1) so the fixed layer never draws over the drawer."
       },
       {
         "name": "copy-clearance",
-        "value": "spring pan; each part of the copy (a title line, the facts, the button) cleared on its own: board quad >= 12px right of that part at its own height (12px above the facts on phones); fades out as e rises",
-        "purpose": "Keeps title, facts and action in front at any orbit or zoom; the board's corner may stand under the title's long first line, beside the short second one. The home pose needs no pan."
+        "value": "springs push (x) and drop (y), only with the page at rest at the top (scrollY < 2); wide: board quad pushed down until it stands under the title's first line (3% of the height clear), then right until 12px clear of each other part at its own height; phones: pushed up to stay 12px above the sentence; fade out as e rises",
+        "purpose": "Keeps title, sentence and action in front at any orbit or zoom; the board stays under the title's long first line and beside the short second one. The home pose needs no pan. Once the page scrolls the copy leaves with the hero and the pan goes with it (the reduced-motion still picture keeps the pan it had)."
       },
       {
         "name": "slab-height",
@@ -1112,7 +1132,7 @@
       },
       {
         "name": "ring-trace",
-        "value": ".8s ease infinite alternate, outline-offset -3px to -6px",
+        "value": ".2s var(--ease) cubic-bezier(.16,1,.3,1), twice (in, then back), outline-offset -3px to -6px",
         "purpose": "Conflict trace pulses its red ring inward inside the block."
       },
       {
@@ -1128,7 +1148,7 @@
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
-        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; exits (dialogs, toast) are instant, and the block lift-away, the deals and the clash pulse are skipped; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero."
+        "purpose": "Removes all CSS animation and transitions, view transitions, Lenis, fly/morph and the scroll morph; exits (dialogs, toast) are instant, and the block lift-away, the deals and the clash pulse are skipped; the 3D week is a still picture (.hero-stage.still) that scrolls away with the hero, under the sheet; the steps row changes without a view transition, the back pages do not part in, and the film keeps its poster and gets the browser's own controls."
       },
       {
         "name": "tile-fling",
@@ -1152,18 +1172,33 @@
       },
       {
         "name": "hero-depth",
-        "value": "lens 36 -> 24 degrees with e, camera backing off to match (dolly zoom), framing: board radius x FIT .7 inside the poster's free box (see hero-framing); load dolly: camera starts 2.1x further back on a spring (34/7) with a small overshoot; thud on every landing: board dips and tips toward the slot (spring 150/11); pointer: camera parallax .26 / .12, key light leans with it (x 4, z 3 units), slabs within reach of the pointer rise up to .2 units (falloff exp(-d²/2.6)), the slab under it .46 on a 240/15 spring; canvas fade .7s, hero skeleton fade .6s, skeleton posed to the 36 degree lens",
+        "value": "lens 36 -> 24 degrees with e, camera backing off to match (dolly zoom), framing: board radius x FIT .62 (.7 on phones) inside the poster's free box (see hero-framing); load dolly: camera starts 2.1x further back on a spring (34/7) with a small overshoot; thud on every landing: board dips and tips toward the slot (spring 150/11); pointer: camera parallax .26 / .12, key light leans with it (x 4, z 3 units), slabs within reach of the pointer rise up to .2 units (falloff exp(-d²/2.6)), the slab under it .46 on a 240/15 spring; canvas fade .7s, hero skeleton fade .6s, skeleton posed to the 36 degree lens",
         "purpose": "Depth along the line of sight in the hero: the lens is wide in the hero and long on the planner, the board arrives from deep in the studio, every landing moves it, and the pointer pulls the slabs and the light. The pointer effects fade with the landing and, like the load and the thud, are off under reduced motion; the still picture draws its shadows on each of its few frames."
       },
       {
         "name": "hero-framing",
-        "value": "free box, wide: left = end of the title's last line + 2% of the width, top = half-way down its first line, right = 104% of the width, bottom = 95% of the hero (the sheet's edge cuts the board); phones: full width from 4px under the title to 12px above the facts; board radius x FIT .7 inside it, 82% of its width used",
-        "purpose": "The poster's composition for the 3D week: right of the title's short second line and from half-way down its long first one, out past the right edge and down to the sheet; between the title and the facts on phones. Measured from layout positions, so the copy's entrance and scroll transforms never move it."
+        "value": "free box, wide: left = end of the title's last line - 3% of the width, top = bottom of its first line + 2% of the height, right = 104% of the width, bottom = 97% of the hero (the sheet's edge cuts the board); phones: full width from 4px under the title to 12px above the sentence; board radius x FIT .62 (.7 on phones) inside it, 82% of its width used",
+        "purpose": "The poster's composition for the 3D week: under the title's long first line and right of its short second one, out past the right edge and down to the sheet; between the title and the sentence on phones. Measured from layout positions, so the copy's entrance transforms never move it."
       },
       {
         "name": "block-rise",
         "value": "animation-timeline: view(), linear; each sign-off block from translateY(104%) to rest, animation-range entry calc(i * 4%) to entry calc(52% + i * 4%) for block i (0 to 12); the field clips at the baseline (overflow: clip); in the two-row phone layout block-up instead: from translateY(30%) and opacity 0",
         "purpose": "The page's closing title is built from blocks, one per letter and one for the full stop; as the footer scrolls in they come up from under the baseline one after another, the week dealt one last time. Only where scroll timelines exist (@supports animation-timeline: view()); static otherwise and under reduced motion."
+      },
+      {
+        "name": "steps-transition",
+        "value": "view transition, one named group per panel (step-1 to step-5, class step): group 280ms var(--ease) cubic-bezier(.16,1,.3,1), old and new snapshots 200ms; the root's own cross-fade is off (data-vt=steps)",
+        "purpose": "Opening a panel of the steps row. Only for a pointer (event.detail > 0), where document.startViewTransition exists, motion is not reduced and the print layout is not active; otherwise the panel just changes. The compositor moves snapshots, so no layout property is animated."
+      },
+      {
+        "name": "steps-film",
+        "value": "IntersectionObserver threshold .35; plays while the Δες panel is open, 35% on screen and the tab visible; preload none",
+        "purpose": "The film of the hero's 3D week being dealt (assets/film/week.webm, 720 by 720, poster assets/img/film-poster.webp). Under reduced motion it stays on its poster with the browser's controls. Its src has no leading ./, so sw.js does not precache it, and sw.js leaves ranged requests to the network."
+      },
+      {
+        "name": "part-in",
+        "value": "animation-timeline: view(), linear; from opacity 0 and translate 0 28px; animation-range entry 0% to entry 55% (paragraphs and buttons entry 12% to 67%, the second card 10% to 65%, the third 20% to 75%)",
+        "purpose": "The parts of each back-page panel (headings, paragraphs, figure, steps row, cards, buttons) rise in as the panel scrolls into view. Only where scroll timelines exist (@supports animation-timeline: view()); nothing waits on a script and nothing is left hidden otherwise. Not applied to the paragraphs and buttons inside a step. Off under reduced motion."
       }
     ],
     "breakpoints": [
@@ -1180,7 +1215,7 @@
       {
         "name": "desktop",
         "value": "1181px",
-        "purpose": "min-width: docked 340px rail beside the week."
+        "purpose": "min-width: docked 380px rail beside the week."
       },
       {
         "name": "lane-time-name",
@@ -1216,7 +1251,7 @@
       "refersTo": "button",
       "description": "Flat --fill pill, no border and no shadow; hover is --fill-2. The default control, and the refresh button (44px in the sheet's toolbar).",
       "html": "<button class=\"ds-btn\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4\"/><path d=\"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/></svg>Ανανέωση από ΤΗΜΜΥ</button>",
-      "css": ".ds-btn{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid transparent;border-radius:999px;background:var(--fill);color:var(--text);font-size:13px;font-weight:550;line-height:1.3;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn:hover{background:var(--fill-2)}.ds-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+      "css": ".ds-btn{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid transparent;border-radius:999px;background:var(--fill);color:var(--text);font-size:15px;font-weight:550;line-height:1.3;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn:hover{background:var(--fill-2)}.ds-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
     },
     {
       "name": "Primary Button",
@@ -1224,7 +1259,7 @@
       "refersTo": "button-primary",
       "description": "Flat ink pill for the main action, no shadow; with a fine pointer, hover mixes 20% neon pink into the ink.",
       "html": "<button class=\"ds-btn-primary\">Αποθήκευση προφίλ</button>",
-      "css": ".ds-btn-primary{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 20px;border:1px solid transparent;border-radius:999px;background:var(--text);color:var(--sheet);font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}@media (hover:hover) and (pointer:fine){.ds-btn-primary:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}.ds-btn-primary:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+      "css": ".ds-btn-primary{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 20px;border:1px solid transparent;border-radius:999px;background:var(--text);color:var(--sheet);font-size:15px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}@media (hover:hover) and (pointer:fine){.ds-btn-primary:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}.ds-btn-primary:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
     },
     {
       "name": "Quiet Button",
@@ -1232,7 +1267,7 @@
       "refersTo": "button-quiet",
       "description": "Transparent pill for header and menu actions; hover is the --fill wash.",
       "html": "<button class=\"ds-btn-quiet\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2\"/><path d=\"M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4\"/><path d=\"M7 15a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z\"/></svg>Εκτύπωση</button>",
-      "css": ".ds-btn-quiet{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--text);font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn-quiet:hover{background:var(--fill)}.ds-btn-quiet:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
+      "css": ".ds-btn-quiet{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--text);font-size:15px;font-weight:550;cursor:pointer;transition:background-color .18s,transform .18s cubic-bezier(.16,1,.3,1)}.ds-btn-quiet:hover{background:var(--fill)}.ds-btn-quiet:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-btn:active,.ds-btn-primary:active,.ds-btn-quiet:active{transform:scale(.96)}"
     },
     {
       "name": "Search Input",
@@ -1240,7 +1275,7 @@
       "refersTo": "input",
       "description": "Pill well on surface-2; focus turns the border ink with a soft ring.",
       "html": "<label class=\"ds-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10a7 7 0 1 0 14 0 7 7 0 1 0-14 0\"/><path d=\"m21 21-6-6\"/></svg><input type=\"search\" placeholder=\"Τίτλος ή κωδικός μαθήματος\"></label>",
-      "css": ".ds-search{position:relative;display:flex;align-items:center;width:300px}.ds-search svg{position:absolute;left:16px;color:var(--text-3);pointer-events:none}.ds-search input{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:100%;height:44px;padding:0 16px 0 42px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--text);font-size:13px;appearance:none;transition:border-color .18s,box-shadow .18s,background-color .18s}.ds-search input::placeholder{color:var(--text-3)}.ds-search input:hover{border-color:var(--line-strong)}.ds-search input:focus-visible{outline:0;border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--text) 14%,transparent);background:var(--surface)}"
+      "css": ".ds-search{position:relative;display:flex;align-items:center;width:300px}.ds-search svg{position:absolute;left:16px;color:var(--text-3);pointer-events:none}.ds-search input{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:100%;height:44px;padding:0 16px 0 42px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--text);font-size:15px;appearance:none;transition:border-color .18s,box-shadow .18s,background-color .18s}.ds-search input::placeholder{color:var(--text-3)}.ds-search input:hover{border-color:var(--line-strong)}.ds-search input:focus-visible{outline:0;border-color:var(--text);box-shadow:0 0 0 3px color-mix(in srgb,var(--text) 14%,transparent);background:var(--surface)}"
     },
     {
       "name": "Theme Control",
@@ -1248,7 +1283,7 @@
       "refersTo": "button-quiet",
       "description": "One quiet pill: an ink icon follows the choice (sun, moon, sun-moon), an ink-3 inline chevron; focus is the 2px ink outline.",
       "html": "<label class=\"ds-theme\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 12a4 4 0 1 0 8 0 4 4 0 1 0-8 0\"/><path d=\"M3 12h1m8-9v1m8 8h1m-9 8v1m-6.4-15.4.7.7m12.1-.7-.7.7m0 11.4.7.7m-12.1-.7-.7.7\"/></svg><select aria-label=\"Θέμα εμφάνισης\"><option>Φωτεινό</option><option>Σκοτεινό</option><option>Σύστημα</option></select><svg class=\"ds-chev\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></label>",
-      "css": ".ds-theme{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;display:inline-flex;align-items:center;color:var(--text)}.ds-theme>svg{position:absolute;left:13px;pointer-events:none;color:var(--text)}.ds-theme .ds-chev{left:auto;right:12px;color:var(--text-3)}.ds-theme select{font:inherit;height:38px;padding:0 32px 0 36px;appearance:none;border:1px solid transparent;border-radius:999px;background:transparent;color:inherit;font-size:13px;font-weight:550;cursor:pointer;transition:background-color .18s}.ds-theme select:hover{background:var(--fill)}.ds-theme select:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+      "css": ".ds-theme{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;display:inline-flex;align-items:center;color:var(--text)}.ds-theme>svg{position:absolute;left:13px;pointer-events:none;color:var(--text)}.ds-theme .ds-chev{left:auto;right:12px;color:var(--text-3)}.ds-theme select{font:inherit;height:38px;padding:0 32px 0 36px;appearance:none;border:1px solid transparent;border-radius:999px;background:transparent;color:inherit;font-size:15px;font-weight:550;cursor:pointer;transition:background-color .18s}.ds-theme select:hover{background:var(--fill)}.ds-theme select:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
     },
     {
       "name": "Season Switch",
@@ -1256,15 +1291,23 @@
       "refersTo": "button",
       "description": "Segmented pill track on --fill, no border, with a flat ink thumb that springs under the active season.",
       "html": "<div class=\"ds-season\"><button aria-pressed=\"true\">Χειμερινό</button><button aria-pressed=\"false\">Εαρινό</button></div>",
-      "css": ".ds-season{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;isolation:isolate;display:inline-flex;padding:4px;border-radius:999px;background:var(--fill)}.ds-season::before{content:'';position:absolute;top:4px;bottom:4px;left:4px;z-index:-1;width:calc(50% - 4px);border-radius:999px;background:var(--text);transition:transform .5s var(--spring)}.ds-season:has(button:last-child[aria-pressed=true])::before{transform:translateX(100%)}.ds-season button{font:inherit;min-width:116px;min-height:38px;border:0;border-radius:999px;background:none;color:var(--text-3);font-size:13px;font-weight:550;cursor:pointer;transition:color .3s}.ds-season button:hover{color:var(--text)}.ds-season button[aria-pressed=true]{color:var(--sheet)}.ds-season button:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+      "css": ".ds-season{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;position:relative;isolation:isolate;display:inline-flex;padding:4px;border-radius:999px;background:var(--fill)}.ds-season::before{content:'';position:absolute;top:4px;bottom:4px;left:4px;z-index:-1;width:calc(50% - 4px);border-radius:999px;background:var(--text);transition:transform .5s var(--spring)}.ds-season:has(button:last-child[aria-pressed=true])::before{transform:translateX(100%)}.ds-season button{font:inherit;min-width:116px;min-height:38px;border:0;border-radius:999px;background:none;color:var(--text-3);font-size:15px;font-weight:550;cursor:pointer;transition:color .3s}.ds-season button:hover{color:var(--text)}.ds-season button[aria-pressed=true]{color:var(--sheet)}.ds-season button:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
     },
     {
       "name": "Header Bar",
       "kind": "nav",
       "refersTo": "button-quiet",
-      "description": "Plain fixed 76px bar, transparent over the hero; a solid sheet-coloured ground fades in as the planner docks under it, with no edge line, no blur and no shadow (specimen shows the docked state).",
+      "description": "Plain fixed 76px bar, in the field's own colour over the hero; a solid sheet-coloured ground fades in as the planner docks under it, with no edge line, no blur and no shadow (specimen shows the docked state).",
       "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">ΗΜ<br>ΜΥ</span><span class=\"ds-nav-brand\">Πανεπιστήμιο Θεσσαλίας<small>Πρόγραμμα μαθημάτων · ΤΗΜΜΥ</small></span><nav><a href=\"#\">Το προφίλ σπουδών μου</a><a href=\"#\">Δεδομένα</a><a href=\"#\">Εκτύπωση</a></nav></header>",
-      "css": ".ds-nav{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:space-between;gap:20px;height:76px;padding:10px 22px;background:var(--sheet)}.ds-nav-mark{display:grid;place-content:center;width:38px;height:38px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:11px;font-weight:700;line-height:1;text-align:center}.ds-nav-brand{padding-left:4px;font-size:13px;font-weight:600;line-height:1.25;color:var(--text)}.ds-nav-brand small{display:block;color:var(--text-3);font-size:12px;font-weight:400}.ds-nav nav{display:flex;gap:2px;margin-left:auto}.ds-nav a{padding:9px 14px;border-radius:999px;color:var(--text);font-size:13px;font-weight:550;text-decoration:none;transition:background-color .18s}.ds-nav a:hover{background:var(--fill)}.ds-nav a:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+      "css": ".ds-nav{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:space-between;gap:20px;height:76px;padding:10px 22px;background:var(--sheet)}.ds-nav-mark{display:grid;place-content:center;width:44px;height:44px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:13px;font-weight:700;line-height:1;text-align:center}.ds-nav-brand{padding-left:4px;font-size:15px;font-weight:600;line-height:1.25;color:var(--text)}.ds-nav-brand small{display:block;color:var(--text-3);font-size:13px;font-weight:400}.ds-nav nav{display:flex;gap:2px;margin-left:auto}.ds-nav a{padding:9px 14px;border-radius:999px;color:var(--text);font-size:15px;font-weight:550;text-decoration:none;transition:background-color .18s}.ds-nav a:hover{background:var(--fill)}.ds-nav a:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
+    },
+    {
+      "name": "Courses Button",
+      "kind": "button",
+      "refersTo": "rail-fab",
+      "description": "Flat 64px ink pill that rides the foot of the screen for as long as the week is on it (sticky, the workspace's last child). A 4px band of the sheet's colour around it, not a shadow, parts it from the blocks beneath; the count is the one pink mark on it. Hides while the rail is open.",
+      "html": "<button class=\"ds-fab\">Μαθήματα<span class=\"ds-fab-count\">3</span></button>",
+      "css": ".ds-fab{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:10px;min-height:64px;padding:0 24px 0 20px;border:4px solid var(--sheet);border-radius:999px;background:var(--text) padding-box;color:var(--sheet);font-size:16px;font-weight:600;cursor:pointer;transition:background-color .18s,transform .16s cubic-bezier(.16,1,.3,1)}@media (hover:hover) and (pointer:fine){.ds-fab:hover{background-color:color-mix(in srgb,var(--text) 80%,var(--accent))}}.ds-fab:active{transform:scale(.96)}.ds-fab:focus-visible{outline:2px solid var(--text);outline-offset:2px}.ds-fab-count{min-width:26px;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:13px;text-align:center}"
     },
     {
       "name": "Tags and Badges",
@@ -1272,7 +1315,7 @@
       "refersTo": "tag",
       "description": "Pill tags; semantic tones always carry an icon; ECTS credits are an ink pill; today is the one pink pill.",
       "html": "<div class=\"ds-tags\"><span class=\"ds-tag\">1ο εξ.</span><span class=\"ds-tag ds-ok\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 5 5L20 7\"/></svg>Περασμένο</span><span class=\"ds-tag ds-warn\">Έλεγχος</span><span class=\"ds-credit\">6 ECTS</span><span class=\"ds-today\">Παρασκευή</span></div>",
-      "css": ".ds-tags{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ds-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.5}.ds-ok{background:var(--success-soft);color:var(--success)}.ds-warn{background:var(--warning-soft);color:var(--warning)}.ds-credit{padding:1px 8px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:12px;font-weight:600}.ds-today{padding:1px 10px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:14.5px;font-weight:600}"
+      "css": ".ds-tags{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ds-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:var(--surface-3);color:var(--text-2);font-size:13px;font-weight:600;line-height:1.5}.ds-ok{background:var(--success-soft);color:var(--success)}.ds-warn{background:var(--warning-soft);color:var(--warning)}.ds-credit{padding:1px 8px;border-radius:999px;background:var(--text);color:var(--sheet);font-size:13px;font-weight:600}.ds-today{padding:1px 10px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:600}"
     },
     {
       "name": "Event Block",
@@ -1280,7 +1323,7 @@
       "refersTo": "event-block",
       "description": "A course on the week: a flat field of the full course hue (no lip, rim, inner edge or shadow at rest; the 3D tile is the object, the block is its print), ink or white text by contrast against the fill (the dark-theme mix in dark), meta at full strength; review and conflict rings sit inside the block, the focus ring outside it (an outline, or a shadow ring on a block with a state ring, so the state ring stays visible); review adds a 10px hatched strip at the right edge, clear of the text. Hover lifts 1px to the lifted shadow over 150ms, only on fine hovering pointers; a press scales it to .985.",
       "html": "<div class=\"ds-week\"><button class=\"ds-event\" style=\"--c:#8f5cff;--on:#ffffff\"><small>09:00-11:00</small><strong>Γραμμική Άλγεβρα</strong><span>Διάλεξη · Αμφ. Ηλία Χούστη</span></button><button class=\"ds-event ds-conflict\" style=\"--c:#1fd1c1;--on:#0e0e0e\"><small>11:00-13:00 ⚠</small><strong>Συστήματα Βάσεων Δεδομένων Ι</strong><span>Διάλεξη · Αμφ. 3</span></button><button class=\"ds-event ds-review\" style=\"--c:#ffd43b;--on:#0e0e0e\"><small>14:00</small><strong>ECE121</strong></button></div>",
-      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:var(--c);color:var(--on);text-align:left;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:12px;font-weight:600}.ds-event strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}.ds-event span{font-size:12px}@media (hover:hover) and (pointer:fine){.ds-event:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);transition-duration:.15s}}.ds-event:active{transform:scale(.985)}.ds-event:focus-visible:not(.ds-conflict,.ds-review){outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-conflict:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px);background-size:10px 100%;background-position:right top;background-repeat:no-repeat}.ds-review:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text)}"
+      "css": ".ds-week{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(3,170px);gap:10px;padding:8px}.ds-event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:9px 11px;border:0;border-radius:12px;background:var(--c);color:var(--on);text-align:left;font:inherit;font-size:13px;line-height:1.35;cursor:pointer;transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s cubic-bezier(.16,1,.3,1)}.ds-event small{font-size:13px;font-weight:600}.ds-event strong{font-size:16px;font-weight:600;line-height:1.2;letter-spacing:-.015em}.ds-event span{font-size:13px}@media (hover:hover) and (pointer:fine){.ds-event:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);transition-duration:.15s}}.ds-event:active{transform:scale(.985)}.ds-event:focus-visible:not(.ds-conflict,.ds-review){outline:2px solid var(--text);outline-offset:2px}.ds-conflict{outline:2px solid var(--danger);outline-offset:-2px;box-shadow:inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-conflict:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text),inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}.ds-review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px);background-size:10px 100%;background-position:right top;background-repeat:no-repeat}.ds-review:focus-visible{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--text)}"
     },
     {
       "name": "Stat Odometer",
@@ -1288,7 +1331,15 @@
       "refersTo": "button",
       "description": "Week totals at display scale, each number captioned underneath by its label, cells parted by space, not lines; overlaps turn red.",
       "html": "<div class=\"ds-stats\"><span><small>Μαθήματα</small><b>22</b></span><span><small>Ώρες</small><b>53</b></span><span class=\"ds-bad\"><small>Επικαλύψεις</small><b>27</b></span><span><small>ECTS</small><b>126</b></span></div>",
-      "css": ".ds-stats{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--text)}.ds-stats>span{display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:2px 22px 4px}.ds-stats>span:first-child{padding-left:0}.ds-stats small{color:var(--text-3);font-size:12.5px;font-weight:500}.ds-stats b{font-size:clamp(44px,5.8vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}.ds-bad small,.ds-bad b{color:var(--danger)}"
+      "css": ".ds-stats{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));color:var(--text)}.ds-stats>span{display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:2px 22px 4px}.ds-stats>span:first-child{padding-left:0}.ds-stats small{color:var(--text-2);font-size:15px;font-weight:500}.ds-stats b{font-size:clamp(40px,5.4vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}.ds-bad small,.ds-bad b{color:var(--danger)}"
+    },
+    {
+      "name": "Steps Row",
+      "kind": "custom",
+      "refersTo": "step-panel",
+      "description": "The first back page: five flat tints of the season's field, deepest to lightest, in one full-bleed row. The open panel (Δες here) holds its name, its sentence and its picture or film; the others are slivers showing only their name, running up from the foot. Opening one re-flows the row and, for a pointer, runs a view transition (280ms). Specimen shows the winter field.",
+      "html": "<div class=\"ds-steps\"><div class=\"ds-step\" style=\"--m:100%\"><span>Διάλεξε</span></div><div class=\"ds-step ds-open\" style=\"--m:80%\"><b>Δες</b><p>Κάθε μάθημα πέφτει στις ώρες και στις αίθουσές του.</p></div><div class=\"ds-step\" style=\"--m:62%\"><span>Έλεγξε</span></div><div class=\"ds-step\" style=\"--m:46%\"><span>Τύπωσε</span></div><div class=\"ds-step\" style=\"--m:32%\"><span>Μετέφερε</span></div></div>",
+      "css": ".ds-steps{--field:#ffd23f;font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;display:flex;width:640px;height:280px;color:#0e0e0e}.ds-step{position:relative;display:flex;align-items:flex-end;flex:1 1 0;min-width:0;overflow:hidden;padding:20px 16px;background:color-mix(in srgb,var(--field) var(--m),#fff)}.ds-step span{font-size:20px;font-weight:700;letter-spacing:-.01em;writing-mode:vertical-rl;rotate:180deg}.ds-open{flex:0 0 58%;flex-direction:column;align-items:flex-start;justify-content:space-between}.ds-open b{font-size:32px;font-weight:800;letter-spacing:-.035em}.ds-open p{max-width:22ch;margin:0;font-size:18px;line-height:1.5}"
     },
     {
       "name": "Dialog Card",
@@ -1296,20 +1347,22 @@
       "refersTo": "dialog",
       "description": "Raised 28px surface with floating shadow and highlight; hairline edge in dark mode. Rows inside are flat surface-2 rectangles with no border. Exits back the way it came (see motion dialog-exit).",
       "html": "<div class=\"ds-dialog\"><h2>Γραμμική Άλγεβρα</h2><p class=\"ds-dialog-meta\">ECE117 · 1ο εξάμηνο · 6 ECTS</p><div class=\"ds-dialog-row\">Δευτέρα 09:00-11:00 · Αμφ. Ηλία Χούστη</div></div>",
-      "css": ".ds-dialog{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:420px;padding:28px;border:1px solid transparent;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-lg),var(--highlight)}.ds-dialog h2{margin:0;font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-.03em}.ds-dialog-meta{margin:6px 0 18px;color:var(--text-3);font-size:12.5px;font-weight:500}.ds-dialog-row{padding:11px 16px;border-radius:14px;background:var(--surface-2);font-size:13.5px}"
+      "css": ".ds-dialog{font-family:Geologica,'Noto Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;width:420px;padding:28px;border:1px solid transparent;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:var(--shadow-lg),var(--highlight)}.ds-dialog h2{margin:0;font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-.03em}.ds-dialog-meta{margin:6px 0 18px;color:var(--text-3);font-size:15px;font-weight:500}.ds-dialog-row{padding:11px 16px;border-radius:14px;background:var(--surface-2);font-size:16px}"
     }
   ],
   "narrative": {
     "northStar": "The Week in the Studio",
-    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board in a neutral photo studio, lit like an object on a seamless backdrop, and the planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: studio greys, ink type, one neon accent. The colour lives in the courses themselves. The first screen is composed as a poster: the title sits at the top left at poster size, in the heaviest weight, on the same left edge as the sheet's content; the week stands right of its short second line and from half-way down its long first one, out past the right edge and down to the sheet, whose edge cuts it; and the week's facts and the one action sit at the foot, just above the sheet's edge. The grounds are flat: the studio is one tone and the sheet another, meeting at a seam, with no glow behind the board and no shadow on the sheet's edge. The page closes where it began, on a black field from edge to edge.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks that are flat fields of colour (the 3D tile is the object, the block is its print), giant heavy grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks. The tiles are objects and the board is their tray: whenever the week changes place or content, the tiles leave the tray and are dealt back Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second, with one landing. In 3D a tile comes in from the viewer's side of the glass, large and close, and shrinks onto its slot, accelerating under gravity, and squashes as it lands; on the 2D week a block arrives a touch larger and presses down to size. The intro, the hop back after a spin, the return after a throw, the scroll down onto the planner, new blocks and the season switch all deal this way. Elsewhere motion is physical and springy: digits roll, the season thumb and blocks moving to a new slot settle with a small overshoot, and a course flies on an arc into its slot, swelling toward the viewer on the way. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block lifts away where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii.",
+    "overview": "The student's own timetable is a product shot. It sits as glossy 3D slabs on a floating board, lit like an object on a seamless backdrop, and the backdrop is a flat field of colour, the way a poster has one: yellow for the winter semester, green for the spring. The planner sheet rises over it like a page slid onto the set. Everything around the object stays quiet: flat grounds, ink type, one neon accent. The colour lives in the courses and in the field. The first screen is composed as a poster: the title sits at the top left at poster size, in the heaviest weight, its first line running from margin to margin; the week stands under it, right of its short second line and out past the right edge, down to the sheet, whose edge cuts it; and the sentence about the week and the one action sit at the foot, just above the sheet's edge. Nothing is pinned. The hero scrolls away with the page, and its copy stands in front of the 3D stage, so no tile ever passes over the title. The grounds are flat: the field is one tone and the sheet another, meeting at a seam, with no gradient, glow or shadow on either. The winter field is the yellow of the university's building on the Volos quay, the former Papastratos tobacco warehouses. Past the planner the page goes on as a poster: back pages of flat panels with real pictures (how it works, where the hours come from, who made it), and it closes on a black field from edge to edge.\n\nBelow the fold the studio becomes a calm, editorial work surface. The week is the canvas and is never cropped sideways. Pills for everything you press, soft 20-28px surfaces, 12px event blocks that are flat fields of colour (the 3D tile is the object, the block is its print), giant heavy grotesk numerals for the stats. The signature move is a scroll morph: on desktop and tablet the 3D board swings to a top-down view and lands exactly on the planner's week, and the slabs become its flat blocks (an empty week has no grid, so there the sheet simply slides over the board). The tiles are objects and the board is their tray: whenever the week changes place or content, the tiles leave the tray and are dealt back Monday to Friday (by day, then start time), 40ms apart and the whole deal held to about half a second, with one landing. In 3D a tile comes in from the viewer's side of the glass, large and close, and shrinks onto its slot, accelerating under gravity, and squashes as it lands; on the 2D week a block arrives a touch larger and presses down to size. The intro, the hop back after a spin, the return after a throw, the scroll down onto the planner, new blocks and the season switch all deal this way. Elsewhere motion is physical and springy: digits roll, the season thumb and blocks moving to a new slot settle with a small overshoot, and a course flies on an arc into its slot, swelling toward the viewer on the way. Exits are shorter than entrances and leave the way things came, on the ease-out: dialogs drop and fade, phone sheets slide back down, a removed block lifts away where it stood, the update toast lifts away. The one exception: a removed block's opacity runs on the CSS `ease` keyword so the fade stays readable, while its scale stays on the ease-out. A block that has just started to clash pulses its red ring once on the there-and-back curve. On the back pages a panel of the steps row opens by view transition for a pointer (a key just changes it), and each panel's parts rise in as it scrolls into view. Every one of these collapses to an instant, static path under reduced motion.\n\nThe world is modelled on butter.video, chosen by the user. Rejected and not to return: the cool-grey, electric-blue, pastel-course \"premium product app\" world set in Commissioner with 16/10 radii, and a blue field for the winter semester (rejected by the owner; winter is yellow).",
     "keyCharacteristics": [
       "Neutral studio greys with an off-white (light) or ink (dark) planner sheet; no tinted neutrals.",
-      "Ink is the primary action colour; hot pink is a single neon note, never a fill for large surfaces.",
+      "Ink is the primary action colour; hot pink is the single accent: small marks, and one bar on the back pages.",
       "Nine vivid course hues, full-strength on event blocks, with ink or white text chosen by contrast.",
       "Geologica everywhere, tabular figures by default, display sizes in the heaviest weight (800) with tight negative tracking.",
       "Pill controls, soft rectangles for surfaces, 12px for event blocks.",
-      "Surfaces part by a step of tone, not by lines or resting shadows; only things that really float (dialogs, menus, drawers, tooltips, the rail button, the toast) cast a shadow. Event blocks are flat fields of colour. The calendar grid keeps its lines.",
-      "A poster first screen: the title at the top left at poster size on the sheet's left edge, the 3D week right of its short second line and out past the right edge, the facts and the one action at the foot. The studio and the sheet are two flat tones meeting at a seam, with no gradient, glow or shadow between them.",
+      "Surfaces part by a step of tone, not by lines or resting shadows; only things that really float (dialogs, menus, drawers, tooltips, the toast) cast a shadow. Event blocks are flat fields of colour. The calendar grid keeps its lines.",
+      "A poster first screen: the title at the top left at poster size on the sheet's left edge, its first line running from margin to margin, the 3D week under it and out past the right edge, the sentence about the week and the one action at the foot. Nothing is pinned, and the copy stands in front of the 3D stage. The field and the sheet are two flat tones meeting at a seam, with no gradient, glow or shadow between them.",
+      "A flat field per season: winter is yellow (`#ffd23f`, in both themes, the colour of the university's building on the Volos quay), spring is light green (dark green in the dark theme). It floods the first screen and the postcards panel, tints the steps panels, and is the header's colour until the planner docks.",
+      "Back pages after the planner: flat panels meeting edge to edge (how it works, where the hours come from, who made it), with real pictures: the planner's own screens and found photographs, credited where they stand.",
       "The page closes on a black field in both themes, where the title is rebuilt from blocks in the week's own colours.",
       "The hero's 3D week and the planner's 2D week are one object: scrolling morphs one into the other.",
       "One landing: tiles and blocks are dealt Monday to Friday, 40ms apart, the whole deal held to about half a second; a 3D tile closes from the viewer's side of the glass under gravity and squashes, a 2D block presses from 1.1 to size.",
@@ -1319,7 +1372,12 @@
     "rules": [
       {
         "name": "The One Neon Rule",
-        "body": "Hot pink is the only accent and it appears as small marks (a full stop, a day pill, a count, a hover), never as a button fill or a section background. Primary actions are ink.",
+        "body": "Hot pink is the only accent and it appears as small marks (a full stop, a day pill, a count, a hover), never as a button fill. The one large pink surface is the bar beside the photograph on the back pages: the dark theme's pink in both themes, with ink on it (6:1). Primary actions are ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Flat Field Rule",
+        "body": "A field is one tone: no gradient, glow, shadow or picture behind the title and the board. Winter is yellow in both themes. A blue winter field was rejected by the owner and does not return.",
         "section": "colors"
       },
       {
@@ -1344,7 +1402,7 @@
       },
       {
         "name": "The No Sideways Week Rule",
-        "body": "The week never scrolls horizontally. The grid is a 54px hour axis (headed Ώρα) plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows its start time and the name, set compact with soft hyphens at Greek syllable breaks; wider lanes never hyphenate and wrap whole words. At 80px or less, and for lessons of an hour or less, it shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog. Margin notes move beside the week only when the busiest day still gets 150px per lane. There the checks are a sticky margin note on a `surface-2` panel that mirrors the rail, always open, with their summary as a heading rather than a toggle (out of the tab order).",
+        "body": "The week never scrolls horizontally. The grid is a 58px hour column (headed Ώρα) plus five equal day columns, whatever they hold. Parallel lessons split their day into lanes, and narrow lanes step down by container width. At 112px or less a lane shows its start time and the name, set compact with soft hyphens at Greek syllable breaks; wider lanes never hyphenate and wrap whole words. At 80px or less, and for lessons of an hour or less, it shows start time plus course code. At 60px or less it shows the code only. At 50px or less the shared ECE prefix drops and only the course number remains. The full name always stays in the tooltip and dialog. Margin notes move beside the week only when the busiest day still gets 150px per lane. There the checks are a sticky margin note on a `surface-2` panel that mirrors the rail, always open, with their summary as a heading rather than a toggle (out of the tab order).",
         "section": "layout"
       },
       {
@@ -1381,8 +1439,10 @@
       "**Do** keep the week fully visible without horizontal scroll at every width, and keep print as a dedicated A4 landscape layout.",
       "**Do** keep the 3D week and the planner's week the same object: same course colours, the same five equal columns and lanes, one hand-over sequence with never two hour axes on screen.",
       "**Do** use tabular figures and display-scale numerals for the week's totals.",
-      "**Do** keep the first screen a poster: the title at poster size at the top left on the page margin (`--gutter`), the facts and the one action at the foot just above the sheet's edge, the week in the space between and beside them, never behind the copy.",
-      "**Do** keep grounds and blocks flat: the studio and the sheet are two flat tones meeting at a seam, and an event block is a field of its course colour."
+      "**Do** keep the first screen a poster: the title at poster size at the top left on the page margin (`--gutter`), its first line from margin to margin, the sentence and the one action at the foot just above the sheet's edge, the week under the title and beside its short second line, never behind the copy.",
+      "**Do** keep grounds and blocks flat: the field and the sheet are two flat tones meeting at a seam, the back pages are flat panels, and an event block is a field of its course colour.",
+      "**Do** use real pictures on the back pages: the planner's own screens, retaken with the script after a visible change, and found photographs credited where they stand.",
+      "**Do** open a steps panel by view transition for a pointer only; from the keyboard it just changes."
     ],
     "donts": [
       "**Don't** add a second accent colour or fill buttons, panels or headers with neon pink.",
@@ -1392,7 +1452,8 @@
       "**Don't** lift controls on hover or use hard offset shadows; controls press, only event blocks lift.",
       "**Don't** draw state or highlight rings outside an event block.",
       "**Don't** tint the neutrals cool or warm; the studio greys are neutral.",
-      "**Don't** put a gradient, glow, shadow or top line between the studio and the sheet, or a lip, rim, inner edge or resting shadow on an event block."
+      "**Don't** put a gradient, glow, shadow or top line between the field and the sheet, or a lip, rim, inner edge or resting shadow on an event block.",
+      "**Don't** bring back a blue field for the winter semester, or put a gradient, glow or shadow behind the title or on a back-page panel."
     ]
   }
 }
