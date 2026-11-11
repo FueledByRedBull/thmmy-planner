@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-11-11T19:17:00.977Z",
+        "reason": "user confirmed: the full-bleed poster hero section has no inset by design (DESIGN.md Layout/Hero); the real case, the phone checks panel, was fixed"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "assets/styles.css"
+        ],
+        "createdAt": "2026-11-11T22:54:37.346Z",
+        "reason": "model: line 326 is the .update-report disclosure chevron drawn from two 2px borders rotated -45deg, not a side accent on a card; predates this branch (commit 4f8788c)"
+      }
+    ]
+  }
+}
