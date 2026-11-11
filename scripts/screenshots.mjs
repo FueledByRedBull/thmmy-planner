@@ -3,7 +3,7 @@
 // Serve the folder first (python -m http.server 8000), then: node scripts/screenshots.mjs [http://localhost:8000/]
 // Needs Node 22+ (global fetch and WebSocket) and Chrome (CHROME_PATH, or the usual install location).
 import {spawn} from 'node:child_process';
-import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
@@ -15,8 +15,10 @@ const OUT=new URL('../docs/screenshots/',import.meta.url);
 const WEEK=['Κατασκευή Μικροηλεκτρονικών Διατάξεων','Ανάλυση Κυκλωμάτων ΙΙ','Γραμμική Άλγεβρα','Τεχνητή Νοημοσύνη','Οργάνωση και Σχεδίαση Η/Υ','Λογικός και Συναρτησιακός Προγραμματισμός','Τεχνολογίες Εκπαίδευσης','Σχεδιαστική Σκέψη'];
 
 const profile=mkdtempSync(join(tmpdir(),'thmmy-shots-'));
-const port=9300+Math.floor(Math.random()*600);
-const chrome=spawn(CHROME,['--headless=new',`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,'--no-first-run','--hide-scrollbars','about:blank'],{stdio:'ignore'});
+// Port 0 lets Chrome pick a free port and write it to DevToolsActivePort, so a busy port can never stall the start.
+const chrome=spawn(CHROME,['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run','--hide-scrollbars','about:blank'],{stdio:['ignore','ignore','pipe']});
+let stderr='';
+chrome.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-2000);});
 let socket,id=0;
 const pending=new Map();
 const send=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,m=>m.error?reject(new Error(method+': '+m.error.message)):resolve(m.result));socket.send(JSON.stringify({id:n,method,params}));});
@@ -38,8 +40,8 @@ async function shot(name){
 
 try{
  let target;
- for(let i=0;i<100&&!target;i++){try{target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}if(!target)await sleep(200);}
- if(!target)throw new Error('Chrome did not start');
+ for(let i=0;i<150&&!target;i++){try{const port=readFileSync(join(profile,'DevToolsActivePort'),'utf8').split('\n')[0];target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}if(!target)await sleep(200);}
+ if(!target)throw new Error('Chrome did not start within 30s. Its last output:\n'+stderr);
  socket=new WebSocket(target.webSocketDebuggerUrl);
  await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
  socket.onmessage=event=>{const m=JSON.parse(event.data);pending.get(m.id)?.(m);pending.delete(m.id);};

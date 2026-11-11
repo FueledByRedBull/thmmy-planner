@@ -38,13 +38,16 @@ async function download(url){
 
 // Runs the app's parser on the downloaded pages in headless Chrome, over the DevTools protocol.
 async function parse(pages){
- const profile=mkdtempSync(join(tmpdir(),'thmmy-refresh-')),port=9300+Math.floor(Math.random()*600);
+ const profile=mkdtempSync(join(tmpdir(),'thmmy-refresh-'));
  // CI runners cannot always use Chrome's sandbox; the pages are only read by DOMParser, which runs no scripts.
- const chrome=spawn(CHROME,['--headless=new',`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,'--no-first-run',...(process.env.CI?['--no-sandbox']:[]),'about:blank'],{stdio:'ignore'});
+ // Port 0 lets Chrome pick a free port and write it to DevToolsActivePort, so a busy port can never stall the start.
+ const chrome=spawn(CHROME,['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run',...(process.env.CI?['--no-sandbox']:[]),'about:blank'],{stdio:['ignore','ignore','pipe']});
+ let stderr='';
+ chrome.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-2000);});
  try{
   let target;
-  for(let i=0;i<100&&!target;i++){try{target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}if(!target)await sleep(200);}
-  if(!target)throw new Error('Chrome did not start');
+  for(let i=0;i<150&&!target;i++){try{const port=readFileSync(join(profile,'DevToolsActivePort'),'utf8').split('\n')[0];target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}if(!target)await sleep(200);}
+  if(!target)throw new Error('Chrome did not start within 30s. Its last output:\n'+stderr);
   const socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
   let id=0;const pending=new Map();
   socket.onmessage=event=>{const message=JSON.parse(event.data);pending.get(message.id)?.(message);pending.delete(message.id);};
