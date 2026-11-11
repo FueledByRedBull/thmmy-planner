@@ -51,13 +51,17 @@ const scene=new Scene(),camera=new PerspectiveCamera(LENS[0],1,.5,200),week=new 
 // itself only renders instead of stalling the page on each compile. This reaches into PMREMGenerator internals
 // (three 0.186.1; recheck on upgrade): the targets and filter materials are made up front, in the render state the
 // bake uses (a half-float target, no tone mapping), and the bake then reuses them.
+// The bake's cube face size: sharp enough for the chrome tiles to mirror the cards.
+const ENV=512;
 async function environment(){
  const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment(),eye=new PerspectiveCamera(90,1,.1,100),tone=renderer.toneMapping;
- // Three light cards join the room before the bake: a long softbox overhead, which draws a crisp streak along every
- // clearcoat edge, and a pink and a cool card low at the sides, which put colour into the reflections.
+ // Light cards join the room before the bake: a long softbox overhead, which draws a crisp streak along every clearcoat
+ // edge, two thin strips (one tall behind, one warm in front) that cut a hairline highlight down the bevels and give the
+ // chrome tiles something sharp to mirror, and a pink and a cool card low at the sides, which put colour into the reflections.
  const card=(color,power,x,y,z,w,h,d)=>{const m=new Mesh(new BoxGeometry(w,h,d),new MeshBasicMaterial({color:new Color(color).multiplyScalar(power)}));m.position.set(x,y,z);room.add(m);};
  card('#ffffff',14,1,12.5,4,11,.1,.6);card('#ff4fa8',5,-13,3.5,2,.1,4,8);card('#7fb2ff',3.5,12.5,4,-3,.1,4,7);
- pmrem._setSize(256);
+ card('#ffffff',20,-9.5,4.5,-8,.4,9,.1);card('#fff1e0',9,9,2.5,9,.35,6,.1);
+ pmrem._setSize(ENV);
  const target=pmrem._allocateTargets(),plane=pmrem._lodMeshes[0].geometry;
  const box=pmrem._backgroundBox=new Mesh(new BoxGeometry(),new MeshBasicMaterial({name:'PMREM.Background',side:BackSide,depthWrite:false,depthTest:false}));
  renderer.setRenderTarget(target);renderer.toneMapping=NoToneMapping;
@@ -65,22 +69,26 @@ async function environment(){
  renderer.setRenderTarget(null);renderer.toneMapping=tone;
  await Promise.all(ready);
  target.dispose();
- scene.environment=pmrem.fromScene(room,.04).texture;
+ scene.environment=pmrem.fromScene(room,.04,.1,100,{size:ENV}).texture;
  room.dispose();pmrem.dispose();
 }
 // A strong key from the upper left shades slab sides against their tops; a cool rim from behind draws the edges.
 const key=new DirectionalLight('#ffffff',2.2);
 key.position.set(-6,13,8);
 key.castShadow=true;
-key.shadow.mapSize.set(1024,1024);
-key.shadow.bias=-.0004;
-key.shadow.normalBias=.02;
+key.shadow.mapSize.set(2048,2048);
+key.shadow.radius=3.5;
+key.shadow.bias=-.0003;
+key.shadow.normalBias=.015;
 const rim=new DirectionalLight('#dfe6ff',1);
 rim.position.set(7,5,-10);
 const fill=new HemisphereLight('#ffffff','#9aa1ad',.25);
 // A small key under the cursor: it hovers over the board where the pointer points and catches the clearcoat. It stays in
 // the scene at zero intensity (a light added or removed later recompiles every material) and casts no shadow.
 const spot=new PointLight('#ffffff',0,7,2);
+// The lamp inside the "now" slab: a pink-tinted point light just above it that colours its neighbours (see glow). Zero
+// intensity when nothing is lit, for the same reason as the cursor light; it casts no shadow.
+const lamp=new PointLight('#ff4fa8',0,3.6,2);
 const floor=new Mesh(new PlaneGeometry(80,80),new ShadowMaterial({opacity:.2}));
 floor.rotation.x=-Math.PI/2;
 floor.position.y=-1.15;
@@ -89,6 +97,7 @@ floor.receiveShadow=true;
 // "Spinning the board" really swings the camera round a still board, so `air` turns with the camera's azimuth: a free
 // tile then moves, and rests, in the viewer's frame, over a studio floor that stays still while the board spins.
 const air=new Group();
+week.add(lamp);
 scene.add(key,key.target,rim,fill,spot,floor,week,air);
 
 let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:-1},board=null,labels=null,edges=null;
@@ -176,16 +185,32 @@ const colW=()=>(GRID-4*GAP)/5;
 function colX(day){let x=-size.w/2+AXIS;for(let d=0;d<day;d++)x+=colW(d)+GAP;return x;}
 const timeZ=m=>-size.d/2+HEAD+(m-hours.min)/60*HOUR;
 
+const SQUIRCLE=14;
 function slabGeometry(w,d,h,r){
  const id=`${w.toFixed(3)}|${d.toFixed(3)}|${h.toFixed(3)}|${r}`;
  if(geometries.has(id))return geometries.get(id);
  const bevel=Math.min(.05,h/4,w/5,d/5),x=w/2-bevel,z=d/2-bevel,c=Math.max(.001,Math.min(r,x*.9,z*.9)),s=new Shape();
- s.moveTo(-x+c,-z);s.lineTo(x-c,-z);s.quadraticCurveTo(x,-z,x,-z+c);s.lineTo(x,z-c);s.quadraticCurveTo(x,z,x-c,z);
- s.lineTo(-x+c,z);s.quadraticCurveTo(-x,z,-x,z-c);s.lineTo(-x,-z+c);s.quadraticCurveTo(-x,-z,-x+c,-z);
- const g=new ExtrudeGeometry(s,{depth:Math.max(.001,h-2*bevel),bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:3,curveSegments:6});
+ // The plan outline is a squircle, like the site's `corner-shape: squircle` (a superellipse, |x|^4+|y|^4=1): each corner
+ // is a quarter of one inside its radius box, the sides between stay straight. Points are bunched toward both ends of
+ // each quarter, where the curve turns fastest, so reflections run along it without kinks.
+ for(let k=0;k<4;k++){
+  const cx=(k===0||k===1?x:-x)+(k===0||k===1?-c:c),cz=(k===0||k===3?-z:z)+(k===0||k===3?c:-c),a=(k-1)*Math.PI/2;
+  for(let i=0;i<=SQUIRCLE;i++){
+   const t=a+(.5-.5*Math.cos(Math.PI*i/SQUIRCLE))*Math.PI/2,co=Math.cos(t),si=Math.sin(t),px=cx+c*Math.sign(co)*Math.abs(co)**.5,pz=cz+c*Math.sign(si)*Math.abs(si)**.5;
+   if(k||i)s.lineTo(px,pz);else s.moveTo(px,pz);
+  }
+ }
+ const g=new ExtrudeGeometry(s,{depth:Math.max(.001,h-2*bevel),bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:6});
  // Extrusion runs along +z; turn it upright so the slab stands on y=0.
  g.rotateX(-Math.PI/2);
  g.translate(0,bevel,0);
+ // The rim (bevel and walls) is one smooth surface, so its reflections flow round the corners; the flat caps keep their own normals.
+ const pos=g.attributes.position,nor=g.attributes.normal,rim=g.groups.find(q=>q.materialIndex===1),sum=new Map(),at=i=>`${Math.round(pos.getX(i)*1e4)}|${Math.round(pos.getY(i)*1e4)}|${Math.round(pos.getZ(i)*1e4)}`;
+ for(let i=rim.start;i<rim.start+rim.count;i+=3){
+  v1.fromBufferAttribute(pos,i);v2.fromBufferAttribute(pos,i+1).sub(v1);v3.fromBufferAttribute(pos,i+2).sub(v1);v2.cross(v3);
+  for(let j=0;j<3;j++){const q=at(i+j),acc=sum.get(q);if(acc)acc.add(v2);else sum.set(q,v2.clone());}
+ }
+ for(let i=rim.start;i<rim.start+rim.count;i++){const m=sum.get(at(i)).normalize();nor.setXYZ(i,m.x,m.y,m.z);}
  g.userData.bevel=bevel;
  geometries.set(id,g);
  return g;
@@ -228,12 +253,18 @@ function drawLabels(){
  labels.material.needsUpdate=true;
 }
 
+// Brushed satin: the board's grain runs along its long side (the cap's UVs are plan coordinates, so the anisotropy
+// frame needs no tangents), a thin lacquer on top, a light touch of metal.
+function satin(m){
+ m.roughness=pal.dark?.5:.42;m.metalness=pal.dark?.35:.2;m.anisotropy=.7;m.clearcoat=pal.dark?.1:.25;
+ return m;
+}
 function makeBoard(model){
  hours={min:model.min,max:model.max};
  size={w:AXIS+GRID+PAD,d:HEAD+(hours.max-hours.min)/60*HOUR+PAD};
  if(board){week.remove(board,labels);board.material.dispose();edges.geometry.dispose();edges.material.dispose();labels.geometry.dispose();labels.material.map?.dispose();labels.material.dispose();}
  // Transparent so the board can dissolve into the planner sheet as it lands.
- board=new Mesh(slabGeometry(size.w,size.d,BOARD,.34),new MeshPhysicalMaterial({color:pal.board,roughness:pal.dark?.7:.5,clearcoat:pal.dark?.15:.5,clearcoatRoughness:.3,transparent:true}));
+ board=new Mesh(slabGeometry(size.w,size.d,BOARD,.34),satin(new MeshPhysicalMaterial({color:pal.board,clearcoatRoughness:.35,anisotropyRotation:0,transparent:true})));
  board.position.y=-BOARD;board.receiveShadow=board.castShadow=true;
  edges=new LineSegments(new EdgesGeometry(board.geometry,40),new LineBasicMaterial({color:pal.edge,transparent:true}));
  board.add(edges);
@@ -246,12 +277,12 @@ function makeBoard(model){
 }
 
 function slabMaterial(e){
- if(e.sample)return new MeshPhysicalMaterial({color:pal.chrome,metalness:1,roughness:.16,clearcoat:.5,clearcoatRoughness:.1});
+ if(e.sample)return new MeshPhysicalMaterial({color:pal.chrome,metalness:1,roughness:.04,envMapIntensity:1.6});
  // Course colours are already vivid; a touch darker keeps the clearcoat highlights from blowing out.
  const c=new Color(e.color),hsl={};
  c.getHSL(hsl,SRGBColorSpace);
  c.setHSL(hsl.h,hsl.s,hsl.l*.9,SRGBColorSpace);
- const m=gel(new MeshPhysicalMaterial({color:c,roughness:.16,clearcoat:1,clearcoatRoughness:.03,transparent:e.review,opacity:e.review?.6:1}));
+ const m=gel(new MeshPhysicalMaterial({color:c,roughness:GLOSS,ior:1.49,specularIntensity:1,clearcoat:1,clearcoatRoughness:.02,transparent:e.review,opacity:e.review?.6:1}));
  if(e.conflict)m.emissive.set(pal.danger);
  return m;
 }
@@ -267,13 +298,40 @@ function tint(slab,k,pulse){
  const m=slab.mesh.material,e=slab.e;
  if(e.sample)return;
  m.color.copy(slab.base).multiplyScalar(1-k*.94);
- m.clearcoat=1-k*.9;m.envMapIntensity=1-k*.9;m.roughness=.16+k*.5;
+ m.clearcoat=1-k*.9;m.envMapIntensity=1-k*.9;m.roughness=lerp(slab.rough,GLOSS+.5,k);
  if(e.review)m.opacity=.6+.4*k;
  // Its edges give way to the flat fill as the tile lands.
  m.userData.rim.value=RIM*(1-k);
  if(e.conflict){m.emissive.copy(danger).lerp(slab.flat,k);m.emissiveIntensity=lerp(pulse,1,k);}
+ // The lit "now" slab breathes in its glow until the morph takes it down to the flat fill.
+ else if(slab.glow){m.emissive.copy(slab.lit).lerp(slab.flat,k);m.emissiveIntensity=lerp(GLOW*(1+.35*breath),1,k);}
  else{m.emissive.copy(slab.flat);m.emissiveIntensity=k;}
 }
+// The class running now (else the next one today) glows like lit frosted glass: a rough body under the clear coat, the
+// course colour pushed toward hot pink as its own light, and a small lamp over it (see step). The planner marks its
+// blocks each minute (.is-now, .is-next, same ids as the tiles); a conflicting tile keeps its warning pulse instead.
+// The breathing is only a function of the clock inside step: it never keeps the loop awake, so the loop's own sleep after
+// 15 idle seconds still applies (the glow then rests at its last level).
+const GLOSS=.12,GLOW=.6,FROST=.45;
+let glowId='',glowSlab=null,breath=0;
+function glow(){
+ glowSlab=null;
+ for(const slab of slabs.values()){
+  const on=!!glowId&&slab.e.id===glowId&&!slab.e.sample&&!slab.e.conflict;
+  slab.glow=on;slab.rough=on?FROST:GLOSS;
+  if(on){slab.lit=slab.base.clone().lerp(new Color('#ff4fa8'),.5);glowSlab=slab;}
+ }
+ wake();
+}
+function marked(force){
+ const el=calendarWrap.querySelector('.meeting.is-now')||calendarWrap.querySelector('.meeting.is-next'),id=el?.dataset.event||'';
+ if(force||id!==glowId){glowId=id;glow();}
+}
+// Only a change in the now/next marks matters; the pointer layer toggles other classes on the blocks all the time.
+const markOf=cls=>cls.includes('is-now')?'now':cls.includes('is-next')?'next':'';
+new MutationObserver(records=>{
+ if(records.some(r=>r.type==='childList'||markOf(r.oldValue||'')!==markOf(r.target.getAttribute('class')||'')))marked(false);
+}).observe(document.getElementById('calendar'),{childList:true,subtree:true,attributes:true,attributeOldValue:true,attributeFilter:['class']});
 
 // Lit acrylic: the faces of a tile that turn away from the eye pick up its own colour, as light gathers at the edges
 // of a sheet of perspex. One shader for every tile; the strength is each material's own (see tint).
@@ -310,7 +368,7 @@ function makeSlab(e,order,meetings){
  const still=reduce.matches,from=new Vector3(),far=approach(mesh.position,from);
  // `y` is how far out the tile still is along `from`, its way in (see approach), never more than three quarters of the
  // way to the lens, however zoomed in the board or late in the deal the tile; it tumbles by `spin`, less the nearer it gets.
- const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),from,spin:{x:(Math.random()-.5)*.024,z:(Math.random()-.5)*.024},air:null,base:mesh.material.color.clone(),flat:flatColor(e),y:still?0:Math.min(11+order*.15,far*.75),v:still?0:-14,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?380:0)+Math.min(order,16)*DEAL)};
+ const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),from,spin:{x:(Math.random()-.5)*.024,z:(Math.random()-.5)*.024},air:null,base:mesh.material.color.clone(),rough:GLOSS,glow:false,lit:null,flat:flatColor(e),y:still?0:Math.min(11+order*.15,far*.75),v:still?0:-14,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?380:0)+Math.min(order,16)*DEAL)};
  mesh.position.addScaledVector(slab.from,slab.y);mesh.visible=still;mesh.userData.slab=slab;
  week.add(mesh);
  decal(slab);
@@ -412,6 +470,7 @@ function build(){
  }
  for(const [id,slab] of slabs)if(!seen.has(id)){retire(slab);slabs.delete(id);}
  firstBuild=false;
+ marked(true);
  measure();
  wake();
 }
@@ -420,7 +479,7 @@ function restyle(){
  pal=palette();
  light();
  danger.set(pal.danger);
- if(board){board.material.color.set(pal.board);board.material.roughness=pal.dark?.7:.5;board.material.clearcoat=pal.dark?.15:.5;edges.material.color.set(pal.edge);drawLabels();}
+ if(board){board.material.color.set(pal.board);satin(board.material);edges.material.color.set(pal.edge);drawLabels();}
  for(const slab of slabs.values()){
   if(slab.e.sample)slab.mesh.material.color.set(pal.chrome);
   slab.flat=flatColor(slab.e);
@@ -917,6 +976,7 @@ function step(now){
  }
  // Words on the board (day labels, hours, the slabs' printed text) leave together, before the planner's own arrive.
  const words=1-smooth((e-.35)/.3),flatten=still?0:smooth((e-.3)/.6),pulse=still?.25:.22+.18*Math.sin(t*3.4);
+ breath=still?0:Math.sin(t*2.1);
  for(const slab of slabs.values()){
   if(now<slab.start)continue;
   if(slab.decal)slab.decal.material.opacity=words;
@@ -947,6 +1007,10 @@ function step(now){
    slab.mesh.scale.set(1+sq*.35,(1+Math.max(-.14,Math.min(.14,feel.lift.v*.1*give))*calm)*(1-sq),1+sq*.35);
   }
  }
+ // The lamp sits over the lit slab, on the board, and goes down with the glow as the morph flattens it.
+ const on=glowSlab&&glowSlab.mesh.visible&&!glowSlab.air&&now>=glowSlab.start;
+ lamp.intensity=on?(1-flatten)*(pal.dark?8:7)*(1+.35*breath):0;
+ if(on){lamp.color.copy(glowSlab.lit);lamp.position.set(glowSlab.home.x,glowSlab.h+.45,glowSlab.home.z);}
  for(const slab of dying){
   slab.s=Math.max(0,slab.s-dt*4.5);
   slab.mesh.scale.set(1,Math.max(.001,slab.s),1);

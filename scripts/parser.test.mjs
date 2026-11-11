@@ -26,11 +26,17 @@ async function run(call){
 before(async()=>{
  if(skip)return;
  profile=mkdtempSync(join(tmpdir(),'thmmy-test-'));
- const port=9300+Math.floor(Math.random()*600);
- chrome=spawn(CHROME,['--headless=new',`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,'--no-first-run',...(process.env.CI?['--no-sandbox']:[]),'about:blank'],{stdio:'ignore'});
+ // Port 0 lets Chrome pick a free port and write it to DevToolsActivePort, so a busy port can never stall the start.
+ chrome=spawn(CHROME,['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run',...(process.env.CI?['--no-sandbox']:[]),'about:blank'],{stdio:['ignore','ignore','pipe']});
+ let stderr='';
+ chrome.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-2000);});
+ const portFile=join(profile,'DevToolsActivePort');
  let target;
- for(let i=0;i<100&&!target;i++){try{target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}if(!target)await sleep(200);}
- assert.ok(target,'Chrome did not start');
+ for(let i=0;i<150&&!target;i++){
+  try{const port=readFileSync(portFile,'utf8').split('\n')[0];target=(await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');}catch{}
+  if(!target)await sleep(200);
+ }
+ assert.ok(target,'Chrome did not start within 30s. Its last output:\n'+stderr);
  socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject;});
  socket.onmessage=event=>{const message=JSON.parse(event.data);pending.get(message.id)?.(message);pending.delete(message.id);};
  await run(readFileSync(new URL('../assets/source-parser.js',import.meta.url),'utf8')+';0');
