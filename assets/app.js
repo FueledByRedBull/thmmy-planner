@@ -118,6 +118,39 @@ function layoutEvents(events){
 }
 function conflicts(events){const result=[];for(let i=0;i<events.length;i++)for(let j=i+1;j<events.length;j++){const a=events[i],b=events[j];if(a.day===b.day&&a.start<b.end&&b.start<a.end)result.push([a,b]);}return result;}
 function contactMinutes(events){let total=0;for(let d=0;d<5;d++){const entries=events.filter(e=>e.day===d).sort((a,b)=>a.start-b.start);let end=-1;for(const e of entries){total+=Math.max(0,e.end-Math.max(end,e.start));end=Math.max(end,e.end);}}return total;}
+// What is on now and what is next today (every meeting starting at the earliest upcoming minute); Monday is day 0, so weekends have neither.
+function nowAndNext(events,date){
+ const day=(date.getDay()+6)%7,minute=date.getHours()*60+date.getMinutes();
+ if(day>4)return {now:[],next:[],minutesToNext:null};
+ const today=events.filter(e=>e.day===day).sort((a,b)=>a.start-b.start||a.end-b.end);
+ const first=today.find(e=>e.start>minute),next=first?today.filter(e=>e.start===first.start):[];
+ return {now:today.filter(e=>e.start<=minute&&minute<e.end),next,minutesToNext:first?first.start-minute:null};
+}
+// Which meetings carry the "now" and "next" mark on the week: every one in progress, and every one starting at the next start.
+function nowMarks({now,next}){return new Map([...now.map(e=>[e.id,'now']),...next.map(e=>[e.id,'next'])]);}
+// The checks verdict as parts: overlaps in the danger tone, every other finding in the warning tone, each with its own count.
+function checkParts(overlaps,others){const count=(n,one,many)=>n===1?`1 ${one}`:`${n} ${many}`;return [overlaps&&{tone:'danger',text:count(overlaps,'επικάλυψη','επικαλύψεις')},others&&{tone:'warning',text:count(others,'υπόδειξη','υποδείξεις')}].filter(Boolean);}
+// Each meeting in a clash -> the ids of the meetings it overlaps.
+function partnersOf(pairs){const map=new Map();for(const [a,b] of pairs){map.set(a.id,[...(map.get(a.id)||[]),b.id]);map.set(b.id,[...(map.get(b.id)||[]),a.id]);}return map;}
+// Months run from 0 (January).
+function inTeachingPeriod(season,date){const month=date.getMonth();return season==='fall'?month>=8||month===0:month>=1&&month<=5;}
+// The hero card for what nowAndNext found: a meeting in progress (minutes left) or the next one (minutes to go, or its start time past 99).
+// progress runs 0..1 along the bar, or is null when there is no bar; null is returned when there is nothing to show.
+function nextCard({now,next,minutesToNext},date,nameOf,time){
+ const minute=date.getHours()*60+date.getMinutes(),names=list=>[...new Set(list.map(e=>nameOf(e.courseId)).filter(Boolean))];
+ const meta=(list,start,end)=>[[...new Set(list.map(e=>e.room).filter(Boolean))].join(', '),`${time(start)}–${time(end)}`].filter(Boolean).join(' · ');
+ if(now.length&&names(now).length){
+  const start=Math.min(...now.map(e=>e.start)),end=Math.max(...now.map(e=>e.end));
+  return {kind:'now',label:`Τώρα · ως ${time(end)}`,names:names(now).join(' και '),meta:meta(now,start,end),number:String(end-minute),prime:true,progress:(minute-start)/(end-start)};
+ }
+ if(next.length&&names(next).length){
+  const start=next[0].start,end=Math.max(...next.map(e=>e.end)),soon=minutesToNext<=99;
+  return {kind:'next',label:'Επόμενο',names:names(next).join(' και '),meta:meta(next,start,end),number:soon?String(minutesToNext):time(start),prime:soon,progress:minutesToNext<=60?1-minutesToNext/60:null};
+ }
+ return null;
+}
+// How wide a stat's bar runs as a share of its track: value over the stat's usual ceiling, never under 35% so a small value still reads as a bar.
+function barLevel(value,max){return Math.min(1,Math.max(.35,value/max));}
 let shownRows=[];
 // An empty list always says why and offers the way out.
 function noResults(filter,q,sem){
@@ -151,6 +184,59 @@ const rootStyle=getComputedStyle(document.documentElement),EASE=rootStyle.getPro
 const SPRING=rootStyle.getPropertyValue('--spring').trim();
 let justToggled='',renderedSeason='';
 const heroSub=document.querySelector('.hero-sub'),heroDefault=heroSub.textContent;
+// Now and next: the hero card and the week's now-line, repainted on each minute boundary without re-rendering the week.
+let liveEvents=[],gridRange=[0,1],nowTimer=0,renderedDay=-1,heroCard=null;
+const NOW_WORDS={now:'Τώρα',next:'Επόμενο'},phoneLayout=matchMedia('(max-width:860px)'),heroCta=document.querySelector('.hero-cta');
+// Marks today's running and next meetings in place: a class, a label in the time line, and the state for screen readers.
+function markNow(marks){
+ for(const block of $('calendar').querySelectorAll('.meeting')){
+  const kind=marks.get(block.dataset.event)||'',was=block.dataset.mark||'';
+  if(kind===was)continue;
+  block.classList.remove('is-now','is-next');block.querySelector('.event-state')?.remove();
+  if(was){block.setAttribute('aria-label',block.dataset.label);delete block.dataset.label;delete block.dataset.mark;}
+  if(!kind)continue;
+  const tag=document.createElement('span');tag.className='event-state';tag.setAttribute('aria-hidden','true');tag.textContent=NOW_WORDS[kind];
+  block.querySelector('.event-time>span').after(tag);
+  block.classList.add('is-'+kind);block.dataset.mark=kind;block.dataset.label=block.getAttribute('aria-label');block.setAttribute('aria-label',`${block.dataset.label}, ${NOW_WORDS[kind].toLowerCase()}`);
+ }
+}
+// Now and next: the hero card, the now-line and the block marks, repainted on each minute boundary without re-rendering the week.
+function paintNow(){
+ const date=new Date(),day=(date.getDay()+6)%7,minute=date.getHours()*60+date.getMinutes();
+ // Past midnight the today pill and wash are stale: render once to move them.
+ if(renderedDay>=0&&day!==renderedDay){render();return;}
+ const live=chosen().length&&inTeachingPeriod(state.season,date),line=$('calendar').querySelector('.now-line');
+ if(line){line.hidden=!live||minute<gridRange[0]||minute>gridRange[1];line.style.top=(minute-gridRange[0])/(gridRange[1]-gridRange[0])*100+'%';}
+ // On the phone the hero button lands on today's heading in the agenda instead of the top of the planner.
+ heroCta?.setAttribute('href',live&&phoneLayout.matches&&!$('calendarWrap').hidden&&$('todayHead')?'#todayHead':'#planner');
+ const found=live?nowAndNext(liveEvents,date):{now:[],next:[],minutesToNext:null};
+ markNow(nowMarks(found));
+ paintCard(nextCard(found,date,id=>course(id)?.name,time));
+}
+// The card is built once, updated in place on each minute and removed when there is nothing to show. The big number is
+// hidden from screen readers (a prime reads badly); a spoken line in the text column says the same in words.
+function paintCard(model){
+ if(!model){heroCard?.remove();heroCard=null;return;}
+ if(!heroCard){
+  heroCard=document.createElement('div');heroCard.className='next-card';
+  heroCard.innerHTML='<div class="nc-text"><span class="nc-label"></span><b class="nc-name"></b><span class="nc-meta"></span><span class="sr-only"></span></div><div class="nc-num" aria-hidden="true"></div><div class="nc-track" aria-hidden="true"><i></i></div>';
+  heroSub.after(heroCard);
+ }
+ const part=name=>heroCard.querySelector('.nc-'+name),num=part('num');
+ part('label').textContent=model.label;part('name').textContent=model.names;part('meta').textContent=model.meta;
+ num.textContent=model.number;
+ if(model.prime){const em=document.createElement('em');em.textContent='′';num.append(em);}
+ heroCard.querySelector('.sr-only').textContent=model.prime?` ${model.kind==='now'?'ακόμα':'σε'} ${model.number} ${model.number==='1'?'λεπτό':'λεπτά'}`:'';
+ part('track').hidden=model.progress===null;
+ if(model.progress!==null)heroCard.style.setProperty('--p',model.progress);
+}
+function scheduleNow(){
+ clearTimeout(nowTimer);nowTimer=0;
+ if(!chosen().length||document.hidden)return;
+ nowTimer=setTimeout(()=>{paintNow();scheduleNow();},60000-Date.now()%60000+50);
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(nowTimer);nowTimer=0;}else if(chosen().length){paintNow();scheduleNow();}});
+phoneLayout.addEventListener('change',()=>{if(nowTimer)paintNow();});
 // Leave the way it came in, then hide; instant under reduced motion. The fill holds the last frame until hidden.
 function exit(el,to,hide,duration=160){
  if(reducedMotion.matches){hide();return;}
@@ -170,6 +256,9 @@ function countTo(el,value,suffix=''){
  const digits=text.match(/\d/g)||[];
  odo.querySelectorAll('.digit').forEach((d,i)=>d.style.setProperty('--n',digits[i]));
 }
+// Each stat's bar (wide layout, styles.css): its height from the value, a quieter fill at zero.
+const BAR_MAX={count:10,hours:40,conflict:5,credits:40};
+function setBar(id,value,max){const cell=$(id).parentElement;cell.style.setProperty('--lvl',barLevel(value,max));cell.classList.toggle('is-zero',!value);}
 // A course just added flies from its row swatch into each new slot of the week.
 function fly(block,delay){
  const mark=$('courseList').querySelector(`[data-course="${CSS.escape(block.dataset.detail)}"] .link-mark`);
@@ -275,6 +364,8 @@ function fitCalendar(){
 $('checks').firstElementChild.onclick=event=>{if(event.currentTarget.closest('.notes-aside'))event.preventDefault();};
 // The skip link hands keyboard focus to the planner (smooth scrolling takes over the jump itself).
 document.querySelector('.skip').addEventListener('click',()=>$('planner').focus({preventScroll:true}));
+// The names of the courses a meeting overlaps, each once.
+function clashNames(partners,events,id){return [...new Set((partners.get(id)||[]).map(other=>course(events.find(x=>x.id===other)?.courseId)?.name).filter(Boolean))];}
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
@@ -291,11 +382,13 @@ function renderSchedule(){
  document.querySelector('.stats').classList.toggle('is-empty',!chosen().length);
  $('conflictJump').setAttribute('aria-label',`Επικαλύψεις: ${pairs.length}. Μετάβαση στον έλεγχο προγράμματος`);
  heroSub.textContent=chosen().length?`${chosen().length===1?'1 μάθημα':chosen().length+' μαθήματα'} · ${(Math.round(contactMinutes(events)/6)/10).toLocaleString('el-GR')} ώρες · ${pairs.length?(pairs.length===1?'1 επικάλυψη':pairs.length+' επικαλύψεις'):'χωρίς επικαλύψεις'}.`:heroDefault;
+ liveEvents=events;
  const noLab=chosen().map(course).filter(c=>c&&needsLab(c));
  // Also on the printed sheet: a week without its labs must say so on paper.
  $('labNote').hidden=!noLab.length;$('labNote').innerHTML=noLab.length?`${icon('warn')}<span>Χωρίς εργαστήριο στο πρόγραμμα: ${noLab.map(c=>`<button class="link-button" data-detail="${esc(c.id)}">${esc(c.id)}</button>`).join(', ')}. Οι ώρες και οι επικαλύψεις δεν το μετρούν ακόμα.</span>`:'';
  if(hadConflicts&&!pairs.length&&animate)$('conflictStat').animate([{transform:'scale(1)',transformOrigin:'left center'},{transform:'scale(1.04)',transformOrigin:'left center'},{transform:'scale(1)',transformOrigin:'left center'}],{duration:300,easing:'cubic-bezier(.77,0,.175,1)'});
  countTo($('countStat'),chosen().length);countTo($('hoursStat'),Math.round(contactMinutes(events)/6)/10);countTo($('conflictStat'),pairs.length);$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
+ setBar('countStat',chosen().length,BAR_MAX.count);setBar('hoursStat',Math.round(contactMinutes(events)/6)/10,BAR_MAX.hours);setBar('conflictStat',pairs.length,BAR_MAX.conflict);
  const reviewCount=chosen().filter(id=>state.review.includes(id)).length,passedCount=chosen().filter(id=>state.passed.includes(id)&&!state.review.includes(id)).length;
  $('countBreakdown').hidden=reviewCount+passedCount===0;
  $('countBreakdown').textContent=reviewCount+passedCount?`${declaration().length}${passedCount?' προς δήλωση':''}${reviewCount?' + '+reviewCount+' προς έλεγχο':''}${passedCount?' + '+passedCount+(passedCount===1?' περασμένο':' περασμένα'):''}`:'';
@@ -311,12 +404,11 @@ function renderSchedule(){
  }
  const min=Math.min(9*60,...events.map(e=>Math.floor(e.start/60)*60)),max=Math.max(22*60,...events.map(e=>Math.ceil(e.end/60)*60));
  const hours=(max-min)/60;$('calendar').style.setProperty('--hours',hours);
- const today=(new Date().getDay()+6)%7;
- let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length===1?'1 συνάντηση':events.filter(e=>e.day===i).length+' συναντήσεις'} · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR',{maximumFractionDigits:1})} ώρες</small></div>`).join('');
+ const today=renderedDay=(new Date().getDay()+6)%7;gridRange=[min,max];
+ let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' id="todayHead" title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length===1?'1 συνάντηση':events.filter(e=>e.day===i).length+' συναντήσεις'} · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR',{maximumFractionDigits:1})} ώρες</small></div>`).join('');
  html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
- const laidOut=layoutEvents(events),partners=new Map();
- for(const [a,b] of pairs){partners.set(a.id,[...(partners.get(a.id)||[]),b.id]);partners.set(b.id,[...(partners.get(b.id)||[]),a.id]);}
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const review=state.review.includes(c.id),clash=[...new Set((partners.get(e.id)||[]).map(id=>course(events.find(x=>x.id===id)?.courseId)?.name).filter(Boolean))];const detail=[`${DAYS[d]} ${time(e.start)}-${time(e.end)}`,c.name,e.type,e.room,e.teacher,clash.length?`επικάλυψη με ${clash.join(' και ')}`:'',review?'προς έλεγχο':''].filter(Boolean).join(', ');return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)}${e.type&&e.room?' · ':''}</span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span>${clash.length?`<span class="event-clash">Επικάλυψη με ${esc(clash.join(' και '))}</span>`:''}</span></button>`;}).join('')+'</div>';
+ const laidOut=layoutEvents(events),partners=partnersOf(pairs);
+ for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+(d===today?'<span class="now-line" aria-hidden="true"></span>':'')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const review=state.review.includes(c.id),clash=clashNames(partners,events,e.id);const detail=[`${DAYS[d]} ${time(e.start)}-${time(e.end)}`,c.name,e.type,e.room,e.teacher,clash.length?`επικάλυψη με ${clash.join(' και ')}`:'',review?'προς έλεγχο':''].filter(Boolean).join(', ');return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)}${e.type&&e.room?' · ':''}</span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span>${clash.length?`<span class="event-clash">Επικάλυψη με ${esc(clash.join(' και '))}</span>`:''}</span></button>`;}).join('')+'</div>';
  $('calendar').innerHTML=html;
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
@@ -328,6 +420,7 @@ function renderSchedule(){
  renderChecks(pairs);
  fitCalendar();
  highlightCourse();
+ paintNow();scheduleNow();
  // The hero's 3D week (assets/week3d.js) rebuilds from this model.
  window.weekModel={min,max,events:laidOut.map(e=>{const c=course(e.courseId);return c&&{id:e.id,course:c.id,name:c.name,day:e.day,start:e.start,end:e.end,lane:e.lane,lanes:e.lanes,color:baseColor(c),conflict:conflictIds.has(e.id),review:state.review.includes(c.id)};}).filter(Boolean)};
  document.dispatchEvent(new Event('weekmodel'));
@@ -398,11 +491,13 @@ function renderChecks(pairs){
  if(state.entryYear==='old'&&selected.length)issues.push({group:'profile',text:'Οι κανόνες δήλωσης στη σ. 20 αφορούν εισαγωγή από το 2023-24. Για προηγούμενα έτη απαιτείται ο αντίστοιχος κανονισμός.'});
  const credits=planned.reduce((n,c)=>n+(ects(c)||0),0),unknown=planned.filter(c=>ects(c)===null).length;
  countTo($('creditsStat'),credits,unknown?'+?':'');
+ setBar('creditsStat',credits,BAR_MAX.credits);
  $('creditsStat').title='ECTS των μαθημάτων προς δήλωση, χωρίς τα προς έλεγχο και τα περασμένα';
- $('checkBadge').dataset.tone=pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';const badgeText=issues.length?(issues.length===1?'1 ένδειξη':`${issues.length} ενδείξεις`):selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Χωρίς μαθήματα ακόμα';
- $('checkBadge').innerHTML=(pairs.length?icon('warn'):'')+badgeText;
+ const others=issues.length-pairs.length,parts=checkParts(pairs.length,others),part=(p,lead)=>`<span class="sev-${p.tone}">${lead&&p.tone==='danger'?icon('warn'):''}${p.text}</span>`,clear=selected.length?'Χωρίς εντοπισμένες ενδείξεις':'Χωρίς μαθήματα ακόμα';
+ $('checkBadge').dataset.tone=pairs.length&&others?'mixed':pairs.length?'danger':issues.length?'warning':selected.length?'success':'neutral';
+ $('checkBadge').innerHTML=parts.length?parts.map(p=>part(p,true)).join(' · '):clear;
  // The same verdict under the stats, for when the checks sit below the week.
- $('checkJump').hidden=!selected.length;$('checkJump').innerHTML=icon(issues.length?'warn':'check')+`Έλεγχος δήλωσης · ${badgeText}`;
+ $('checkJump').hidden=!selected.length;$('checkJump').innerHTML=icon(issues.length?'warn':'check')+`Έλεγχος δήλωσης · ${parts.length?parts.map(p=>part(p,false)).join(' · '):clear}`;
  // Conflicts first, then what can be fixed on a course, then the profile, then the rules; each item links to its fix.
  const issueGroups=[['conflict','Επικαλύψεις'],['course','Ανά μάθημα'],['profile','Προφίλ'],['rules','Κανόνες δήλωσης']].map(([key,label])=>{
   const items=issues.filter(x=>(x.group||'rules')===key);
@@ -439,17 +534,18 @@ function syncPassedChecklist(){
 }
 function openProfile(showPassed=false){$('entryYear').value=state.entryYear;$('studySemester').value=state.studySemester;$('passedComplete').checked=state.passedComplete;renderPassedChecklist();$('passedPanel').open=showPassed;$('profileDialog').showModal();}
 function resetMeetings(id){const prefix=state.season+'|'+id+'|';for(const key of ['labs','excluded'])state[key]=state[key].filter(value=>!value.startsWith(prefix));persist();render();renderDetail(id);}
+const clashLine=names=>names.length?`<small class="option-clash">${icon('warn')}Επικάλυψη με ${esc(names.join(' και '))}</small>`:'';
 function renderDetail(id){
  const c=course(id);if(!c)return;
  // A re-render after a change inside the settings keeps them open; another course starts closed.
  const keepOpen=detailId===id&&$('courseDialog').open&&!!$('detailBody').querySelector('.detail-settings[open]');
  const refocusPassed=document.activeElement?.matches('#detailBody [data-passed]');
- detailId=id;const g=guideCourse(id),pre=prerequisites(c),list=meetings(id);
+ detailId=id;const g=guideCourse(id),pre=prerequisites(c),list=meetings(id),live=activeEvents(),partners=partnersOf(conflicts(live));
  $('detailCode').innerHTML=[c.id,`${c.semester}ο εξάμηνο`,mandatory(c)?'Υποχρεωτικό':'Επιλογής',...(ects(c)!==null?[ects(c)+' ECTS']:[])].map(part=>`<span>${esc(part)}</span>`).join('');$('detailName').textContent=c.name;
  let html=`<div class="detail-actions"><button class="primary" data-toggle="${esc(id)}">${chosen().includes(id)?icon('minus')+'Αφαίρεση από πρόγραμμα':icon('plus')+'Προσθήκη στο πρόγραμμα'}</button></div>`;
  html+='<h3>Συναντήσεις στην επίσημη πηγή</h3><p class="subtle">Οι διαλέξεις και τα φροντιστήρια μπαίνουν αυτόματα. Για εργαστήρια, διάλεξε τις ζώνες του τμήματός σου. Μια πολύωρη ζώνη μπορεί να περιλαμβάνει περισσότερες ομάδες· επιβεβαίωσε το ακριβές τμήμα με τον διδάσκοντα.</p>';
  if(staleMeetings(id).length)html+=`<p role="alert">Οι παλιές επιλογές δεν αντιστοιχίστηκαν με βεβαιότητα στο νέο ωρολόγιο. Η επαναφορά εμφανίζει τις διαλέξεις και τα φροντιστήρια και αποεπιλέγει τα εργαστήρια αυτού του μαθήματος· μετά διάλεξε ξανά τις συναντήσεις σου.</p><button data-reset-meetings="${esc(id)}">Επαναφορά συναντήσεων αυτού του μαθήματος</button>`;
- html+=list.length?list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`<label class="meeting-option"><input type="checkbox" data-meeting="${esc(e.id)}" ${included(e)?'checked':''}><span><b>${DAYS[e.day]} ${time(e.start)}-${time(e.end)}</b><small>${esc([e.type,e.room].filter(Boolean).join(' · '))}</small><small>${esc(e.teacher)}</small></span></label>`).join(''):'<p>Δεν υπάρχουν δημοσιευμένες ώρες για αυτό το μάθημα στην επιλεγμένη περίοδο.</p>';
+ html+=list.length?list.slice().sort((a,b)=>a.day-b.day||a.start-b.start).map(e=>`<label class="meeting-option"><input type="checkbox" data-meeting="${esc(e.id)}" ${included(e)?'checked':''}><span><b>${DAYS[e.day]} ${time(e.start)}-${time(e.end)}</b><small>${esc([e.type,e.room].filter(Boolean).join(' · '))}</small><small>${esc(e.teacher)}</small>${clashLine(clashNames(partners,live,e.id))}</span></label>`).join(''):'<p>Δεν υπάρχουν δημοσιευμένες ώρες για αυτό το μάθημα στην επιλεγμένη περίοδο.</p>';
  html+='<h3>Προαπαιτούμενα</h3>';
  html+=pre===null?'<p>Δεν βρέθηκαν επαληθευμένα στοιχεία στον οδηγό 2024-25. Έλεγξε την επίσημη περιγραφή.</p>':pre.length?'<ul>'+pre.map(p=>`<li>${icon(state.passed.includes(p)?'check':'circle')}${esc(p)} · ${esc(course(p)?.name||'Μάθημα εκτός τρέχοντος καταλόγου')}${state.passed.includes(p)?' (περασμένο)':''}</li>`).join('')+'</ul>':'<p>Κανένα, σύμφωνα με τον οδηγό 2024-25.</p>';
  if(g)html+=`<p class="subtle">Πηγή: οδηγός σπουδών 2024-25, σ. ${esc((g.pages||[]).join(', '))}. ${pre&&pre.length?esc(g.prerequisiteText||''):''}</p>`;
@@ -569,7 +665,7 @@ async function downloadCopy(){
  $('saveCopy').disabled=true;
  try{
  const root=document.documentElement.cloneNode(true),json=v=>JSON.stringify(v).replace(/</g,'\\u003c');root.querySelector('#initial-data').textContent=json(data);root.querySelector('#guide-data').textContent=json(GUIDE);root.querySelector('#initial-state').textContent=json({...state,storageId:crypto.randomUUID()});root.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));root.querySelector('#notice').hidden=true;root.querySelector('#updateReport').hidden=true;root.querySelector('#refresh').disabled=false;
- root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelector('.dock-mark')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');
+ root.querySelector('#saveCopy').disabled=false;root.classList.remove('is-loading','is-intro');root.querySelector('#load-data')?.remove();root.querySelector('.dock-mark')?.remove();root.querySelectorAll('link[rel=preload],link[rel=modulepreload],link[rel=manifest],link[rel=apple-touch-icon]').forEach(link=>link.remove());root.querySelector('#updateToast').hidden=true;root.querySelector('#dataMenu')?.removeAttribute('open');root.querySelectorAll('.now-line,.next-card,.time-pill,.event-state').forEach(node=>node.remove());root.querySelectorAll('.meeting[data-mark]').forEach(block=>{block.classList.remove('is-now','is-next');block.setAttribute('aria-label',block.dataset.label);delete block.dataset.label;delete block.dataset.mark;});root.querySelector('.hero-cta')?.setAttribute('href','#planner');root.querySelectorAll('.hero-title .hl-ch').forEach(ch=>ch.replaceWith(ch.textContent));
  const fetchAsset=async url=>{const response=await fetch(url);if(!response.ok)throw Error('HTTP '+response.status+'.');return response;};
  await Promise.all([
   ...[...root.querySelectorAll('script[src]')].map(async script=>{const code=await(await fetchAsset(new URL(script.getAttribute('src'),document.baseURI))).text();script.removeAttribute('src');script.textContent=code;}),

@@ -91,6 +91,7 @@ assets/
   source-parser.js        reads the official pages (shared with the nightly refresh)
   styles.css              design tokens, layout, print
   motion.js               smooth scrolling (Lenis) and loading the 3D week
+  pointer.js              cursor motion: headline weight, block tilt, time label, sign-off rise
   week3d.js               the 3D week, bundled from src/week3d.js
   vendor/lenis.min.js
   fonts/                  Geologica subsets, with OFL.txt
@@ -101,7 +102,7 @@ data/
 src/week3d.js             source of the 3D week (Three.js)
 scripts/refresh-data.mjs  the nightly data refresh
 scripts/screenshots.mjs   retakes the images in docs/screenshots (node scripts/screenshots.mjs <local URL>)
-scripts/*.test.mjs        tests: week logic and transfer codes (app.test), the source parser in headless Chrome (parser.test)
+scripts/*.test.mjs        tests: week logic, now and next, and transfer codes (app.test), the source parser in headless Chrome (parser.test)
 .github/workflows/        refresh-data.yml (nightly data), tests.yml (node --test on every push)
 docs/screenshots/         images for this README
 DESIGN.md, PRODUCT.md     design system and product notes (.impeccable/ holds the design tokens as JSON and the page's surface brief)

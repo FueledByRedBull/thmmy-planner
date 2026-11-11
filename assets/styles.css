@@ -260,7 +260,31 @@ select option{background:var(--surface);color:var(--text)}
 .hero-title .line>span{display:inline-block;transform-origin:50% 100%;animation:line-in .9s .1s var(--ease) both}
 .hero-title .line+.line>span{animation-delay:.19s}
 .hero-title em{font-style:normal;color:var(--accent)}
-.hero-sub{max-width:40ch;margin:22px 0 0;color:var(--text);font-size:clamp(17px,1.4vw,20px);line-height:1.5;animation:fade-up .6s .3s var(--ease) both}
+.hero-sub{max-width:40ch;margin:22px 0 0;text-wrap:pretty;color:var(--text);font-size:clamp(17px,1.4vw,20px);line-height:1.5;animation:fade-up .6s .3s var(--ease) both}
+/* The next-class card (paintCard() in app.js): what is on or what comes next, the minutes as the big number, a 4px bar
+   under it. Flat on its own tone, no border or shadow. */
+.next-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:18px 20px;width:470px;max-width:100%;margin-top:20px;padding:24px;border-radius:24px;background:var(--surface);animation:fade-up .6s .34s var(--ease) both}
+:root[data-theme=dark] .next-card{background:var(--surface-2)}
+.nc-text{display:grid;gap:6px;min-width:0}
+.nc-label{color:var(--text-3);font-size:13px;font-weight:600;line-height:1.3}
+.nc-name{font-size:26px;font-weight:700;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.nc-meta{color:var(--text-2);font-size:14px;line-height:1.4}
+.nc-num{font-size:64px;font-weight:800;line-height:1;letter-spacing:-.045em;text-align:right}
+.nc-num em{font-style:normal;color:var(--accent)}
+.nc-track{grid-column:1/-1;height:4px;border-radius:var(--pill);background:var(--surface-3)}
+.nc-track[hidden]{display:none}
+.nc-track i{display:block;width:calc(var(--p) * 100%);height:100%;border-radius:inherit;background:var(--accent)}
+/* A short window has no room for a three-line name at full size: the card tightens so the button stays above the sheet. */
+@media (min-width:861px) and (max-height:940px){
+ .next-card{gap:12px 20px;margin-top:14px;padding:18px 20px}
+ .nc-text{gap:4px}
+ .nc-name{font-size:22px;line-height:1.1}
+ .nc-num{font-size:56px}
+}
+/* Under 800px tall the card and the poster title share the column: the title gives up some size while a card is showing. */
+@media (min-width:861px) and (max-height:800px){
+ .hero-copy:has(.next-card) .hero-title{font-size:clamp(64px,min(11.6vw,17svh),190px)}
+}
 .hero-cta{display:inline-flex;align-items:center;min-height:52px;margin-top:28px;padding:0 26px;border-radius:var(--pill);background:var(--text);color:var(--sheet);font-size:14px;font-weight:600;text-decoration:none;pointer-events:auto;transition:background-color .18s,transform .16s var(--ease),translate .4s var(--spring);animation:fade-up .6s .38s var(--ease) both}
 @media (hover:hover) and (pointer:fine){.hero-cta:hover{background:color-mix(in srgb,var(--text) 80%,var(--accent))}}
 .hero-cta:active{transform:scale(.96)}
@@ -354,7 +378,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .tag,.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.5}
 .tag .icon,.badge .icon{width:12px;height:12px;stroke-width:2.4}
 .tag:has(use[href="#i-check"]){background:var(--success-soft);color:var(--success)}
-.tag.warn{background:var(--warning-soft);color:var(--warning)}
+.tag.warn{background:var(--warning-soft);color:color-mix(in srgb,var(--warning) 80%,var(--text))}
 .course-add{position:relative;width:32px;min-height:32px;height:32px;margin-top:-7px;padding:0;color:var(--text-2);background:var(--fill)}
 .tag-action{position:relative;min-height:0;border:0;box-shadow:none;white-space:normal}
 @media (pointer:coarse){.tag-action::after{content:'';position:absolute;inset:-11px -4px}}
@@ -403,6 +427,18 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .tb-label{color:var(--text-3);font-size:13px;font-weight:500}
 .stats b{font-size:clamp(44px,5.8vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}
 .stats b.has-conflict,.stats>:has(.has-conflict) .tb-label{color:var(--danger)}
+/* Wide layouts: a 6px bar under each number on a quiet track, its width the value set by app.js (--lvl, .35 to 1; an
+   empty stat shows the track alone). The overlaps bar turns danger. */
+@media (min-width:861px){
+ .stats b{position:relative;margin-bottom:12px;padding-bottom:14px}
+ .stats b::before,.stats b::after{content:'';position:absolute;left:0;bottom:0;height:6px;border-radius:var(--pill)}
+ .stats b::before{right:0;background:var(--fill)}
+ .stats b::after{width:calc(var(--lvl,.35) * 100%);background:var(--text);transition:width .6s var(--ease)}
+ .stats>.is-zero b::after{width:0}
+ .stats b.has-conflict::after{background:var(--danger)}
+ .is-loading .stats b{margin-bottom:0;padding-bottom:0}
+ .is-loading .stats b::before,.is-loading .stats b::after{content:none}
+}
 /* Odometer: each digit is a 0-9 column clipped to one line. */
 .odo{display:inline-flex}
 .digit{display:inline-block;height:1.2em;overflow:hidden}
@@ -445,6 +481,10 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .time-tick:first-child{transform:translateY(3px)}
 .hour-rule{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--line) 75%,transparent);pointer-events:none}
 .day-column.today{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.now-line{position:absolute;left:0;right:0;height:2px;margin-top:-1px;pointer-events:none}
+.now-line::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left}
+/* The line runs behind the blocks, but its dot stands in the 7px gutter the blocks leave on today's column edge (3px margin each side of the 1px rule), above the axis and the blocks, so the time stays readable under a lesson that spans the column. */
+.now-line::before{content:'';position:absolute;left:-4px;top:50%;z-index:5;width:7px;height:7px;border-radius:var(--pill);background:var(--accent);transform:translateY(-50%)}
 .hour-rule:first-child{border-color:transparent}
 
 /* Event blocks: a flat field of the full course colour, ink or white text picked for contrast in app.js; the 3D tile
@@ -457,13 +497,17 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;
  transition:transform 160ms var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
 :root[data-theme=dark] .meeting{color:var(--event-on-dark,var(--event-on));--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface))}
-@media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;transform:translateY(-1px);box-shadow:var(--shadow-md),var(--block-inset);transition-duration:.15s,.15s,.25s}}
+@media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;box-shadow:var(--shadow-md),var(--block-inset)}}
 .meeting:active:not(:disabled){transform:scale(.985)}
 .meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:9px 11px;overflow:hidden}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .calendar.measuring .meeting-content{flex-grow:0}
 .meeting .event-time{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:12px;font-weight:600}
 .meeting .event-time .icon{width:13px;height:13px;stroke-width:2.2}
+.meeting:is(.is-now,.is-next) .event-time{flex-wrap:wrap;row-gap:0}
+/* Now and next: a 6px dot and a word in the block's own text colour, set by paintNow() in app.js. */
+.meeting .event-state{display:inline-flex;align-items:center;gap:5px}
+.meeting .event-state::before{content:'';flex:none;width:6px;height:6px;border-radius:var(--pill);background:currentColor}
 .meeting strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}
 .meeting .event-room{padding-top:4px;font-size:12px;line-height:1.4}
 .meeting .event-teacher{font-size:12px;line-height:1.4}
@@ -477,6 +521,9 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .event-end,.meeting .event-room,.meeting .event-teacher{display:none}
  .meeting .event-time .icon{width:12px;height:12px}
  .meeting .event-time,.meeting .event-code{overflow:hidden;white-space:nowrap;overflow-wrap:normal}
+ /* The word goes, the dot stays. */
+ .meeting .event-state{gap:0;font-size:0}
+ .meeting:is(.is-now,.is-next) .event-time{flex-wrap:nowrap}
  .meeting .full-title{font-size:12px;line-height:1.2;letter-spacing:-.015em}
  .meeting .event-code{font-size:12px;letter-spacing:-.01em}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
@@ -488,8 +535,8 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .event-code{display:block}}
 @container (max-width:60px){
  .meeting-content{padding:6px 4px}
- .meeting:not(.conflict) .event-time{display:none}
- .meeting.conflict .event-time>span{display:none}
+ .meeting:not(.conflict):not(.is-now):not(.is-next) .event-time{display:none}
+ .meeting:is(.conflict,.is-now,.is-next) .event-time>span:not(.event-state){display:none}
  .meeting .event-code{font-size:11px;letter-spacing:-.02em}}
 /* Four or more parallel lessons: the shared ECE prefix goes, the course number stays (full name in tooltip and dialog). */
 @container (max-width:50px){
@@ -556,6 +603,9 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .badge[data-tone=success]{background:var(--success-soft);color:var(--success)}
 .badge[data-tone=warning]{background:var(--warning-soft);color:var(--warning)}
 .badge[data-tone=danger]{background:var(--danger-soft);color:var(--danger-text)}
+.sev-danger,.sev-warning{display:inline-flex;align-items:center;gap:4px}
+.sev-danger{color:var(--danger-text)}
+.sev-warning{color:color-mix(in srgb,var(--warning) 80%,var(--text))}
 .checks p{max-width:75ch;margin:0 0 12px;font-size:13.5px}
 .check-group{margin:16px 0 8px;font-size:13px;font-weight:600}
 .check-actions{display:inline-flex;flex-wrap:wrap;gap:4px 12px;margin-left:4px}
@@ -573,7 +623,7 @@ footer>span:first-of-type{font-weight:600;color:var(--text)}
 /* On it the title is built from the week's own tiles: each letter is cut out of a block in one of the week's colours,
    Monday to Friday, as tall as that lesson is long (app.js deals both; plain grey steps until it has). The full stop
    keeps the accent. */
-.sign-off{flex-basis:100%;display:flex;align-items:flex-end;gap:4px;height:clamp(140px,34svh,340px);margin:0 0 44px;overflow:clip;font-size:min(6.2vw,130px);font-weight:800;line-height:1;user-select:none}
+.sign-off{flex-basis:100%;display:flex;align-items:flex-end;gap:4px;height:clamp(140px,34svh,340px);margin:0 0 44px;overflow:visible;clip-path:inset(-40px 0 0 0);font-size:min(6.2vw,130px);font-weight:800;line-height:1;user-select:none}
 .sign-off b{flex:1;display:flex;align-items:flex-end;justify-content:center;min-width:0;height:calc(var(--h,.8) * 100%);padding-bottom:.34em;border-radius:var(--r-block);background:var(--c,#3d3d3d);color:var(--close)}
 .sign-off b:nth-of-type(3n+1){--h:1}.sign-off b:nth-of-type(4n+2){--h:.64}.sign-off b:nth-of-type(5n){--h:.88}
 .sign-off b::before{content:attr(data-l)}
@@ -621,6 +671,8 @@ hr{margin:30px 0 0;border:0}
 @media (hover:hover) and (pointer:fine){.meeting-option:hover{background:var(--surface-3)}}
 .meeting-option span{display:block}
 .meeting-option small{display:block;margin-top:2px;color:var(--text-3)}
+.meeting-option .option-clash{display:flex;align-items:flex-start;gap:6px;margin-top:4px;color:var(--text-2);font-size:12px;font-weight:600;line-height:1.4}
+.meeting-option .option-clash .icon{flex:none;width:13px;height:13px;margin-top:.2em;color:var(--danger-text);stroke-width:2.2}
 .guide-rule{padding:11px 16px;border-radius:var(--r-md);background:var(--surface-2)}
 .guide-rule+.guide-rule{margin-top:8px}
 .passed-panel{margin:14px 0}
@@ -762,6 +814,12 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .hero-title{font-size:clamp(48px,15.2vw,76px)}
  .hero-sub{margin-top:14px;font-size:15px}
  .hero-cta{min-height:46px;margin-top:20px}
+ /* On the phone the countdown leads, and the card stays compact so the board keeps its room. */
+ .next-card{grid-template-columns:minmax(0,1fr);gap:6px;width:100%;margin-top:10px;padding:12px 16px 14px;border-radius:20px}
+ .nc-num{grid-row:1;font-size:80px;line-height:.9;text-align:left}
+ .nc-text{gap:3px}
+ .nc-name{font-size:20px;line-height:1.1}
+ .nc-meta{font-size:14px}
  :root{--gutter:16px}
  main{margin-top:-9svh;padding:0 16px 20px;border-radius:24px 24px 0 0}
  footer{margin-bottom:-20px}
@@ -792,7 +850,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .sidebar-foot{display:none}
  .calendar-scroll{overflow:visible}
  .calendar{grid-template-columns:minmax(0,1fr)!important;padding:0 0 8px}
- .calendar>.time-head,.calendar>.time-axis,.hour-rule{display:none}
+ .calendar>.time-head,.calendar>.time-axis,.hour-rule,.now-line{display:none}
  .calendar>:nth-child(2){grid-row:1}.calendar>:nth-child(8){grid-row:2}
  .calendar>:nth-child(3){grid-row:3}.calendar>:nth-child(9){grid-row:4}
  .calendar>:nth-child(4){grid-row:5}.calendar>:nth-child(10){grid-row:6}
@@ -849,6 +907,38 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .detail-settings summary,.passed-panel summary{min-height:44px}
 }
 
+/* ---------- Pointer layer (assets/pointer.js) ----------
+   Fine pointers and full motion only, and the block effects only on the grid (861px up); the now line's arrival is
+   not pointer-driven and runs on touch too. */
+.hl-ch{display:inline-block;text-align:center}
+.time-pill{display:none}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .time-pill{position:fixed;left:0;top:0;z-index:5;display:block;padding:2px 6px;border-radius:var(--pill);background:var(--surface);color:var(--text);box-shadow:var(--shadow-md);font-size:12px;font-weight:600;line-height:1.4;font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 120ms var(--ease)}
+ .time-pill.is-on{opacity:1}
+ .day-column::before{content:'';position:absolute;inset:0;background:var(--fill);opacity:0;pointer-events:none;transition:opacity 180ms var(--ease)}
+ .day-column.is-hot::before{opacity:.5}
+}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) and (min-width:861px){
+ /* Lift and scale are the individual properties and the tilt is the transform, so the deal, flight and clear-away
+    animations (transform) compose with them. pointer.js springs --rx/--ry toward the pointer while a block is hovered. */
+ .meeting{transition:translate 180ms var(--ease),scale 180ms var(--ease),box-shadow 180ms var(--ease),outline-offset .25s var(--ease)}
+ .meeting:hover{translate:0 -3px;scale:1.02}
+ .meeting.is-tilting,.meeting.is-tilting:active:not(:disabled){transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+ .meeting:active:not(:disabled){transform:none;scale:.985}
+}
+@media (prefers-reduced-motion:no-preference){
+ /* The now line arrives: the dot pops with a spring (bounce .35), then the line draws from the left. */
+ .now-line.now-pre::before{scale:0}
+ .now-line.now-pre::after{transform:scaleX(0)}
+ .now-line.now-arrive::before{animation:now-dot 400ms both;animation-timing-function:linear(0,0.0242,0.0871,0.1757,0.2793,0.3892,0.4987,0.6028,0.6982,0.7827,0.8552,0.9156,0.9641,1.0017,1.0295,1.0486,1.0606,1.0666,1.068,1.0659,1.0613,1.0551,1.048,1.0405,1.0331,1.026,1.0197,1.014,1.0092,1.0052,1.002,0.9996,0.9978,0.9965,0.9958,0.9954,0.9954,0.9955,0.9959,0.9963,0.9968,0.9973,0.9978,0.9983,0.9987,0.9991,0.9994,0.9997,0.9999,1.0001,1.0002)}
+ .now-line.now-arrive::after{animation:now-draw 600ms 150ms var(--ease) both}
+ @keyframes now-dot{from{scale:0}to{scale:1}}
+ @keyframes now-draw{from{transform:scaleX(0)}}
+}
+
+/* Squircle corners on every soft rectangle (not pills or dots): a superellipse that reads smoother than a circular arc. */
+@supports (corner-shape:squircle){:where(main,dialog,.next-card,.is-loading .stats b,.data-menu-actions,.data-menu-actions button,.hero-tip,input[type=file],.notice,.update-report,.course,.empty-state,.empty-icon,.checks,.checks li,.source-links>div,.meeting-option,.guide-rule,.transfer-code,.transfer-preview,.meeting,.sign-off b,.sk-field b,.hs-field b,.hs-board,.flight i,.sidebar){corner-shape:squircle}}
+
 /* ---------- Print: one A4 landscape sheet; fitCalendar() sets --print-width and --print-scale ---------- */
 @page{size:A4 landscape;margin:0}
 @media print{
@@ -873,8 +963,10 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .day-column.today{background:none}
  .day-head.today b{margin:0;padding:0;background:none;color:inherit}
  .day-head .today-word{display:none}
+ .now-line,.time-pill,.event-state{display:none}
  .stats>*{min-width:70px;padding:0 10px}
  .stats b{font-size:20px;letter-spacing:-.02em}
+ .stats b{margin-bottom:0;padding-bottom:0}.stats b::before,.stats b::after{content:none}
  .calendar-scroll{margin:0;overflow:visible}
  .calendar{min-width:0;padding-bottom:2mm}
  .time-axis,.time-head{position:relative;left:auto}
