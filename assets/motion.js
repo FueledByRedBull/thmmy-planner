@@ -26,7 +26,7 @@
  if(planner)new IntersectionObserver(([entry])=>{document.documentElement.classList.toggle('scroll-docked',entry.isIntersecting);globalThis.applyTheme?.();},{rootMargin:'0px 0px -80%'}).observe(planner);
  // Resolved from this script's own URL; inlined into an HTML backup it has none, and the 3D (never loadable from a
  // saved file) is skipped.
- let week3d=null;try{week3d=new URL('week3d.js?v=poster1',document.currentScript.src).href;}catch{}
+ let week3d=null;try{week3d=new URL('week3d.js?v=polish1',document.currentScript.src).href;}catch{}
  const can3d=week3d&&document.getElementById('week3d')&&'WebGL2RenderingContext' in window;
  // No 3D, no skeleton waiting for it in the hero.
  const no3d=()=>document.documentElement.classList.remove('has-3d');
@@ -36,4 +36,25 @@
  if(can3d)document.head.append(Object.assign(document.createElement('link'),{rel:'modulepreload',href:week3d,fetchPriority:'low'}));
  const start=()=>{if(can3d)import(week3d).catch(no3d);};
  addEventListener('load',()=>'requestIdleCallback' in window?requestIdleCallback(start,{timeout:900}):setTimeout(start,200),{once:true});
+ // The hero button leans up to 6px toward a mouse pointer within 80px of it. The individual `translate` property
+ // leaves the :active scale alone, and styles.css eases it back.
+ const cta=document.querySelector('.hero-cta'),mouse=matchMedia('(hover: hover) and (pointer: fine)');
+ if(cta){
+  const REACH=80,LEAN=6,toward=(d,half)=>Math.max(-1,Math.min(1,d/(half+REACH)))*LEAN;
+  let frame=0,x=0,y=0,tx=0,ty=0;
+  const lean=()=>{
+   frame=0;
+   let nx=0,ny=0;
+   if(mouse.matches&&!reduce.matches&&scrollY<innerHeight){
+    const r=cta.getBoundingClientRect(),w=r.width/2,h=r.height/2;
+    // The box moves with the lean, so measure from where it rests.
+    const dx=x-(r.left+w-tx),dy=y-(r.top+h-ty);
+    if(Math.abs(dx)<w+REACH&&Math.abs(dy)<h+REACH){nx=toward(dx,w);ny=toward(dy,h);}
+   }
+   if(nx!==tx||ny!==ty){tx=nx;ty=ny;cta.style.translate=nx||ny?`${nx}px ${ny}px`:'';}
+  };
+  const queue=()=>{if(!frame)frame=requestAnimationFrame(lean);};
+  addEventListener('pointermove',event=>{if(event.pointerType!=='mouse')return;x=event.clientX;y=event.clientY;queue();},{passive:true});
+  document.documentElement.addEventListener('pointerleave',()=>{x=y=-1e4;queue();});
+ }
 })();

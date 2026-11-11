@@ -6,10 +6,10 @@
 //   npm i three@0.186.1 esbuild
 //   npx esbuild src/week3d.js --bundle --minify --format=esm --legal-comments=eof --outfile=assets/week3d.js
 import {
- BackSide, BoxGeometry, CanvasTexture, Color, DirectionalLight, EdgesGeometry, ExtrudeGeometry, Group, HemisphereLight,
- LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial,
- NeutralToneMapping, NoToneMapping, PCFShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, Quaternion,
- Raycaster, SRGBColorSpace, Scene, ShadowMaterial, Shape, Vector2, Vector3, WebGLRenderer
+ BackSide, BoxGeometry, CanvasTexture, Color, DirectionalLight, EdgesGeometry, ExtrudeGeometry, Group,
+ HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial,
+ NeutralToneMapping, NoToneMapping, PCFShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, Plane,
+ Quaternion, Raycaster, SRGBColorSpace, Scene, ShadowMaterial, Shape, Vector2, Vector3, WebGLRenderer
 } from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
@@ -78,6 +78,9 @@ key.shadow.normalBias=.02;
 const rim=new DirectionalLight('#dfe6ff',1);
 rim.position.set(7,5,-10);
 const fill=new HemisphereLight('#ffffff','#9aa1ad',.25);
+// A small key under the cursor: it hovers over the board where the pointer points and catches the clearcoat. It stays in
+// the scene at zero intensity (a light added or removed later recompiles every material) and casts no shadow.
+const spot=new PointLight('#ffffff',0,7,2);
 const floor=new Mesh(new PlaneGeometry(80,80),new ShadowMaterial({opacity:.2}));
 floor.rotation.x=-Math.PI/2;
 floor.position.y=-1.15;
@@ -86,13 +89,13 @@ floor.receiveShadow=true;
 // "Spinning the board" really swings the camera round a still board, so `air` turns with the camera's azimuth: a free
 // tile then moves, and rests, in the viewer's frame, over a studio floor that stays still while the board spins.
 const air=new Group();
-scene.add(key,key.target,rim,fill,floor,week,air);
+scene.add(key,key.target,rim,fill,spot,floor,week,air);
 
 let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:-1},board=null,labels=null,edges=null;
 const slabs=new Map(),dying=new Set(),geometries=new Map();
 // `dolly` brings the board in from deep in the studio on load, a little past its mark and back; `field` is how far the
 // pointer's pull on the slabs is switched on.
-const springs={intro:{x:reduce.matches?1:0,v:0},dolly:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0},field:{x:0,v:0}};
+const springs={intro:{x:reduce.matches?1:0,v:0},dolly:{x:reduce.matches?1:0,v:0},cx:{x:0,v:0},cy:{x:0,v:0},push:{x:0,v:0},field:{x:0,v:0},lx:{x:0,v:0},lz:{x:0,v:0}};
 // Where the pointer's ray meets the board's top, in the board's own coordinates.
 const field={x:0,z:0,on:false};
 // The choreography follows the scroll on a critically damped spring instead of 1:1: `shown` is the progress the board,
@@ -105,7 +108,7 @@ let handover=0,handed=true;
 const travel=()=>Math.max(progress(),shown.x);
 let pointer={x:0,y:0,inside:false,dirty:false,type:'mouse'},hovered=null,raf=0,last=0,live=false,firstBuild=true;
 const ray=new Raycaster(),ndc=new Vector2();
-let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targetEl=null,targetKey='',clip='';
+let view={w:1,h:1,dist:30,ox:0,oy:0},dock=1,docked=false,stageOp=-1,targetEl=null,targetKey='',clip='',mask='';
 const sidebar=document.getElementById('courseSidebar'),drawer=matchMedia('(max-width: 1180px)');
 const copy=hero.querySelector('.hero-copy'),copyParts=[...copy.querySelectorAll('.line>span,.hero-sub,.hero-cta')];
 const corner=new Vector3();
@@ -162,6 +165,7 @@ function light(){
  rim.intensity=pal.dark?1.5:.7;
  scene.environmentIntensity=pal.dark?.85:.7;
  floor.material.opacity=pal.shadow;
+ spot.color.set(pal.dark?'#e6edff':'#ffffff');
 }
 const rgba=(hex,a)=>{const c=new Color(hex);return`rgba(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)},${a})`;};
 const hhmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
@@ -197,7 +201,10 @@ function drawLabels(){
   const x=px(colX(d)),w=colW(d)*k;
   if(d===today){g.fillStyle=rgba(pal.accent,pal.dark?.1:.06);g.fillRect(x,top,w,bottom-top);}
   if(d){g.beginPath();g.moveTo(x-GAP*k/2,top);g.lineTo(x-GAP*k/2,bottom);g.stroke();}
-  g.font=`600 ${Math.round(k*.17)}px ${font}`;g.textAlign='center';g.textBaseline='middle';
+  // A long name (Παρασκευή) shrinks to fit its column, with the today pill's padding and a little air either side.
+  const pad=k*(d===today?.36:.12),full=Math.round(k*.17);
+  g.font=`600 ${full}px ${font}`;
+  g.font=`600 ${Math.floor(full*Math.min(1,(w-pad)/g.measureText(DAYS[d]).width))}px ${font}`;g.textAlign='center';g.textBaseline='middle';
   const cx=x+w/2,cy=HEAD*k*.52;
   // Today wears the same accent pill as the day header in the planner.
   if(d===today){const pw=g.measureText(DAYS[d]).width+k*.24;g.fillStyle=pal.accent;g.beginPath();g.roundRect(cx-pw/2,cy-k*.15,pw,k*.3,k*.15);g.fill();}
@@ -753,6 +760,30 @@ function landing(R){
  return{sx,sz,tx:wx(R.l)-gx0*sx,tz:wz(R.t)-gz0*sz};
 }
 
+// The cursor's key light: it fades in while a fine pointer is over the hero and follows where it points on the board's plane,
+// on a spring. It leaves with the morph (calm), so it is gone before the landing; under reduced motion it never shows.
+const boardPlane=new Plane(),aim=new Vector3();
+let lightIn=0;
+function cursorLight(dt,calm,still){
+ const want=!still&&pointer.inside&&pointer.type!=='touch'&&!coarse.matches?1:0;
+ let moving=false;
+ if(Math.abs(want-lightIn)<.01)lightIn=want;
+ else{lightIn+=(want-lightIn)*(1-Math.exp(-dt*10));moving=true;}
+ spot.intensity=(pal.dark?9:8)*lightIn*smooth(calm*1.2-.2);
+ if(!lightIn)return moving;
+ const rect=canvas.getBoundingClientRect();
+ ndc.set((pointer.cx-rect.left)/rect.width*2-1,-((pointer.cy-rect.top)/rect.height)*2+1);
+ ray.setFromCamera(ndc,camera);
+ if(!ray.ray.intersectPlane(boardPlane.setFromNormalAndCoplanarPoint(UP,aim.set(0,0,0)).applyMatrix4(week.matrixWorld),aim))return moving;
+ // Fresh from nothing it starts under the pointer; after that it travels there.
+ const lx=springs.lx,lz=springs.lz;
+ if(lightIn<.05){lx.x=aim.x;lz.x=aim.z;lx.v=lz.v=0;}
+ else{spring(lx,aim.x,50,12,dt);spring(lz,aim.z,50,12,dt);}
+ spot.position.set(lx.x,aim.y+1.6,lz.x);
+ // Only a light that is really travelling keeps the loop awake; a slow drift of the board under it does not.
+ return moving||Math.abs(aim.x-lx.x)+Math.abs(aim.z-lz.x)>.02||Math.abs(lx.v)+Math.abs(lz.v)>.05;
+}
+
 function setStage(opacity){
  const q=Math.round(opacity*100)/100;
  if(q!==stageOp){stageOp=q;stage.style.opacity=q>=1?'':String(q);}
@@ -778,14 +809,19 @@ function setTarget(el,chrome,blocks){
 // planner's chrome instead of across it; on phones the cut runs to the bottom, so the sheet covers the board.
 function clipStage(R){
  const top=Math.round(planner.getBoundingClientRect().top),W=view.w,H=view.h;
- let holes='';
+ let holes='',soft='';
  if(top<H){
   const bottom=R?Math.max(top,Math.round(R.el.getBoundingClientRect().top)):H;
-  holes+=` M0 ${top}H${W}V${bottom}H0Z`;
+  // The toolbar band is a mask, not a hole: slabs fade back in over 20px under the grid's top instead of ending on a line.
+  soft=`linear-gradient(#000 ${top}px,#0000 ${top}px,#0000 ${bottom}px,#000 ${bottom+20}px)`;
   if(R&&!drawer.matches){const s=sidebar.getBoundingClientRect();if(s.width&&s.bottom>bottom)holes+=` M${Math.round(s.left)} ${bottom}H${Math.round(s.right)}V${Math.round(s.bottom)}H${Math.round(s.left)}Z`;}
  }
- const next=holes?`path(evenodd,"M0 0H${W}V${H}H0Z${holes}")`:'';
- if(next!==clip){clip=next;stage.style.clipPath=next;}
+ setCut(holes?`path(evenodd,"M0 0H${W}V${H}H0Z${holes}")`:'',soft);
+}
+// The canvas's cut-aways, each written only when it changes: a clip-path for the rail, a mask for the toolbar band.
+function setCut(path,band){
+ if(path!==clip){clip=path;stage.style.clipPath=path;}
+ if(band!==mask){mask=band;stage.style.maskImage=stage.style.webkitMaskImage=band;}
 }
 
 function setHover(slab){
@@ -951,6 +987,7 @@ function step(now){
  key.position.set(-6+springs.cx.x*4*calm,13,8+springs.cy.x*3*calm);
  // Free tiles move in the viewer's frame: the air layer turns with the camera (see `air`).
  air.rotation.y=az;air.updateMatrixWorld();week.updateMatrixWorld();camera.updateMatrixWorld();
+ moving=cursorLight(dt,calm,still)|moving;
  if(!R&&sky)settleAll();
  moving=stepAir(now,dt,p,R,e)|moving;
  // Hand-over: the real blocks fade in over the last tenth of the scroll while the canvas fades out. While tiles are
@@ -965,7 +1002,7 @@ function step(now){
  setTarget(R?.el||null,chrome,land);
  setStage(1-land);
  // Thrown tiles fly up over the sheet's toolbar and stats, so the canvas is not cut away while any is still leaving.
- if(!still){if(rising){if(clip){clip='';stage.style.clipPath='';}}else clipStage(R);}
+ if(!still){if(rising)setCut('','');else clipStage(R);}
  return moving;
 }
 
@@ -1023,7 +1060,7 @@ function wake(){
 function stillMode(){
  // Reduced motion: no scroll choreography, the stage scrolls away with the hero as a still picture.
  stage.classList.toggle('still',reduce.matches);
- if(reduce.matches){clip='';stage.style.clipPath='';}
+ if(reduce.matches)setCut('','');
  if(reduce.matches){settleAll();springs.intro.x=springs.dolly.x=1;springs.field.x=feel.thud.x=0;for(const slab of slabs.values()){slab.y=slab.v=slab.lift=0;slab.start=0;slab.mesh.rotation.set(0,0,0);}for(const slab of [...dying])dispose(slab);clearTarget();setStage(1);docked=false;stage.classList.remove('docked');}
  wake();
 }
