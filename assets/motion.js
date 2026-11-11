@@ -26,7 +26,7 @@
  if(planner)new IntersectionObserver(([entry])=>{document.documentElement.classList.toggle('scroll-docked',entry.isIntersecting);globalThis.applyTheme?.();},{rootMargin:'0px 0px -80%'}).observe(planner);
  // Resolved from this script's own URL; inlined into an HTML backup it has none, and the 3D (never loadable from a
  // saved file) is skipped.
- let week3d=null;try{week3d=new URL('week3d.js?v=wow1',document.currentScript.src).href;}catch{}
+ let week3d=null;try{week3d=new URL('week3d.js?v=polish1',document.currentScript.src).href;}catch{}
  const can3d=week3d&&document.getElementById('week3d')&&'WebGL2RenderingContext' in window;
  // No 3D, no skeleton waiting for it in the hero.
  const no3d=()=>document.documentElement.classList.remove('has-3d');
