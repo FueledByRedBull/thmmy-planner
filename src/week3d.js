@@ -808,7 +808,7 @@ function resize(){
   let good=0,bad=PHONE_WIDTH*w/spanX;
   if(room(bad).reduce((l,h)=>h-l)>=0)good=bad;else for(let n=0;n<24;n++){const mid=(good+bad)/2,[l,h]=room(mid);if(h>=l)good=mid;else bad=mid;}
   const k=Math.max(good,1e-3)*PHONE_FIT,[lo,hi]=room(k);
-  cx=.5;cy=(Number.isFinite(lo)&&hi>=lo?lo+(hi-lo)*.3:(end.b+floor)/2)/h;
+  cx=.5;cy=(Number.isFinite(lo)&&hi>=lo?lo+(hi-lo)*.45:(end.b+floor)/2)/h;
   dist=h/(2*LAND*k);
  }else{
   const left=end.r+w*.02,right=w*1.04,top=(first.t+first.b)/2,bottom=heroH*.95;
