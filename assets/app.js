@@ -169,7 +169,8 @@ function firstDay(counts,today){
 }
 // The semester "fill my semester" plans for: the profile's current one, or the next when the other season is on screen
 // (fall teaches the odd semesters), since that coming season is the one being planned.
-function fillSemester(semester,season){return semester%2===(season==='fall'?1:0)?semester:semester+1;}
+// The profile's last option is "16th or later", so the plan never reaches past 16.
+function fillSemester(semester,season){return Math.min(semester%2===(season==='fall'?1:0)?semester:semester+1,16);}
 // How wide a stat's bar runs as a share of its track: value over the stat's usual ceiling, never under 35% so a small value still reads as a bar.
 function barLevel(value,max){return Math.min(1,Math.max(.35,value/max));}
 let shownRows=[];
@@ -514,8 +515,11 @@ function renderSchedule(){
  let entering=0,landing=150;const clashing=[],placed=[];
  if(animate)for(const block of all){
   const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
+  // A block on a day the phone is not showing has no box: nothing to see, so it takes no turn in the deal. One that
+  // had no box before (its day just came into view) is dealt in like a newcomer.
+  if(!now.width||!now.height)continue;
   placed.push(now);
-  if(old&&now.width&&now.height){
+  if(old&&old.width&&old.height){
    const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
    if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)moves.set(block,block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:300,easing:SPRING}));
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
@@ -528,7 +532,7 @@ function renderSchedule(){
  }
  if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
- for(const block of clashing)block.animate([{outlineOffset:'-2px'},{outlineOffset:'-6px'},{outlineOffset:'-2px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
+ for(const block of clashing)block.animate([{outlineOffset:'1px'},{outlineOffset:'-3px'},{outlineOffset:'1px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
  // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,
  // a neighbour widening into a freed lane): the fade would double-expose over it.
  if(animate&&sameSeason&&events.length&&!phone.matches){
@@ -597,11 +601,12 @@ function render(){
  renderFill();renderDayTabs();renderSchedule();renderList();renderSources();
 }
 // What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
-// and not waiting on a prerequisite, the guide's order of priority (p. 20). Empty until the profile has a semester.
+// and not waiting on a prerequisite, the guide's order of priority (p. 20). Like the priority check, it leaves out courses
+// whose prerequisites the guide does not list. Empty until the profile has a semester.
 function fillIds(){
  const semester=Number(state.studySemester);if(!semester)return [];
  const to=fillSemester(semester,state.season);
- return data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&!outstanding(c).length).map(c=>c.id);
+ return data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&prerequisites(c)!==null&&!outstanding(c).length).map(c=>c.id);
 }
 function renderFill(){
  const ids=fillIds(),to=state.studySemester&&fillSemester(Number(state.studySemester),state.season),count=ids.length;
@@ -617,7 +622,7 @@ let phoneDay=null,tabsSeason='';
 function renderDayTabs(){
  const tabs=$('dayTabs'),calendar=$('calendar'),events=activeEvents(),counts=DAYS.map((_,i)=>events.filter(e=>e.day===i).length),today=(new Date().getDay()+6)%7;
  tabs.hidden=!events.length;
- if(!events.length){delete calendar.dataset.day;return;}
+ if(!events.length){delete calendar.dataset.day;phoneDay=null;return;}
  if(phoneDay===null||tabsSeason!==state.season)phoneDay=firstDay(counts,today);
  tabsSeason=state.season;
  // A course just added from the rail opens on its own day, so its blocks are seen landing.
@@ -648,7 +653,7 @@ function fillCourses(){
  state.selected[season]=[...chosen(),...ids];persist();render();
  notify(`${ids.length===1?'Μπήκε 1 υποχρεωτικό':`Μπήκαν ${ids.length} υποχρεωτικά`} ως το ${to}ο εξάμηνο.`);
  const undo=document.createElement('button');undo.type='button';undo.className='quiet';undo.textContent='Αναίρεση';
- undo.onclick=()=>{state.selected[season]=state.selected[season].filter(id=>!ids.includes(id));persist();render();$('notice').hidden=true;};
+ undo.onclick=()=>{state.selected[season]=state.selected[season].filter(id=>!ids.includes(id));persist();render();notify(`${ids.length===1?'Βγήκε το υποχρεωτικό':`Βγήκαν τα ${ids.length} υποχρεωτικά`}.`);$('notice').querySelector('button')?.focus();};
  $('notice').insertBefore(undo,$('notice').lastElementChild);
 }
 function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
