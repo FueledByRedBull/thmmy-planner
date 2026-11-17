@@ -594,7 +594,7 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
- renderFill();renderSchedule();renderDayTabs();renderList();renderSources();
+ renderFill();renderDayTabs();renderSchedule();renderList();renderSources();
 }
 // What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
 // and not waiting on a prerequisite, the guide's order of priority (p. 20). Empty until the profile has a semester.
@@ -620,6 +620,9 @@ function renderDayTabs(){
  if(!events.length){delete calendar.dataset.day;return;}
  if(phoneDay===null||tabsSeason!==state.season)phoneDay=firstDay(counts,today);
  tabsSeason=state.season;
+ // A course just added from the rail opens on its own day, so its blocks are seen landing.
+ const added=justToggled&&phoneDay!=='all'&&chosen().includes(justToggled)?events.filter(e=>e.courseId===justToggled).map(e=>e.day):[];
+ if(added.length&&!added.includes(phoneDay))phoneDay=Math.min(...added);
  if(!tabs.children.length)tabs.innerHTML=[...SHORT_DAYS.map((d,i)=>`<button type="button" role="tab" data-day="${i}" aria-controls="calendarWrap"><b>${d}</b><small></small></button>`),'<button type="button" role="tab" data-day="all" aria-controls="calendarWrap"><b>Όλες</b><small></small></button>'].join('');
  for(const tab of tabs.children){
   const day=tab.dataset.day,on=String(phoneDay)===day,count=day==='all'?events.length:counts[day];
