@@ -113,6 +113,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --highlight:inset 0 1px 0 #ffffffcc;
  /* Controls at rest are a step of ink over whatever they sit on: no outline, no shadow. */
  --fill:color-mix(in srgb,var(--text) 7%,transparent);--fill-2:color-mix(in srgb,var(--text) 12%,transparent);
+ /* The week's grid: a step of tone on every other hour and a wash of the accent on today's column. */
+ --band:color-mix(in srgb,var(--text) 2%,transparent);--today:8%;
  /* Shapes: everything you press is a pill; surfaces are soft rectangles. */
  --pill:999px;--r-sheet:28px;--r-lg:20px;--r-md:14px;--r-sm:10px;--r-block:12px;
  --ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.16,1,.3,1);
@@ -137,6 +139,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --shadow-lg:0 36px 72px -28px #000,0 6px 16px -6px #000a;
  --highlight:inset 0 1px 0 #ffffff12;
  --fill:color-mix(in srgb,var(--text) 9%,transparent);--fill-2:color-mix(in srgb,var(--text) 15%,transparent);
+ --band:color-mix(in srgb,var(--text) 3%,transparent);--today:9%;
  --studio:#050505;--close:#050505;
 }
 /* Raised surfaces lean on soft elevation; on ink, where shadows vanish, a hairline marks the edge instead. */
@@ -365,6 +368,8 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .selected .link-mark{background:var(--course-color);border-color:var(--course-color)}
 .gapped .link-mark{background:transparent;border:3px solid var(--course-color)}
 .review .link-mark{background:var(--warning-soft);border:1.5px dashed var(--warning)}
+/* A selected course whose lab is not in the program: a dashed ring, the same dash as the pill on its blocks. */
+.lab-missing:not(.review,.passed,.gapped) .link-mark{background:transparent;border:2px dashed var(--course-color)}
 .passed .link-mark{background:var(--success);border-color:var(--success)}
 .course.just .link-mark{animation:pop .5s var(--ease)}
 .course-title{display:block;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;font-size:14px;font-weight:600;line-height:1.35;white-space:normal}
@@ -446,11 +451,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .digit>span{display:block;transform:translateY(calc(var(--n,0) * -1.2em));transition:transform .6s var(--ease) calc(var(--i,0) * 30ms)}
 .digit>span::before{content:'0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9';white-space:pre}
 .tb-note{display:block;margin-top:2px;color:var(--text-3);font-size:12.5px}
-.lab-note{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;color:var(--text-2);font-size:13px;line-height:1.55}
-.lab-note .icon{margin-top:2px;color:var(--warning)}
-.lab-note .link-button{padding-block:0}
-.inline-note{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;color:var(--text-2);font-size:13px;line-height:1.55}
-.inline-note::before{content:'';flex:none;width:6px;height:6px;margin-top:.55em;border-radius:var(--pill);background:var(--warning)}
+.inline-note{margin:-6px 0 4px;color:var(--text-3);font-size:12px;line-height:1.5}
 .calendar-scroll{overflow-x:auto}
 /* The scroll morph hands the week over in two layers (week3d.js setTarget): grid chrome first, blocks last. */
 #calendarWrap{--chrome:1;--blocks:1}
@@ -474,13 +475,15 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .day-head.today b{padding:1px 10px;border-radius:var(--pill);background:var(--accent);color:var(--on-accent)}
 .time-head{justify-content:flex-end;align-items:flex-end;padding:0 10px 10px 0;color:var(--text-3);font-size:12px;font-weight:600}
 .time-axis,.time-head{position:sticky;left:0;z-index:4;background:var(--sheet)}
-.time-axis{color:var(--text-3);font-size:12px;font-weight:500}
+.time-axis{color:var(--text-3);font-size:12px;font-weight:400}
 .time-axis,.day-column{height:calc(var(--hours)*var(--hour))}
 .day-column{position:relative;border-left:1px solid var(--line)}
 .time-tick{position:absolute;width:100%;padding-right:10px;text-align:right;transform:translateY(-50%)}
 .time-tick:first-child{transform:translateY(3px)}
-.hour-rule{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--line) 75%,transparent);pointer-events:none}
-.day-column.today{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.hour-rule{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--line) 38%,transparent);pointer-events:none}
+/* Every other hour is a step of tone, not a line. */
+.hour-rule:nth-child(even)::before{content:'';position:absolute;left:0;right:0;top:-1px;height:var(--hour);background:var(--band)}
+.day-column.today{background:color-mix(in srgb,var(--accent) var(--today),transparent)}
 .now-line{position:absolute;left:0;right:0;height:2px;margin-top:-1px;pointer-events:none}
 .now-line::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left}
 /* The line runs behind the blocks, but its dot stands in the 7px gutter the blocks leave on today's column edge (3px margin each side of the 1px rule), above the axis and the blocks, so the time stays readable under a lesson that spans the column. */
@@ -499,10 +502,15 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 :root[data-theme=dark] .meeting{color:var(--event-on-dark,var(--event-on));--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface))}
 @media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;box-shadow:var(--shadow-md),var(--block-inset)}}
 .meeting:active:not(:disabled){transform:scale(.985)}
-.meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:9px 11px;overflow:hidden}
+.meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:10px;overflow:hidden}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .calendar.measuring .meeting-content{flex-grow:0}
+/* The head is the time and, in narrow lanes, the course code. */
+.meeting .event-head{display:contents}
 .meeting .event-time{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:12px;font-weight:600}
+/* The time reads a step quieter than the title; app.js (quietText) sets how far each hue can go and keep 4.5:1. */
+.meeting .event-time>span:not(.event-state),.meeting .event-code{opacity:var(--event-dim,1)}
+:root[data-theme=dark] .meeting .event-time>span:not(.event-state),:root[data-theme=dark] .meeting .event-code{opacity:var(--event-dim-dark,var(--event-dim,1))}
 .meeting .event-time .icon{width:13px;height:13px;stroke-width:2.2}
 .meeting:is(.is-now,.is-next) .event-time{flex-wrap:wrap;row-gap:0}
 /* Now and next: a 6px dot and a word in the block's own text colour, set by paintNow() in app.js. */
@@ -511,13 +519,16 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .meeting strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}
 .meeting .event-room{padding-top:4px;font-size:12px;line-height:1.4}
 .meeting .event-teacher{font-size:12px;line-height:1.4}
+/* "Χωρίς εργαστήριο": a dashed outline pill at the block's foot, in the block's own text colour. */
+.lab-foot{margin-top:auto;padding-top:8px}
+.lab-pill{display:inline-block;max-width:100%;padding:1px 9px;border:1.5px dashed color-mix(in srgb,currentColor 62%,transparent);border-radius:var(--pill);font-size:12px;font-weight:500;line-height:1.4;white-space:nowrap}
 .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-teacher{display:none}
 .meeting:is([data-duration="15"],[data-duration="30"],[data-duration="45"]) .event-room{display:none}
 /* Parallel lessons get narrow lanes: start time and the name, set compact (app.js puts soft hyphens at Greek syllables).
    Lanes too narrow for a name, and one-hour lessons, show the course code; full detail stays in the tooltip and dialog. */
 .meeting .event-code{display:none}
 @media screen{@container (max-width:112px){
- .meeting-content{padding:7px 6px}
+ .meeting-content{padding:8px 6px}
  .meeting .event-end,.meeting .event-room,.meeting .event-teacher{display:none}
  .meeting .event-time .icon{width:12px;height:12px}
  .meeting .event-time,.meeting .event-code{overflow:hidden;white-space:nowrap;overflow-wrap:normal}
@@ -525,16 +536,23 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .event-state{gap:0;font-size:0}
  .meeting:is(.is-now,.is-next) .event-time{flex-wrap:nowrap}
  .meeting .full-title{font-size:12px;line-height:1.2;letter-spacing:-.015em}
- .meeting .event-code{font-size:12px;letter-spacing:-.01em}
+ .meeting .event-code{display:block;font-size:12px;font-weight:400;letter-spacing:-.01em}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
- .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-code{display:block}}
+ /* The words would not fit: the dashed outline stays as a small ring (the block's label and tooltip say it). */
+ .lab-foot{padding-top:6px}
+ .lab-pill{width:11px;height:11px;padding:0;font-size:0;line-height:0;overflow:hidden}}
+/* From 60 to 112px the head is one line, start time then code (it wraps only when both do not fit). The overlap
+   icon steps aside here: the red ring carries it, and the block's label and tooltip name the clash. */
+@container (60px<width<=112px){
+ .meeting .event-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;margin-bottom:2px}
+ .meeting .event-time{margin:0}
+ .meeting .event-time .icon{display:none}}
 /* Soft hyphens are for narrow lanes only; wider lanes wrap whole words. */
 @container (width>112px){.meeting .full-title{hyphens:none}}
-@container (max-width:80px){
- .meeting .full-title{display:none}
- .meeting .event-code{display:block}}
+@container (max-width:96px){
+ .meeting .full-title{display:none}}
 @container (max-width:60px){
- .meeting-content{padding:6px 4px}
+ .meeting-content{padding:7px 4px}
  .meeting:not(.conflict):not(.is-now):not(.is-next) .event-time{display:none}
  .meeting:is(.conflict,.is-now,.is-next) .event-time>span:not(.event-state){display:none}
  .meeting .event-code{font-size:11px;letter-spacing:-.02em}}
@@ -863,13 +881,13 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .day-column{display:grid;gap:8px;height:auto;border-left:0}
  .day-column.today{background:none}
  .meeting{position:static;width:auto!important;height:auto!important;min-height:64px}
- .meeting-content{padding:12px 14px}
+ .meeting-content{padding:10px 12px}
  .schedule-panel{width:100%;padding-left:0;border-left:0}
- .schedule-top{gap:14px;padding:18px 0 14px}
- .stats{grid-template-columns:1fr 1fr;row-gap:12px}
+ .schedule-top{gap:10px;padding:14px 0 10px}
+ .stats{grid-template-columns:1fr 1fr;row-gap:6px}
  .stats>*{padding:2px 14px}
  .stats>:nth-child(3){padding-left:0}
- .stats b{font-size:46px}
+ .stats b{font-size:40px}
  .empty-state{margin:0 0 14px;padding:28px 16px calc(52px + max(18px,env(safe-area-inset-bottom)) + 18px)}
  .help-wide{display:none}
  .help-phone{display:inline}
@@ -903,7 +921,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  button,.data-menu summary,select,.season-switch button,.header-actions>button,.dialog-head>button,.brand{min-height:44px}
  .icon-btn,.header-actions>button,.data-menu>summary,.dialog-head>button,.brand{min-width:44px}
  /* Inline padding grows the tap area without moving the line it sits in. */
- .link-button,.lab-note .link-button{padding-block:14px}
+ .link-button{padding-block:14px}
  .detail-settings summary,.passed-panel summary{min-height:44px}
 }
 
@@ -961,9 +979,10 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .stats{display:flex;flex-wrap:nowrap;width:auto}
  /* A printed week is used on other days: no today marking. */
  .day-column.today{background:none}
+ .hour-rule::before{display:none}
  .day-head.today b{margin:0;padding:0;background:none;color:inherit}
  .day-head .today-word{display:none}
- .now-line,.time-pill,.event-state{display:none}
+ .now-line,.time-pill,.meeting .event-state{display:none}
  .stats>*{min-width:70px;padding:0 10px}
  .stats b{font-size:20px;letter-spacing:-.02em}
  .stats b{margin-bottom:0;padding-bottom:0}.stats b::before,.stats b::after{content:none}
@@ -979,6 +998,8 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .meeting strong{font-size:9px;line-height:1.25}
  .meeting .event-time,.meeting .event-room{font-size:8px;line-height:1.4}
  .meeting .event-teacher{display:none}
+ .lab-pill{padding:0 1.2mm;border-width:1px;font-size:8px;line-height:1.4;white-space:normal}
+ .lab-foot{padding-top:1mm}
  .legend-bar{margin:0;padding:0;border:0}
  .legend{font-size:9px;gap:4px}
  /* Paper has no tooltip: the printed legend names each course. */
