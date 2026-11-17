@@ -25,6 +25,9 @@ const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Πα�
 const GRID=7.6,GAP=.06,HOUR=.46,AXIS=.82,HEAD=.66,PAD=.26,BOARD=.2;
 // Camera framing knob: how much of the target box the board's radius may fill.
 const FIT=.7;
+// Phones: the board's share of the viewport width, the shrink that leaves room for the perspective's near corners, and
+// the height the slabs rise above the board.
+const PHONE_WIDTH=.92,PHONE_FIT=.98,SLAB=.5;
 // A sample week shown before any course is chosen; rendered as chrome so it never reads as real data.
 const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,780,840],[2,1020,1140],[3,660,780],[3,960,1140],[4,600,720],[4,840,960]]
  .map(([day,start,end],i)=>({id:'sample'+i,day,start,end,lane:0,lanes:1,ects:3+(i*3)%7,sample:true}));
@@ -784,10 +787,36 @@ function resize(){
  // The free box. Wide screens: right of the title's short last line and from half-way down its long first one (on
  // screen the board is a diamond, so its top corner stands clear of the first line's end; see clearance), out over
  // the right edge and down to the sheet. Phones: between the title and the facts.
- const left=stacked?0:end.r+w*.02,right=stacked?w:w*1.04,top=stacked?end.b+4:(first.t+first.b)/2,bottom=stacked?Math.max(top+120,facts.t-12):heroH*.95;
- const cx=(left+right)/2/w,cy=(top+bottom)/2/h,boxW=(right-left)/w*.82,boxH=(bottom-top)/h;
- const radius=Math.hypot(size.w,size.d)/2*FIT,tan=LAND;
- view={w,h,stacked,dist:Math.max(radius/(tan*boxH),radius/(tan*camera.aspect*boxW)),ox:-(cx-.5)*w,oy:-(cy-.5)*h};
+ let dist,cx,cy;
+ if(stacked){
+  // Phones: the week is the hero object. It is fitted by its true outline in the hero pose (not a bounding circle): as
+  // wide as PHONE_WIDTH of the screen, and as high as fits between the title and the facts, where its top corner may
+  // rise beside the short last line of the title.
+  const sa=Math.sin(-.58),ca=Math.cos(-.58),se=Math.sin(.56),ce=Math.cos(.56),pts=[];
+  for(const y of [-BOARD,SLAB]){
+   const quad=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([i,j])=>[i*size.w/2,j*size.d/2]);
+   quad.forEach(([x0,z0],n)=>{const[x1,z1]=quad[(n+1)%4];for(let t=0;t<8;t++){const x=x0+(x1-x0)*t/8,z=z0+(z1-z0)*t/8;pts.push([x*ca-z*sa,y*ce-x*sa*se-z*ca*se]);}});
+  }
+  const spanX=Math.max(...pts.map(q=>q[0]))-Math.min(...pts.map(q=>q[0]));
+  const topLimit=x=>(x<end.r+16?end.b:first.b)+8,floor=Math.max(end.b+90,facts.t-14);
+  // Largest scale (pixels per world unit) whose outline fits; each point may sit no higher than its own limit.
+  const room=k=>{
+   let lo=-Infinity,hi=Infinity;
+   for(const[X,Y]of pts){lo=Math.max(lo,topLimit(w/2+k*X)+k*Y);hi=Math.min(hi,floor+k*Y);}
+   return[lo,hi];
+  };
+  let good=0,bad=PHONE_WIDTH*w/spanX;
+  if(room(bad).reduce((l,h)=>h-l)>=0)good=bad;else for(let n=0;n<24;n++){const mid=(good+bad)/2,[l,h]=room(mid);if(h>=l)good=mid;else bad=mid;}
+  const k=Math.max(good,1e-3)*PHONE_FIT,[lo,hi]=room(k);
+  cx=.5;cy=(Number.isFinite(lo)&&hi>=lo?lo+(hi-lo)*.3:(end.b+floor)/2)/h;
+  dist=h/(2*LAND*k);
+ }else{
+  const left=end.r+w*.02,right=w*1.04,top=(first.t+first.b)/2,bottom=heroH*.95;
+  cx=(left+right)/2/w;cy=(top+bottom)/2/h;
+  const radius=Math.hypot(size.w,size.d)/2*FIT,boxW=(right-left)/w*.82,boxH=(bottom-top)/h;
+  dist=Math.max(radius/(LAND*boxH),radius/(LAND*camera.aspect*boxW));
+ }
+ view={w,h,stacked,dist,ox:-(cx-.5)*w,oy:-(cy-.5)*h};
  measure();
  wake();
 }

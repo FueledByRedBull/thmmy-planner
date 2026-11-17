@@ -842,6 +842,18 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .nc-track{grid-row:5}
  .nc-name{font-size:20px;line-height:1.1}
  .nc-meta{font-size:14px}
+ /* A short or narrow phone leaves the week no room between the title and the facts at these sizes: the poster tightens so it keeps some. */
+ @media (max-height:720px){
+  .hero-title{font-size:clamp(44px,12.4vw,60px)}
+  .nc-meta{display:none}
+ }
+ @media (max-height:720px),(max-width:380px){
+  .hero-sub{margin-top:8px}
+  .hero-cta{min-height:44px;margin-top:12px}
+  .next-card{margin-top:8px;padding:10px 14px 12px}
+  .nc-num{font-size:44px}
+  .nc-name{font-size:17px}
+ }
  :root{--gutter:16px}
  main{margin-top:-9svh;padding:0 16px 20px;border-radius:24px 24px 0 0}
  footer{margin-bottom:-20px}
