@@ -67,14 +67,15 @@ const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.starts
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
 const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
-// Notices float under the header, so they are seen wherever the page is scrolled; a finished one can be dismissed.
+// Notices float at the foot of the screen, so they are seen wherever the page is scrolled without covering the stats an
+// action has just changed; a finished one can be dismissed.
 let noticeShown=0;
 function notify(text,error=false){
  $('updateReport').hidden=true;const notice=$('notice'),shown=++noticeShown;
  // A notice replacing one still on screen (or still leaving) plays its entrance again, so the change is seen.
  if(!notice.hidden)notice.getAnimations().forEach(a=>{a.cancel();if(a instanceof CSSAnimation)a.play();});
  notice.textContent=text;notice.classList.toggle('error',error);notice.hidden=false;
- if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>exit(notice,{opacity:[1,0],transform:['none','scale(.96) translateY(-4px)']},()=>{if(shown===noticeShown)notice.hidden=true;},200);notice.append(close);}
+ if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>exit(notice,{opacity:[1,0],transform:['none','translateY(8px) scale(.98)']},()=>{if(shown===noticeShown)notice.hidden=true;},200);notice.append(close);}
 }
 // Failures in the student's language; the technical text stays in the console.
 function plainError(error){
@@ -342,6 +343,25 @@ function stampIn(block,delay){
  block.animate([{opacity:0,transform:'scale(1.1)'},{opacity:1,transform:'none'}],timing);
  block.animate([{opacity:1},{opacity:0}],{...timing,pseudoElement:'::after'});
 }
+// The empty week's card opens out into the week: a copy of it grows from where it stood to the grid's frame (the part
+// on screen) and dissolves as the day columns fade in under it, its words leaving first, so the first blocks are dealt
+// onto the grid the card became rather than replacing it in a cut.
+function unfold(card,from,to){
+ const bottom=Math.min(to.bottom,innerHeight);
+ if(!from.width||!to.width||bottom<=to.top)return;
+ const ghost=card.cloneNode(true);
+ ghost.removeAttribute('id');ghost.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+ ghost.hidden=false;ghost.inert=true;ghost.setAttribute('aria-hidden','true');ghost.className='empty-state unfolding';
+ ghost.style.cssText=`left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+ document.body.append(ghost);
+ const x=to.left-from.left,y=to.top-from.top,sx=to.width/from.width,sy=(bottom-to.top)/from.height;
+ // The panel grows on an ease-in-out, so it has barely moved while the words fade and they never visibly stretch; it
+ // thins steadily from the start, so it never stands over the grid as an empty veil while the first blocks land.
+ const grow=ghost.animate({transform:['none',`translate(${x}px,${y}px) scale(${sx},${sy})`]},{duration:320,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'});
+ ghost.animate({opacity:[1,0]},{duration:260,delay:60,easing:'linear',fill:'forwards'});
+ for(const part of ghost.children)part.animate({opacity:[1,0]},{duration:120,easing:'ease',fill:'forwards'});
+ grow.finished.then(()=>ghost.remove(),()=>ghost.remove());
+}
 // A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
 // itself, so it looks exactly as it did.
 function leave(block,rect,delay=0){
@@ -472,10 +492,11 @@ function renderSchedule(){
  $('countBreakdown').hidden=reviewCount+passedCount===0;
  $('countBreakdown').textContent=reviewCount+passedCount?`${declaration().length}${passedCount?' προς δήλωση':''}${reviewCount?' + '+reviewCount+' προς έλεγχο':''}${passedCount?' + '+passedCount+(passedCount===1?' περασμένο':' περασμένα'):''}`:'';
  
- // The first course of an empty week brings the grid in with a fade (opacity only, so flights still land on their slots).
- const arriving=animate&&was!==''&&wrap.hidden&&events.length>0;
+ // The first course of an empty week brings the grid in with a fade (opacity only, so flights still land on their slots),
+ // as the empty card opens out into it (unfold).
+ const arriving=animate&&was!==''&&wrap.hidden&&events.length>0,card=arriving&&$('emptyState').getBoundingClientRect();
  $('emptyState').hidden=events.length>0;wrap.hidden=events.length===0;
- if(arriving)$('calendar').animate([{opacity:0},{opacity:1}],{duration:240,easing:EASE});
+ if(arriving)$('calendar').animate([{opacity:0},{opacity:1}],{duration:240,delay:60,easing:EASE,fill:'backwards'});
  if(!events.length){
   const unpublished=data[state.season].published===false;
   $('emptyState').querySelector('h3').textContent=chosen().length?'Οι επιλογές σου κρατήθηκαν.':unpublished?`Το ${seasonName()} δεν έχει δημοσιευτεί ακόμα.`:'Πρώτα, τα μαθήματά σου.';
@@ -545,12 +566,13 @@ function renderSchedule(){
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
    // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
-   const delay=swap?120+entering++*step:Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
+   const delay=swap?120+entering++*step:(arriving?60:0)+Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
    if(!flew)stampIn(block,delay);
    landing=Math.max(landing,delay+(flew?380:150));
   }
  }
  if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
+ if(card)unfold($('emptyState'),card,wrap.getBoundingClientRect());
  // A season with nothing to show waits for the old week to lift away before its card rises, so the two never overlap.
  if(swap&&!events.length&&gone.length)$('emptyState').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,delay:phone.matches?0:260,easing:EASE,fill:'backwards'});
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.

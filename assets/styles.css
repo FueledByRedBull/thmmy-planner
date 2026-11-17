@@ -313,7 +313,9 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:26px var(--gutter) 24
 #refresh:disabled .icon{animation:spin .9s linear infinite}
 #syncMeta{color:var(--text-3);font-size:12.5px}
 /* Floats under the header, so it is in view wherever the page is scrolled. */
-.notice{position:fixed;top:calc(var(--bar) + 10px);left:12px;right:12px;z-index:49;display:flex;align-items:center;gap:10px;width:fit-content;max-width:min(720px,calc(100vw - 24px));max-height:60dvh;margin-inline:auto;padding:10px 12px 10px 18px;overflow:auto;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13px;line-height:1.55;animation:pop-in .28s var(--ease)}
+/* At the foot of the screen, over the floating rail button wherever that shows (--fab-room). */
+.notice{position:fixed;bottom:calc(max(18px,env(safe-area-inset-bottom)) + var(--fab-room,0px));left:12px;right:12px;z-index:49;display:flex;align-items:center;gap:10px;width:fit-content;max-width:min(720px,calc(100vw - 24px));max-height:60dvh;margin-inline:auto;padding:10px 12px 10px 18px;overflow:auto;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13px;line-height:1.55;animation:notice-in .28s var(--ease)}
+.rail-open .notice{--fab-room:0px}
 .notice button{flex-shrink:0}
 .is-loading .notice:not(.error){display:none}
 /* A new version is ready (sw.js already has its files, so the reload is instant): a pill floating under the header. */
@@ -468,7 +470,7 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 /* The course drawer or phone sheet is open: the planner is in use, so the real week shows and the 3D layer steps aside. */
 .rail-open .hero-stage{visibility:hidden}
 .rail-open #calendarWrap{--chrome:1!important;--blocks:1!important}
-.rail-open .empty-state{opacity:1!important}
+.rail-open .empty-state:not(.unfolding){opacity:1!important}
 /* Five equal day columns whatever they hold; parallel lessons share their day instead of widening it. */
 .calendar{display:grid;grid-template-columns:54px repeat(5,minmax(0,1fr));padding:0 2px 18px 0}
 .day-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;height:66px;padding:0 12px;text-align:center;border-bottom:1px solid var(--line);background:var(--sheet)}
@@ -755,6 +757,9 @@ hr{margin:30px 0 0;border:0}
 .hero:has(~.hero-stage.live) .hs-field b{animation:none}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes pop-in{from{opacity:0;transform:scale(.96) translateY(-4px)}}
+@keyframes notice-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+/* The empty card opening out into the week (unfold in app.js): a copy over the page, below the header and the drawer. */
+.unfolding{position:fixed;z-index:2;margin:0;pointer-events:none;transform-origin:0 0}
 /* Dialogs come forward out of the page rather than growing on it. */
 @keyframes dialog-in{from{opacity:0;transform:perspective(1100px) translate3d(0,14px,-90px) rotateX(5deg)}to{transform:perspective(1100px) translate3d(0,0,0) rotateX(0)}}
 @keyframes fade{from{opacity:0}}
@@ -793,6 +798,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 /* ---------- Responsive ---------- */
 @media screen and (min-width:1181px){
  .wide-layout .rail-fab{display:inline-flex}
+ .wide-layout .notice{--fab-room:64px}
  .wide-layout .workspace{grid-template-columns:minmax(0,1fr)}
  .wide-layout .sidebar{display:none}
  .wide-layout .schedule-panel{padding-left:0;border-left:0}
@@ -801,6 +807,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media screen and (max-width:1180px){
  .brand-text small{display:none}
  .rail-fab{display:inline-flex}
+ .notice{--fab-room:64px}
  .rail-close{display:inline-flex}
  /* Room for the floating rail button at the page end. */
  footer{padding-bottom:calc(52px + max(18px,env(safe-area-inset-bottom)) + 16px)}
