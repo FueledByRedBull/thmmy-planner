@@ -99,9 +99,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 /* ---------- Tokens: studio greys, ink, one neon accent, semantic states ---------- */
 :root{
  color-scheme:light;
- --bg:#ededed;--sheet:#f6f6f6;--surface:#ffffff;--surface-2:#ececec;--surface-3:#e0e0e0;
- --line:#dedede;--line-strong:#c6c6c6;
- --text:#0e0e0e;--text-2:#3b3b3b;--text-3:#636363;
+ --bg:#eceef1;--sheet:#f7f8fa;--surface:#ffffff;--surface-2:#eceef2;--surface-3:#e0e3e8;
+ --line:#dadde3;--line-strong:#c4c8d0;
+ --text:#121318;--text-2:#3c3f48;--text-3:#62666f;
  --accent:#ef1a84;--accent-hover:#d40f72;--on-accent:#0e0e0e;--accent-soft:#ef1a8414;
  --success:#0f7a3d;--success-soft:#0f7a3d14;
  --warning:#985200;--warning-soft:#e8890c1a;
@@ -113,10 +113,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --highlight:inset 0 1px 0 #ffffffcc;
  /* Controls at rest are a step of ink over whatever they sit on: no outline, no shadow. */
  --fill:color-mix(in srgb,var(--text) 7%,transparent);--fill-2:color-mix(in srgb,var(--text) 12%,transparent);
+ /* The week's grid: a step of tone on every other hour and a wash of the accent on today's column. */
+ --band:color-mix(in srgb,var(--text) 2%,transparent);
  /* Shapes: everything you press is a pill; surfaces are soft rectangles. */
  --pill:999px;--r-sheet:28px;--r-lg:20px;--r-md:14px;--r-sm:10px;--r-block:12px;
  --ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.16,1,.3,1);
- --studio:#e2e2e2;
+ --studio:#e3e5e9;
  --side:340px;--hour:56px;--bar:76px;--gutter:max(20px,2vw,calc((100vw - 2080px)/2 + 2vw));--close:#0e0e0e;
  /* Scroll offset where the planner sheet reaches the header: hero height minus the overlap. */
  --dock:calc(max(100svh,600px) - 13svh);
@@ -125,8 +127,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 }
 :root[data-theme=dark]{
  color-scheme:dark;
- --bg:#0b0b0b;--sheet:#111111;--surface:#181818;--surface-2:#1e1e1e;--surface-3:#282828;
- --line:#242424;--line-strong:#363636;
+ --bg:#0a0a0b;--sheet:#101012;--surface:#17171a;--surface-2:#1d1d21;--surface-3:#28282d;
+ --line:#232327;--line-strong:#36363c;
  --text:#f2f2f2;--text-2:#bdbdbd;--text-3:#8f8f8f;
  --accent:#ff4fa8;--accent-hover:#ff73ba;--on-accent:#0e0e0e;--accent-soft:#ff4fa81f;
  --success:#4ade80;--success-soft:#4ade801a;
@@ -137,6 +139,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
  --shadow-lg:0 36px 72px -28px #000,0 6px 16px -6px #000a;
  --highlight:inset 0 1px 0 #ffffff12;
  --fill:color-mix(in srgb,var(--text) 9%,transparent);--fill-2:color-mix(in srgb,var(--text) 15%,transparent);
+ --band:color-mix(in srgb,var(--text) 3%,transparent);
  --studio:#050505;--close:#050505;
 }
 /* Raised surfaces lean on soft elevation; on ink, where shadows vanish, a hairline marks the edge instead. */
@@ -253,7 +256,7 @@ select option{background:var(--surface);color:var(--text)}
 .hero-copy{position:absolute;left:var(--gutter);top:calc(var(--bar) + 5svh);bottom:calc(13svh + 36px);display:flex;flex-direction:column;align-items:flex-start;pointer-events:none}
 /* The negative margin pulls the capital's side bearing back onto the sub's and CTA's edge; the auto margin sends
    those two to the foot. The size also yields to a short window, so they never slide under the sheet. */
-.hero-title{margin:0 0 auto -.05em;font-size:clamp(64px,min(11.6vw,21svh),190px);font-weight:800;line-height:.86;letter-spacing:-.045em}
+.hero-title{margin:0 0 auto -.05em;font-size:clamp(64px,min(11.6vw,21svh),190px);font-weight:350;line-height:.86;letter-spacing:-.045em}
 /* Each line rises out of its own mask, lying back, and stands up toward the reader as it comes; the padding keeps
    Greek accents and descenders unclipped at this tight leading. */
 .hero-title .line{display:block;overflow:hidden;padding:.16em .05em .18em;margin:-.16em -.05em -.18em;perspective:900px}
@@ -266,20 +269,20 @@ select option{background:var(--surface);color:var(--text)}
 .next-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:18px 20px;width:470px;max-width:100%;margin-top:20px;padding:24px;border-radius:24px;background:var(--surface);animation:fade-up .6s .34s var(--ease) both}
 :root[data-theme=dark] .next-card{background:var(--surface-2)}
 .nc-text{display:grid;gap:6px;min-width:0}
-.nc-label{color:var(--text-3);font-size:13px;font-weight:600;line-height:1.3}
-.nc-name{font-size:26px;font-weight:700;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.nc-label{color:var(--text-2);font-size:13px;font-weight:600;line-height:1.3}
+.nc-name{font-size:26px;font-weight:600;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
 .nc-meta{color:var(--text-2);font-size:14px;line-height:1.4}
-.nc-num{font-size:64px;font-weight:800;line-height:1;letter-spacing:-.045em;text-align:right}
+.nc-num{font-size:52px;font-weight:300;line-height:1;letter-spacing:-.045em;text-align:right}
 .nc-num em{font-style:normal;color:var(--accent)}
 .nc-track{grid-column:1/-1;height:4px;border-radius:var(--pill);background:var(--surface-3)}
 .nc-track[hidden]{display:none}
 .nc-track i{display:block;width:calc(var(--p) * 100%);height:100%;border-radius:inherit;background:var(--accent)}
 /* A short window has no room for a three-line name at full size: the card tightens so the button stays above the sheet. */
 @media (min-width:861px) and (max-height:940px){
- .next-card{gap:12px 20px;margin-top:14px;padding:18px 20px}
+ .next-card{gap:12px 14px;margin-top:14px;padding:18px 18px}
  .nc-text{gap:4px}
- .nc-name{font-size:22px;line-height:1.1}
- .nc-num{font-size:56px}
+ .nc-name{font-size:20px;line-height:1.1}
+ .nc-num{font-size:42px}
 }
 /* Under 800px tall the card and the poster title share the column: the title gives up some size while a card is showing. */
 @media (min-width:861px) and (max-height:800px){
@@ -295,10 +298,8 @@ select option{background:var(--surface);color:var(--text)}
 }
 
 /* ---------- Planner sheet ---------- */
-main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;background:var(--sheet);border-radius:var(--r-sheet) var(--r-sheet) 0 0;animation:sheet-in 1.2s .36s var(--ease) backwards}
+main{position:relative;z-index:1;margin:-13svh 0 0;padding:26px var(--gutter) 24px;background:var(--sheet);border-radius:var(--r-sheet) var(--r-sheet) 0 0;animation:sheet-in 1.2s .36s var(--ease) backwards}
 /* Fill backwards only: a transform left filling on main would trap the fixed course drawer inside it. */
-.intro{padding:26px 0 22px}
-.intro-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
 /* Season: an ink thumb slides under the active label. */
 .season-switch{position:relative;isolation:isolate;display:flex;padding:4px;border-radius:var(--pill);background:var(--fill)}
 .season-switch::before{content:'';position:absolute;top:4px;bottom:4px;left:4px;z-index:-1;width:calc(50% - 4px);border-radius:var(--pill);background:var(--text);transition:transform .5s var(--spring)}
@@ -306,12 +307,15 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .season-switch button{flex:1;min-width:116px;min-height:38px;border:0;border-radius:var(--pill);background:none;box-shadow:none;color:var(--text-3);font-size:13px;font-weight:550;transition:color .2s var(--ease)}
 @media (hover:hover) and (pointer:fine){.season-switch button:hover{background:none;color:var(--text)}}
 .season-switch button[aria-pressed=true]{color:var(--sheet)}
-.sync-box{display:flex;flex-direction:row-reverse;align-items:center;gap:14px}
+/* The data refresh lives in the sources dialog, with the date of the data it would replace. */
+.sync-box{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:4px 0 14px}
 .sync-box button{min-height:44px;padding:10px 20px}
 #refresh:disabled .icon{animation:spin .9s linear infinite}
 #syncMeta{color:var(--text-3);font-size:12.5px}
 /* Floats under the header, so it is in view wherever the page is scrolled. */
-.notice{position:fixed;top:calc(var(--bar) + 10px);left:12px;right:12px;z-index:49;display:flex;align-items:center;gap:10px;width:fit-content;max-width:min(720px,calc(100vw - 24px));max-height:60dvh;margin-inline:auto;padding:10px 12px 10px 18px;overflow:auto;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13px;line-height:1.55;animation:pop-in .28s var(--ease)}
+/* At the foot of the screen, over the floating rail button wherever that shows (--fab-room). */
+.notice{position:fixed;bottom:calc(max(18px,env(safe-area-inset-bottom)) + var(--fab-room,0px));left:12px;right:12px;z-index:49;display:flex;align-items:center;gap:10px;width:fit-content;max-width:min(720px,calc(100vw - 24px));max-height:60dvh;margin-inline:auto;padding:10px 12px 10px 18px;overflow:auto;border-radius:var(--r-md);background:var(--surface);box-shadow:var(--shadow-lg),var(--highlight);font-size:13px;line-height:1.55;animation:notice-in .28s var(--ease)}
+.rail-open .notice{--fab-room:0px}
 .notice button{flex-shrink:0}
 .is-loading .notice:not(.error){display:none}
 /* A new version is ready (sw.js already has its files, so the reload is instant): a pill floating under the header. */
@@ -340,7 +344,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .skip-link{margin-bottom:10px}
 .skip-link:not(:focus-visible){position:absolute;width:1px;height:1px;min-height:0;margin:0;padding:0;overflow:hidden;border:0;clip-path:inset(50%)}
 .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px}
-.panel-heading h2{font-size:20px;font-weight:600;letter-spacing:-.025em}
+.panel-heading h2{font-size:20px;font-weight:500;letter-spacing:-.025em}
 .mono{padding:3px 10px;border-radius:var(--pill);background:var(--fill);color:var(--text-2);font-size:12px;font-weight:600}
 .search-wrap{position:relative;display:flex;align-items:center}
 .search-wrap .icon{position:absolute;left:16px;color:var(--text-3);pointer-events:none}
@@ -350,12 +354,14 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 @container (max-width:270px){.filters{grid-template-columns:1fr}}
 .subtle{color:var(--text-3);font-size:13px;line-height:1.55}
 .list-help{margin:12px 4px 8px}
+.fill-rail{justify-content:flex-start;width:100%;margin-top:8px}
+.fill-week{margin-top:12px}
 /* The last 28px fade out, so a row cut by the edge reads as more below; the bottom padding lets the last row scroll clear of it. */
 .course-list{flex:1;min-height:120px;margin:0;padding:0 2px 28px 0;overflow:auto;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),#0000);mask-image:linear-gradient(#000 calc(100% - 28px),#0000)}
 /* Rows part by space; a chosen row takes a wash of its course colour, so the list shows the week at a glance. */
 .course{position:relative;display:grid;grid-template-columns:12px minmax(0,1fr) 32px;column-gap:12px;align-items:start;margin-bottom:2px;padding:12px 8px 12px 10px;border-radius:var(--r-md);transition:background-color .2s var(--ease)}
 @media (hover:hover) and (pointer:fine){.course:hover{background:var(--fill)}}
-.course.selected{background:color-mix(in srgb,var(--course-color) 11%,transparent)}
+.course.selected{background:color-mix(in srgb,var(--course-color) 16%,transparent)}
 .course-title,.checks li,.legend-item span,.dialog-head h2,.meeting-option span,.meeting-option small,.dialog-meta{overflow-wrap:anywhere}
 .dialog-head>div{min-width:0}
 .course.selected .course-title{font-weight:650}
@@ -365,14 +371,15 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .selected .link-mark{background:var(--course-color);border-color:var(--course-color)}
 .gapped .link-mark{background:transparent;border:3px solid var(--course-color)}
 .review .link-mark{background:var(--warning-soft);border:1.5px dashed var(--warning)}
+/* A selected course whose lab is not in the program: a dashed ring, the same dash as the pill on its blocks. */
+.lab-missing:not(.review,.passed,.gapped) .link-mark{background:transparent;border:2px dashed var(--course-color)}
 .passed .link-mark{background:var(--success);border-color:var(--success)}
 .course.just .link-mark{animation:pop .5s var(--ease)}
 .course-title{display:block;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;font-size:14px;font-weight:600;line-height:1.35;white-space:normal}
 @media (hover:hover) and (pointer:fine){.course-title:hover{background:none;text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}}
-.course-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:3px;color:var(--text-3);font-size:12.5px}
+.course-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:3px;color:var(--text-2);font-size:12.5px}
 .course-meta:empty{display:none}
 .course-meta .sep::before{content:'\00b7'}
-.selected .course-meta{color:var(--text-2)}
 .credit-tag{margin-left:auto;padding:1px 8px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600}
 .selected .credit-tag{background:var(--text);color:var(--sheet)}
 .tag,.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.5}
@@ -413,6 +420,8 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .schedule-panel.notes-aside{grid-template-columns:minmax(0,1fr) 320px}
 .schedule-top{display:grid;gap:18px;padding:22px 0 22px}
 .schedule-heading{display:flex;align-items:center;gap:10px;min-width:0}
+/* The season switch sits with the week it changes, at the far end of the heading. */
+.schedule-heading .season-switch{margin-left:auto}
 .schedule-top h2{font-size:20px;font-weight:600;letter-spacing:-.025em}
 /* Stats read as display type: the numbers are the headline of the week, each captioned underneath. */
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -424,33 +433,30 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .check-jump{justify-self:start;gap:6px;padding:8px 16px}
 .check-jump .icon{width:16px;height:16px}
 .notes-aside .check-jump{display:none}
-.tb-label{color:var(--text-3);font-size:13px;font-weight:500}
-.stats b{font-size:clamp(44px,5.8vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}
+.tb-label{color:var(--text-3);font-size:14px;font-weight:500}
+.stats b{font-size:clamp(44px,5.8vw,92px);font-weight:300;line-height:1.2;letter-spacing:-.045em}
 .stats b.has-conflict,.stats>:has(.has-conflict) .tb-label{color:var(--danger)}
 /* Wide layouts: a 6px bar under each number on a quiet track, its width the value set by app.js (--lvl, .35 to 1; an
    empty stat shows the track alone). The overlaps bar turns danger. */
 @media (min-width:861px){
- .stats b{position:relative;margin-bottom:12px;padding-bottom:14px}
+ .stats b{position:relative;margin-bottom:6px;padding-bottom:14px}
  .stats b::before,.stats b::after{content:'';position:absolute;left:0;bottom:0;height:6px;border-radius:var(--pill)}
- .stats b::before{right:0;background:var(--fill)}
+ .stats b::before{right:0;background:var(--fill-2)}
  .stats b::after{width:calc(var(--lvl,.35) * 100%);background:var(--text);transition:width .6s var(--ease)}
  .stats>.is-zero b::after{width:0}
  .stats b.has-conflict::after{background:var(--danger)}
  .is-loading .stats b{margin-bottom:0;padding-bottom:0}
  .is-loading .stats b::before,.is-loading .stats b::after{content:none}
 }
-/* Odometer: each digit is a 0-9 column clipped to one line. */
+/* Odometer: each digit is a 0-9 column clipped to one line. Its top and bottom .2em fade out, clear of a resting
+   digit's ink (.225em to .975em), so digits rolling past dim at the edges like a drum instead of being sliced. */
 .odo{display:inline-flex}
-.digit{display:inline-block;height:1.2em;overflow:hidden}
-/* The 0-9 reel is generated content, so it never reaches find-in-page, selection or the accessibility tree. */
-.digit>span{display:block;transform:translateY(calc(var(--n,0) * -1.2em));transition:transform .6s var(--ease) calc(var(--i,0) * 30ms)}
-.digit>span::before{content:'0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9';white-space:pre}
+.digit{display:inline-block;height:1.2em;overflow:hidden;-webkit-mask-image:linear-gradient(#0000,#000 .2em,#000 1em,#0000);mask-image:linear-gradient(#0000,#000 .2em,#000 1em,#0000)}
+/* The reel (a blank row, 0-9 twice and a 0; countTo in app.js turns it) is generated content, so it never reaches find-in-page, selection or the accessibility tree. */
+.digit>span{display:block;transform:translateY(calc(var(--n,11) * -1.2em))}
+.digit>span::before{content:'\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0';white-space:pre}
 .tb-note{display:block;margin-top:2px;color:var(--text-3);font-size:12.5px}
-.lab-note{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;color:var(--text-2);font-size:13px;line-height:1.55}
-.lab-note .icon{margin-top:2px;color:var(--warning)}
-.lab-note .link-button{padding-block:0}
-.inline-note{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;color:var(--text-2);font-size:13px;line-height:1.55}
-.inline-note::before{content:'';flex:none;width:6px;height:6px;margin-top:.55em;border-radius:var(--pill);background:var(--warning)}
+.inline-note{margin:-6px 0 4px;color:var(--text-3);font-size:12px;line-height:1.5}
 .calendar-scroll{overflow-x:auto}
 /* The scroll morph hands the week over in two layers (week3d.js setTarget): grid chrome first, blocks last. */
 #calendarWrap{--chrome:1;--blocks:1}
@@ -464,23 +470,25 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 /* The course drawer or phone sheet is open: the planner is in use, so the real week shows and the 3D layer steps aside. */
 .rail-open .hero-stage{visibility:hidden}
 .rail-open #calendarWrap{--chrome:1!important;--blocks:1!important}
-.rail-open .empty-state{opacity:1!important}
+.rail-open .empty-state:not(.unfolding){opacity:1!important}
 /* Five equal day columns whatever they hold; parallel lessons share their day instead of widening it. */
 .calendar{display:grid;grid-template-columns:54px repeat(5,minmax(0,1fr));padding:0 2px 18px 0}
 .day-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;height:66px;padding:0 12px;text-align:center;border-bottom:1px solid var(--line);background:var(--sheet)}
-.day-head b{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.day-head b{font-size:14.5px;font-weight:500;letter-spacing:-.01em}
 .day-head small{max-width:100%;min-height:2.7em;max-height:2.7em;overflow:hidden;color:var(--text-3);font-size:12px;line-height:1.35}
 .day-head .today-word{display:block;color:var(--text-2);font-weight:600}
 .day-head.today b{padding:1px 10px;border-radius:var(--pill);background:var(--accent);color:var(--on-accent)}
+@media (min-width:861px){.day-head.today small{color:var(--text-2)}}
 .time-head{justify-content:flex-end;align-items:flex-end;padding:0 10px 10px 0;color:var(--text-3);font-size:12px;font-weight:600}
 .time-axis,.time-head{position:sticky;left:0;z-index:4;background:var(--sheet)}
-.time-axis{color:var(--text-3);font-size:12px;font-weight:500}
+.time-axis{color:var(--text-3);font-size:12px;font-weight:400}
 .time-axis,.day-column{height:calc(var(--hours)*var(--hour))}
 .day-column{position:relative;border-left:1px solid var(--line)}
 .time-tick{position:absolute;width:100%;padding-right:10px;text-align:right;transform:translateY(-50%)}
 .time-tick:first-child{transform:translateY(3px)}
-.hour-rule{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--line) 75%,transparent);pointer-events:none}
-.day-column.today{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.hour-rule{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--line) 38%,transparent);pointer-events:none}
+/* Every other hour is a step of tone, not a line. */
+.hour-rule:nth-child(even)::before{content:'';position:absolute;left:0;right:0;top:-1px;height:var(--hour);background:var(--band)}
 .now-line{position:absolute;left:0;right:0;height:2px;margin-top:-1px;pointer-events:none}
 .now-line::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left}
 /* The line runs behind the blocks, but its dot stands in the 7px gutter the blocks leave on today's column edge (3px margin each side of the 1px rule), above the axis and the blocks, so the time stays readable under a lesson that spans the column. */
@@ -496,13 +504,26 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  border:0;border-radius:var(--r-block);background:var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--block-inset);
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;
  transition:transform 160ms var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
+/* The floating shadow a block lands from (stampIn in app.js). It lives on its own layer and only its opacity animates,
+   so the landing stays on the compositor; an outer shadow paints outside the box, so it never covers the text. */
+.meeting::after{content:'';position:absolute;inset:0;border-radius:inherit;corner-shape:inherit;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none}
 :root[data-theme=dark] .meeting{color:var(--event-on-dark,var(--event-on));--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface))}
+/* On paper a block is a tinted card in ink with its course colour as a rule down the side, like a printed timetable;
+   the tint is strong enough that neighbouring courses still differ in lightness. */
+:root[data-theme=light] .meeting{--block-fill:color-mix(in srgb,var(--event-color) 30%,var(--surface));color:var(--text);box-shadow:inset 4px 0 0 var(--event-color),var(--block-inset)}
+@container (width>112px){:root[data-theme=light] .meeting .meeting-content{padding-left:13px}}
+:root[data-theme=light] .meeting .event-time>span:not(.event-state),:root[data-theme=light] .meeting .event-code{opacity:1;color:var(--text-2)}
 @media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;box-shadow:var(--shadow-md),var(--block-inset)}}
 .meeting:active:not(:disabled){transform:scale(.985)}
-.meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:9px 11px;overflow:hidden}
+.meeting-content{display:flex;flex-direction:column;flex-grow:1;flex-shrink:0;width:100%;padding:10px;overflow:hidden}
 .meeting-content>*{flex-shrink:0;overflow-wrap:anywhere}
 .calendar.measuring .meeting-content{flex-grow:0}
+/* The head is the time and, in narrow lanes, the course code. */
+.meeting .event-head{display:contents}
 .meeting .event-time{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:12px;font-weight:600}
+/* The time reads a step quieter than the title; app.js (quietText) sets how far each hue can go and keep 4.5:1. */
+.meeting .event-time>span:not(.event-state),.meeting .event-code{opacity:var(--event-dim,1)}
+:root[data-theme=dark] .meeting .event-time>span:not(.event-state),:root[data-theme=dark] .meeting .event-code{opacity:var(--event-dim-dark,var(--event-dim,1))}
 .meeting .event-time .icon{width:13px;height:13px;stroke-width:2.2}
 .meeting:is(.is-now,.is-next) .event-time{flex-wrap:wrap;row-gap:0}
 /* Now and next: a 6px dot and a word in the block's own text colour, set by paintNow() in app.js. */
@@ -511,13 +532,16 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .meeting strong{font-size:13px;font-weight:600;line-height:1.25;letter-spacing:-.01em}
 .meeting .event-room{padding-top:4px;font-size:12px;line-height:1.4}
 .meeting .event-teacher{font-size:12px;line-height:1.4}
+/* "Χωρίς εργαστήριο": a dashed outline pill at the block's foot, in the block's own text colour. */
+.lab-foot{margin-top:auto;padding-top:8px}
+.lab-pill{display:inline-block;max-width:100%;padding:1px 9px;border:1.5px dashed color-mix(in srgb,currentColor 62%,transparent);border-radius:var(--pill);font-size:12px;font-weight:500;line-height:1.4;white-space:nowrap}
 .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-teacher{display:none}
 .meeting:is([data-duration="15"],[data-duration="30"],[data-duration="45"]) .event-room{display:none}
 /* Parallel lessons get narrow lanes: start time and the name, set compact (app.js puts soft hyphens at Greek syllables).
    Lanes too narrow for a name, and one-hour lessons, show the course code; full detail stays in the tooltip and dialog. */
 .meeting .event-code{display:none}
 @media screen{@container (max-width:112px){
- .meeting-content{padding:7px 6px}
+ .meeting-content{padding:8px 6px}
  .meeting .event-end,.meeting .event-room,.meeting .event-teacher{display:none}
  .meeting .event-time .icon{width:12px;height:12px}
  .meeting .event-time,.meeting .event-code{overflow:hidden;white-space:nowrap;overflow-wrap:normal}
@@ -525,16 +549,24 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .event-state{gap:0;font-size:0}
  .meeting:is(.is-now,.is-next) .event-time{flex-wrap:nowrap}
  .meeting .full-title{font-size:12px;line-height:1.2;letter-spacing:-.015em}
- .meeting .event-code{font-size:12px;letter-spacing:-.01em}
+ .meeting .event-code{display:block;font-size:12px;font-weight:400;letter-spacing:-.01em}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
- .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .event-code{display:block}}
+ }
+/* The words need a 148px block: below that the dashed outline stays as a small ring (the block's label and tooltip
+   say it). */
+@container (max-width:147px){
+ .lab-foot{padding-top:6px}
+ .lab-pill{width:11px;height:11px;padding:0;font-size:0;line-height:0;overflow:hidden}}
+/* From 60 to 112px the head is one line, start time then code (it wraps only when both do not fit). */
+@container (60px<width<=112px){
+ .meeting .event-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;margin-bottom:2px}
+ .meeting .event-time{margin:0}}
 /* Soft hyphens are for narrow lanes only; wider lanes wrap whole words. */
 @container (width>112px){.meeting .full-title{hyphens:none}}
-@container (max-width:80px){
- .meeting .full-title{display:none}
- .meeting .event-code{display:block}}
+@container (max-width:96px){
+ .meeting .full-title{display:none}}
 @container (max-width:60px){
- .meeting-content{padding:6px 4px}
+ .meeting-content{padding:7px 4px}
  .meeting:not(.conflict):not(.is-now):not(.is-next) .event-time{display:none}
  .meeting:is(.conflict,.is-now,.is-next) .event-time>span:not(.event-state){display:none}
  .meeting .event-code{font-size:11px;letter-spacing:-.02em}}
@@ -552,7 +584,7 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 /* Review: dashed amber outline and a hatched strip down the right edge, clear of the text. Conflict: a red outline and a warning icon. */
 /* Rings sit inside the block (negative offset) so neighbouring lanes never collide; a light inner band separates red from the fill. */
 .meeting.review{outline:2px dashed var(--warning);outline-offset:-2px;background-image:repeating-linear-gradient(135deg,transparent 0 3px,color-mix(in srgb,currentColor 28%,transparent) 3px 5px);background-size:10px 100%;background-position:right top;background-repeat:no-repeat}
-.meeting.conflict{z-index:2;outline:2px solid var(--danger);outline-offset:-2px;--block-inset:inset 0 0 0 3.5px color-mix(in srgb,var(--sheet) 80%,transparent)}
+.meeting.conflict{z-index:2;outline:2px solid var(--danger);outline-offset:1px}
 .meeting.course-highlight{z-index:3;outline:3px solid var(--text);outline-offset:-3px}
 .meeting.trace{z-index:3;outline:3px solid var(--danger);outline-offset:-3px;animation:trace .2s var(--ease) 2 alternate}
 @keyframes trace{to{outline-offset:-6px}}
@@ -725,6 +757,9 @@ hr{margin:30px 0 0;border:0}
 .hero:has(~.hero-stage.live) .hs-field b{animation:none}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes pop-in{from{opacity:0;transform:scale(.96) translateY(-4px)}}
+@keyframes notice-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+/* The empty card opening out into the week (unfold in app.js): a copy over the page, below the header and the drawer. */
+.unfolding{position:fixed;z-index:2;margin:0;pointer-events:none;transform-origin:0 0}
 /* Dialogs come forward out of the page rather than growing on it. */
 @keyframes dialog-in{from{opacity:0;transform:perspective(1100px) translate3d(0,14px,-90px) rotateX(5deg)}to{transform:perspective(1100px) translate3d(0,0,0) rotateX(0)}}
 @keyframes fade{from{opacity:0}}
@@ -740,6 +775,9 @@ hr{margin:30px 0 0;border:0}
 /* A course added from the list flies into its slot (fly() in app.js). */
 .flight{position:fixed;z-index:80;pointer-events:none}
 .flight i{display:block;width:100%;height:100%;border-radius:var(--r-block);background:var(--event-color);box-shadow:var(--shadow-md)}
+/* It lands in the block's own fill, so the hand-over to the real block is only the text arriving. */
+:root[data-theme=dark] .flight i{background:color-mix(in srgb,var(--event-color) 90%,var(--surface))}
+:root[data-theme=light] .flight i{background:color-mix(in srgb,var(--event-color) 30%,var(--surface));box-shadow:inset 4px 0 0 var(--event-color),var(--shadow-md)}
 /* A removed block fades out where it stood (leave() in app.js); below the header and the course drawer. */
 .leaving{position:fixed;z-index:2;pointer-events:none}
 /* Wakes the docked 3D week when the page scrolls back up (week3d.js). */
@@ -760,6 +798,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 /* ---------- Responsive ---------- */
 @media screen and (min-width:1181px){
  .wide-layout .rail-fab{display:inline-flex}
+ .wide-layout .notice{--fab-room:64px}
  .wide-layout .workspace{grid-template-columns:minmax(0,1fr)}
  .wide-layout .sidebar{display:none}
  .wide-layout .schedule-panel{padding-left:0;border-left:0}
@@ -768,6 +807,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media screen and (max-width:1180px){
  .brand-text small{display:none}
  .rail-fab{display:inline-flex}
+ .notice{--fab-room:64px}
  .rail-close{display:inline-flex}
  /* Room for the floating rail button at the page end. */
  footer{padding-bottom:calc(52px + max(18px,env(safe-area-inset-bottom)) + 16px)}
@@ -784,7 +824,25 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media screen and (min-width:961px) and (max-width:1180px){
  .rail-open .workspace{padding-left:calc(364px - max(20px,2vw))}
 }
+.day-tabs,.day-none{display:none}
 @media screen and (max-width:860px){
+ /* One day at a time: tabs over the agenda (app.js renderDayTabs), the chosen day's heading and meetings below. */
+ .day-tabs{position:sticky;top:var(--bar);z-index:6;isolation:isolate;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0 0 4px;padding:4px;border-radius:18px;background:linear-gradient(var(--fill),var(--fill)),var(--sheet);box-shadow:0 0 0 8px var(--sheet),0 -14px 0 8px var(--sheet)}
+ /* One ink pill slides under the chosen day, like the season thumb, rather than two buttons fading their fills. */
+ .day-tabs::before{content:'';position:absolute;top:4px;bottom:4px;left:4px;z-index:-1;width:calc((100% - 18px)/6);border-radius:14px;background:var(--text);transform:translateX(calc(var(--i,0)*(100% + 2px)));transition:transform .45s var(--spring)}
+ .day-tabs button{flex-direction:column;gap:1px;min-height:50px;padding:6px 0;border-radius:14px;background:none;color:var(--text-3);transition:color .2s var(--ease)}
+ .day-tabs b{font-size:14px;font-weight:600;color:var(--text);transition:color .2s var(--ease)}
+ .day-tabs small{font-size:12px;font-variant-numeric:tabular-nums}
+ .day-tabs [aria-pressed=true]{color:color-mix(in srgb,var(--sheet) 72%,var(--text))}
+ .day-tabs [aria-pressed=true] b{color:var(--sheet)}
+ .day-tabs .today b{text-decoration:underline 2px var(--accent);text-underline-offset:4px}
+ .calendar[data-day="0"]>:is(.day-head,.day-column):not(:nth-child(2),:nth-child(8)),
+ .calendar[data-day="1"]>:is(.day-head,.day-column):not(:nth-child(3),:nth-child(9)),
+ .calendar[data-day="2"]>:is(.day-head,.day-column):not(:nth-child(4),:nth-child(10)),
+ .calendar[data-day="3"]>:is(.day-head,.day-column):not(:nth-child(5),:nth-child(11)),
+ .calendar[data-day="4"]>:is(.day-head,.day-column):not(:nth-child(6),:nth-child(12)){display:none}
+ .calendar:not([data-day=all])>.day-head{position:static;padding-top:10px}
+ .day-none{display:block;margin:0;padding:8px 10px 40px}
  :root{--bar:68px;--dock:calc(max(92svh,540px) - 9svh)}
  .masthead{gap:8px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left))}
  .brand-text,.btn-label,.btn-extra{display:none}
@@ -816,10 +874,24 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .hero-cta{min-height:46px;margin-top:20px}
  /* On the phone the countdown leads, and the card stays compact so the board keeps its room. */
  .next-card{grid-template-columns:minmax(0,1fr);gap:6px;width:100%;margin-top:10px;padding:12px 16px 14px;border-radius:20px}
- .nc-num{grid-row:1;font-size:80px;line-height:.9;text-align:left}
- .nc-text{gap:3px}
- .nc-name{font-size:20px;line-height:1.1}
- .nc-meta{font-size:14px}
+ .nc-text{display:contents}
+ .nc-label{grid-row:1}
+ .nc-num{grid-row:2;font-size:64px;line-height:.9;text-align:left}
+ .nc-name{grid-row:3;font-size:20px;line-height:1.1}
+ .nc-meta{grid-row:4;font-size:14px}
+ .nc-track{grid-row:5}
+ /* A short or narrow phone leaves the week no room between the title and the facts at these sizes: the poster tightens so it keeps some. */
+ @media (max-height:720px){
+  .hero-title{font-size:clamp(44px,12.4vw,60px)}
+  .nc-meta{display:none}
+ }
+ @media (max-height:720px),(max-width:380px){
+  .hero-sub{margin-top:8px}
+  .hero-cta{min-height:44px;margin-top:12px}
+  .next-card{margin-top:8px;padding:10px 14px 12px}
+  .nc-num{font-size:44px}
+  .nc-name{font-size:17px}
+ }
  :root{--gutter:16px}
  main{margin-top:-9svh;padding:0 16px 20px;border-radius:24px 24px 0 0}
  footer{margin-bottom:-20px}
@@ -828,12 +900,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .sign-off b{flex:0 0 calc((100% - 36px) / 9.5);height:calc(var(--h,.8) * max(17svh,2.4em));animation-name:block-up}
  .sign-off i{flex:0 0 calc((100% - 36px) / 19)}
  .sign-off i:last-of-type{flex-basis:100%;height:0}
- .intro{padding:18px 0 14px}
- .intro-actions{flex-wrap:wrap}
- .season-switch{flex:1}
  .season-switch button{min-width:0}
- .sync-box{display:contents}
- #syncMeta{order:3;width:100%}
  #focusSchedule{display:none}
  .workspace{display:block}
  .sidebar{position:fixed;inset:auto 0 0;z-index:47;height:min(84dvh,760px);max-height:none;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;background:var(--surface);box-shadow:0 -24px 60px -24px #0e0e0e66;transform:translateY(105%);visibility:hidden;transition:transform .2s var(--ease),visibility 0s .2s}
@@ -849,7 +916,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  :root[data-theme=dark] .sidebar{border-top:1px solid var(--line)}
  .sidebar-foot{display:none}
  .calendar-scroll{overflow:visible}
- .calendar{grid-template-columns:minmax(0,1fr)!important;padding:0 0 8px}
+ .calendar{grid-template-columns:minmax(0,1fr)!important;padding:0 0 calc(52px + max(18px,env(safe-area-inset-bottom)) + 16px)}
  .calendar>.time-head,.calendar>.time-axis,.hour-rule,.now-line{display:none}
  .calendar>:nth-child(2){grid-row:1}.calendar>:nth-child(8){grid-row:2}
  .calendar>:nth-child(3){grid-row:3}.calendar>:nth-child(9){grid-row:4}
@@ -860,16 +927,16 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .day-head .today-word{display:inline}
  .day-head .today-word::after{content:', '}
  .day-head{position:sticky;top:var(--bar);z-index:5;flex-direction:row;justify-content:flex-start;align-items:baseline;gap:10px;height:auto;padding:16px 0 10px 10px;border-bottom:0;box-shadow:-6px 0 0 var(--sheet),6px 0 0 var(--sheet)}
- .day-column{display:grid;gap:8px;height:auto;border-left:0}
- .day-column.today{background:none}
+ .day-column{display:grid;gap:10px;height:auto;border-left:0}
  .meeting{position:static;width:auto!important;height:auto!important;min-height:64px}
- .meeting-content{padding:12px 14px}
+ .meeting-content{padding:10px 12px}
+ .meeting strong{font-size:14px}
  .schedule-panel{width:100%;padding-left:0;border-left:0}
- .schedule-top{gap:14px;padding:18px 0 14px}
- .stats{grid-template-columns:1fr 1fr;row-gap:12px}
+ .schedule-top{gap:10px;padding:14px 0 10px}
+ .stats{grid-template-columns:1fr 1fr;row-gap:6px}
  .stats>*{padding:2px 14px}
  .stats>:nth-child(3){padding-left:0}
- .stats b{font-size:46px}
+ .stats b{font-size:40px}
  .empty-state{margin:0 0 14px;padding:28px 16px calc(52px + max(18px,env(safe-area-inset-bottom)) + 18px)}
  .help-wide{display:none}
  .help-phone{display:inline}
@@ -895,15 +962,16 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media(prefers-reduced-transparency:reduce){dialog::backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}}
 @media(prefers-contrast:more){:root{--line:var(--line-strong);--text-3:var(--text-2)}}
 @media(forced-colors:active){
- .season-switch::before{display:none}
+ .season-switch::before,.day-tabs::before{display:none}
  .season-switch button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText}
+ .day-tabs [aria-pressed=true],.day-tabs [aria-pressed=true] b{forced-color-adjust:none;background:Highlight;color:HighlightText}
 }
 /* Touch: every control reaches the 44px target. */
 @media (pointer:coarse){
  button,.data-menu summary,select,.season-switch button,.header-actions>button,.dialog-head>button,.brand{min-height:44px}
  .icon-btn,.header-actions>button,.data-menu>summary,.dialog-head>button,.brand{min-width:44px}
  /* Inline padding grows the tap area without moving the line it sits in. */
- .link-button,.lab-note .link-button{padding-block:14px}
+ .link-button{padding-block:14px}
  .detail-settings summary,.passed-panel summary{min-height:44px}
 }
 
@@ -948,7 +1016,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.skip,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.intro,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.check-jump,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
+ .sprite,.skip,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.season-switch,.masthead,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.check-jump,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */
@@ -960,10 +1028,12 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .schedule-top h2::after{content:'·\00a0' attr(data-print);margin-left:.45em;color:var(--text-3);font-size:13px;font-weight:400;letter-spacing:0}
  .stats{display:flex;flex-wrap:nowrap;width:auto}
  /* A printed week is used on other days: no today marking. */
- .day-column.today{background:none}
+ .hour-rule::before{display:none}
+ .day-head.today{background:var(--sheet)}
+ .day-head.today small{color:var(--text-3)}
  .day-head.today b{margin:0;padding:0;background:none;color:inherit}
  .day-head .today-word{display:none}
- .now-line,.time-pill,.event-state{display:none}
+ .now-line,.time-pill,.meeting .event-state{display:none}
  .stats>*{min-width:70px;padding:0 10px}
  .stats b{font-size:20px;letter-spacing:-.02em}
  .stats b{margin-bottom:0;padding-bottom:0}.stats b::before,.stats b::after{content:none}
@@ -979,6 +1049,8 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .meeting strong{font-size:9px;line-height:1.25}
  .meeting .event-time,.meeting .event-room{font-size:8px;line-height:1.4}
  .meeting .event-teacher{display:none}
+ .lab-pill{padding:0 1.2mm;border-width:1px;font-size:8px;line-height:1.4;white-space:normal}
+ .lab-foot{padding-top:1mm}
  .legend-bar{margin:0;padding:0;border:0}
  .legend{font-size:9px;gap:4px}
  /* Paper has no tooltip: the printed legend names each course. */

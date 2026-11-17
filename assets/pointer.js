@@ -34,10 +34,10 @@
  const resetAll=()=>{for(const e of effects)e.reset();};
  for(const query of [fine,reduce,wide])query.addEventListener('change',()=>{if(!on())resetAll();wake();});
 
- // 1. Headline under the hand: each letter's weight follows the pointer.
+ // 1. Headline under the hand: letters near the pointer grow heavier and rise, from the title's light rest weight.
  const hero=document.querySelector('.hero'),title=document.querySelector('.hero-title');
  if(hero&&title){
-  const WEIGHT=800,DEEP=380,REACH=300,LIFT=6;
+  const REST=parseFloat(getComputedStyle(title).fontWeight)||350,DEEP=250,REACH=300,LIFT=6,rest=REST.toFixed(1);
   let letters=null,visible=false,rectEpoch=-1,splitting=false;
   new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;wake();}).observe(hero);
   const split=()=>{
@@ -56,20 +56,24 @@
       node.replaceWith(frag);
      }
     }
-    // Pin each letter to its width at the rest weight, the widest, so the line never reflows under the hand.
-    const widths=made.map(el=>parseFloat(getComputedStyle(el).width)/parseFloat(getComputedStyle(el).fontSize));
-    made.forEach((el,i)=>{el.style.width=widths[i]+'em';});
-    letters=made.map(el=>({el,s:{x:WEIGHT,v:0},cx:0,cy:0,w:'',t:''}));
+    // Pin each letter to its width at the heaviest weight it reaches, centred, and hand the extra back as negative
+    // margins: the title rests exactly as set, and a letter swelling under the hand never reflows the line.
+    const em=el=>parseFloat(getComputedStyle(el).width)/parseFloat(getComputedStyle(el).fontSize);
+    const rests=made.map(em);
+    for(const el of made)el.style.fontVariationSettings=`'wght' ${REST+DEEP}`;
+    const peaks=made.map(em);
+    made.forEach((el,i)=>{el.style.fontVariationSettings='';el.style.width=peaks[i]+'em';el.style.marginInline=(rests[i]-peaks[i])/2+'em';});
+    letters=made.map(el=>({el,s:{x:REST,v:0},cx:0,cy:0,w:'',t:''}));
     wake();
    });
   };
   const measure=()=>{
-   for(const l of letters){const r=l.el.getBoundingClientRect(),lift=l.s.x<WEIGHT?(WEIGHT-l.s.x)/DEEP*LIFT:0;l.cx=r.left+r.width/2;l.cy=r.top+r.height/2+lift;}
+   for(const l of letters){const r=l.el.getBoundingClientRect(),lift=l.s.x>REST?(l.s.x-REST)/DEEP*LIFT:0;l.cx=r.left+r.width/2;l.cy=r.top+r.height/2+lift;}
    rectEpoch=epoch;
   };
   const apply=l=>{
-   const w=l.s.x.toFixed(1),t=l.s.x<WEIGHT?((l.s.x-WEIGHT)/DEEP*LIFT).toFixed(2):'';
-   if(w!==l.w){l.w=w;l.el.style.fontVariationSettings=w==='800.0'?'':`'wght' ${w}`;}
+   const w=l.s.x.toFixed(1),t=l.s.x>REST?((REST-l.s.x)/DEEP*LIFT).toFixed(2):'';
+   if(w!==l.w){l.w=w;l.el.style.fontVariationSettings=w===rest?'':`'wght' ${w}`;}
    if(t!==l.t){l.t=t;l.el.style.translate=t?`0 ${t}px`:'';}
   };
   effects.push({
@@ -79,14 +83,14 @@
     if(live&&rectEpoch!==epoch)measure();
     let busy=false;
     for(const l of letters){
-     let to=WEIGHT;
-     if(live){const t=clamp(Math.hypot(px-l.cx,py-l.cy)/REACH,0,1);to=WEIGHT-DEEP*(1-t*t*(3-2*t));}
+     let to=REST;
+     if(live){const t=clamp(Math.hypot(px-l.cx,py-l.cy)/REACH,0,1);to=REST+DEEP*(1-t*t*(3-2*t));}
      if(spring(l.s,to,170,26,dt))busy=true;
      apply(l);
     }
     return busy;
    },
-   reset(){if(!letters)return;for(const l of letters){l.s.x=WEIGHT;l.s.v=0;apply(l);}}
+   reset(){if(!letters)return;for(const l of letters){l.s.x=REST;l.s.v=0;apply(l);}}
   });
  }
 
@@ -139,7 +143,8 @@
   const wrap=cal.closest('#calendarWrap');
   let cols=[],rects=[],axis=null,rectEpoch=-1,hot=null,shown=false,label='';
   const unhot=()=>{if(hot){hot.classList.remove('is-hot');hot=null;}if(shown){shown=false;pill.classList.remove('is-on');}};
-  new MutationObserver(()=>{cols=[];rectEpoch=-1;wake();}).observe(cal,{childList:true});
+  // The week is patched in place (renderSchedule), so a change anywhere inside it can resize the columns.
+  new MutationObserver(()=>{cols=[];rectEpoch=-1;wake();}).observe(cal,{childList:true,subtree:true});
   const two=n=>String(n).padStart(2,'0');
   effects.push({
    step(){

@@ -7,7 +7,7 @@ import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8');
 const from=source.indexOf('function layoutEvents('),to=source.indexOf('let shownRows');
 assert.ok(from>=0&&to>from,'layoutEvents…barLevel moved in assets/app.js');
-const {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel}=new Function(source.slice(from,to)+';return {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel};')();
+const {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel,fillSemester}=new Function(source.slice(from,to)+';return {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel,fillSemester};')();
 
 const event=(id,day,start,end)=>({id,day,start,end});
 
@@ -205,4 +205,58 @@ test('barLevel: value over the ceiling, held between 35% and the full track',()=
  assert.equal(barLevel(2,10),.35);
  assert.equal(barLevel(5,10),.5);
  assert.equal(barLevel(30,10),1);
+});
+
+test('fillSemester: the current semester in its own season, the next one in the other',()=>{
+ assert.equal(fillSemester(3,'fall'),3);
+ assert.equal(fillSemester(3,'spring'),4);
+ assert.equal(fillSemester(4,'spring'),4);
+ assert.equal(fillSemester(4,'fall'),5);
+ assert.equal(fillSemester(16,'fall'),16,'the profile tops out at 16');
+});
+
+test('fillPlan: mandatory, taught, not passed, not chosen and ready courses (prerequisites listed in the guide) up to the planned semester, lower semesters first, overlaps left out',()=>{
+ const from=source.indexOf('function fillPlan('),to=source.indexOf('function renderFill(');
+ assert.ok(from>=0&&to>from,'fillPlan moved in assets/app.js');
+ const course=(id,semester,extra={})=>({id,semester,mandatory:true,...extra});
+ const catalog=[course('B',3),course('A',1),course('C',3,{mandatory:false}),course('D',5),course('E',1),course('F',3),course('G',1,{archived:true}),course('H',3),course('I',2),course('J',1),course('K',3),course('L',1)];
+ const taught=new Set(['A','B','C','D','E','F','G','H','J','K','L']),waiting=new Set(['H']),unlisted=new Set(['J']);
+ // F is already on the week on Monday 9-11; K overlaps it; L and B both take Tuesday 9-11, and L (semester 1) goes first.
+ const at=(courseId,day,start,end)=>({courseId,day,start,end});
+ const events=[at('F',0,540,660),at('K',0,600,720),at('L',1,540,660),at('B',1,600,660),at('A',2,540,660)];
+ const make=state=>new Function('state','data','mandatory','available','outstanding','prerequisites','chosen','fillSemester','activeEvents','meetings','included',source.slice(from,to)+';return fillPlan;')(
+  state,{catalog},c=>c.mandatory,c=>taught.has(c.id),c=>waiting.has(c.id)?['X']:[],c=>unlisted.has(c.id)?null:[],()=>state.selected[state.season],fillSemester,
+  ()=>events.filter(e=>state.selected[state.season].includes(e.courseId)),id=>events.filter(e=>e.courseId===id),()=>true);
+ const state={season:'fall',studySemester:'3',passed:['E'],selected:{fall:['F'],spring:[]}};
+ assert.deepEqual(make(state)(),{add:['A','L'],clash:['B','K']});
+ assert.deepEqual(make({...state,studySemester:''})(),{add:[],clash:[]});
+ assert.deepEqual(make({...state,studySemester:'4'})(),{add:['A','L','D'],clash:['B','K']});
+});
+
+test('firstDay: today while it has meetings, else the next weekday that does, and a weekend looks to Monday on',()=>{
+ const from=source.indexOf('function firstDay('),to=source.indexOf('// The semester "fill my semester"');
+ assert.ok(from>=0&&to>from,'firstDay moved in assets/app.js');
+ const firstDay=new Function(source.slice(from,to)+';return firstDay;')();
+ assert.equal(firstDay([2,0,1,0,3],0),0);
+ assert.equal(firstDay([2,0,1,0,3],1),2);
+ assert.equal(firstDay([2,0,0,0,0],3),0);
+ assert.equal(firstDay([0,1,0,0,0],5),1);
+ assert.equal(firstDay([0,0,0,0,0],2),'all');
+});
+
+test('reelRow: a column turns over only while the one below passes 9 to 0, and a new leading digit starts blank',()=>{
+ const from=source.indexOf('function reelRow('),to=source.indexOf('function countTo(');
+ assert.ok(from>=0&&to>from,'reelRow moved in assets/app.js');
+ const reelRow=new Function(source.slice(from,to)+';return reelRow')();
+ // Digit d rests on row 11+d.
+ assert.deepEqual([reelRow(16,0),reelRow(16,1)],[17,12]);
+ // Halfway from 18 to 19 the tens column has not moved; halfway from 19 to 20 it is half turned.
+ assert.deepEqual([reelRow(18.5,0),reelRow(18.5,1)],[19.5,12]);
+ assert.deepEqual([reelRow(19.5,0),reelRow(19.5,1)],[20.5,12.5]);
+ // 20 lands on row 11 for the ones, the same face as row 21 it rolled into.
+ assert.deepEqual([reelRow(20,0),reelRow(20,1)],[11,13]);
+ // Below 10 the tens column is blank (row 0), turning to 1 (row 2) between 9 and 10.
+ assert.deepEqual([reelRow(8,1),reelRow(9.5,1)],[0,1]);
+ // In tenths (hours like 0,5) the ones column is never blank.
+ assert.equal(reelRow(5,1,1),11);
 });

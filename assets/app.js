@@ -5,10 +5,13 @@ const GUIDE=JSON.parse($('guide-data').textContent);
 const embeddedState=JSON.parse($('initial-state').textContent);
 const STORE='thmmy-planner-v1-'+(embeddedState?.storageId||'original');
 const SOURCES={fall:'https://www.e-ce.uth.gr/studies/undergraduate/fall-timetable/year/',spring:'https://www.e-ce.uth.gr/studies/undergraduate/spring-timetable/year/',catalog:'https://www.e-ce.uth.gr/studies/undergraduate/courses/'};
+const NO_LAB='Χωρίς εργαστήριο',NO_LAB_DETAIL='χωρίς εργαστήριο στο πρόγραμμα (οι ώρες και οι επικαλύψεις δεν το μετρούν ακόμα)';
 const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή'],SHORT_DAYS=['Δε','Τρ','Τε','Πε','Πα'];
 // Vivid course palette (cobalt, hot pink, tangerine, violet, aqua, lemon, sky, orchid, periwinkle). No grey: on the studio ground it reads as disabled.
 // No pure green, amber or red: passed, review and overlap are carried by those hues plus icons, dashes and outlines.
-const COLORS=['#3b5bff','#ff4fa8','#ff7b2e','#8f5cff','#1fd1c1','#ffd43b','#3ab8ff','#d34df0','#9db4ff'];
+// Course colours: two families (cobalts, ambers) and a slate, told apart by lightness before hue, so no two courses
+// rely on red against green. Ordered so that neighbouring slots differ in family and in lightness.
+const COLORS=['#4a6cf0','#f0b23c','#a9c1ff','#c98a26','#6f7a92','#ffeaa6','#2b3f9e','#98600f','#d7e3ff'];
 const blankState=()=>({season:'fall',selected:{fall:[],spring:[]},passed:[],excluded:[],labs:[],review:[],creditTo:{},colors:{},colorMode:'course',entryYear:'',studySemester:'',passedComplete:false,provider:'jina'});
 let data=initialData,state={...blankState(),...(embeddedState||{})},storageWarning='',detailId=null,busy=false;
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved?.version===1&&saved.data?.catalog&&saved.state?.selected){data=saved.data;state={...blankState(),...saved.state};}}catch(e){storageWarning='Η τοπική αποθήκευση δεν είναι διαθέσιμη ή δεν διαβάστηκε. Χρησιμοποίησε «Αποθήκευση αντιγράφου» για να κρατήσεις τη δουλειά σου.';}
@@ -64,14 +67,15 @@ const staleMeetings=id=>[...state.labs,...state.excluded].filter(key=>key.starts
 const setIn=(array,value,on)=>on?[...new Set([...array,value])]:array.filter(v=>v!==value);
 const saveFile=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({version:1,data,state}));}catch(e){notify('Ο browser δεν μπόρεσε να αποθηκεύσει τις αλλαγές. Κατέβασε ένα αντίγραφο HTML για να τις διατηρήσεις.',true);}}
-// Notices float under the header, so they are seen wherever the page is scrolled; a finished one can be dismissed.
+// Notices float at the foot of the screen, so they are seen wherever the page is scrolled without covering the stats an
+// action has just changed; a finished one can be dismissed.
 let noticeShown=0;
 function notify(text,error=false){
  $('updateReport').hidden=true;const notice=$('notice'),shown=++noticeShown;
  // A notice replacing one still on screen (or still leaving) plays its entrance again, so the change is seen.
  if(!notice.hidden)notice.getAnimations().forEach(a=>{a.cancel();if(a instanceof CSSAnimation)a.play();});
  notice.textContent=text;notice.classList.toggle('error',error);notice.hidden=false;
- if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>exit(notice,{opacity:[1,0],transform:['none','scale(.96) translateY(-4px)']},()=>{if(shown===noticeShown)notice.hidden=true;},200);notice.append(close);}
+ if(!text.endsWith('…')){const close=document.createElement('button');close.type='button';close.className='quiet icon-btn';close.setAttribute('aria-label','Κλείσιμο');close.innerHTML=icon('close');close.onclick=()=>exit(notice,{opacity:[1,0],transform:['none','translateY(8px) scale(.98)']},()=>{if(shown===noticeShown)notice.hidden=true;},200);notice.append(close);}
 }
 // Failures in the student's language; the technical text stays in the console.
 function plainError(error){
@@ -102,10 +106,19 @@ function colorKey(c){return state.colorMode==='course'?c.id:`semester-${c.semest
 // Selected courses get distinct slots: each keeps its catalog slot unless another selected course holds it.
 function courseSlot(id){const index=cid=>data.catalog.findIndex(x=>x.id===cid)%COLORS.length,used=new Set();for(const cid of chosen()){let slot=index(cid);for(let k=0;k<COLORS.length&&used.has(slot);k++)slot=(slot+1)%COLORS.length;if(cid===id)return slot;used.add(slot);}return index(id);}
 function baseColor(c){return state.colors[colorKey(c)]||COLORS[state.colorMode==='course'?courseSlot(c.id):(c.semester-1)%COLORS.length]||COLORS[0];}
+const channels=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+const luminance=rgb=>{const [r,g,b]=rgb.map(v=>v/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;};
 // Ink or white on a full course-colour block, whichever has the higher WCAG contrast.
-function onColor(hex){const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4),l=.2126*r+.7152*g+.0722*b;return (l+.05)/.0544>=1.05/(l+.05)?'#0e0e0e':'#ffffff';}
-// The dark theme paints blocks as 90% hue over --surface (#181818, styles.css), so their text is picked against that fill.
-const mixDark=h=>'#'+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*.9+0x18*.1).toString(16).padStart(2,'0')).join('');
+function onColor(hex){const l=luminance(channels(hex));return (l+.05)/.0544>=1.05/(l+.05)?'#0e0e0e':'#ffffff';}
+// The time line sits back from the title: its text is dimmed as far as keeps 4.5:1 on the fill, never past .75. Hues with
+// no room (violet, cobalt, orchid sit near 4.7:1 at full strength) stay at full strength.
+function quietText(hex){
+ const text=onColor(hex)==='#ffffff'?[255,255,255]:[14,14,14],fill=channels(hex),lf=luminance(fill);
+ for(let a=75;a<100;a++){const l=luminance(text.map((v,i)=>v*a/100+fill[i]*(1-a/100)));if((Math.max(l,lf)+.05)/(Math.min(l,lf)+.05)>=4.5)return a/100;}
+ return 1;
+}
+// The dark theme paints blocks as 90% hue over --surface (#17171a, styles.css), so their text is picked against that fill.
+const mixDark=h=>'#'+[1,3,5].map((i,k)=>Math.round(parseInt(h.slice(i,i+2),16)*.9+[0x17,0x17,0x1a][k]*.1).toString(16).padStart(2,'0')).join('');
 function layoutEvents(events){
  const result=[];
  for(let day=0;day<5;day++){
@@ -149,6 +162,16 @@ function nextCard({now,next,minutesToNext},date,nameOf,time){
  }
  return null;
 }
+// The day a phone opens the week on: today while it has meetings, else the next weekday that does (a weekend looks
+// ahead to Monday on); a week with none lists every day.
+function firstDay(counts,today){
+ for(let k=0;k<5;k++){const day=today<5?(today+k)%5:k;if(counts[day])return day;}
+ return 'all';
+}
+// The semester "fill my semester" plans for: the profile's current one, or the next when the other season is on screen
+// (fall teaches the odd semesters), since that coming season is the one being planned.
+// The profile's last option is "16th or later", so the plan never reaches past 16.
+function fillSemester(semester,season){return Math.min(semester%2===(season==='fall'?1:0)?semester:semester+1,16);}
 // How wide a stat's bar runs as a share of its track: value over the stat's usual ceiling, never under 35% so a small value still reads as a bar.
 function barLevel(value,max){return Math.min(1,Math.max(.35,value/max));}
 let shownRows=[];
@@ -166,7 +189,7 @@ function renderList(){
  const list=data.catalog.filter(c=>(!sem||c.semester===sem)&&(!q||norm(c.name+' '+c.id).includes(q))&&(filter==='all'||filter==='offered'&&available(c)||filter==='selected'&&chosen().includes(c.id)||filter==='passed'&&state.passed.includes(c.id)));
  $('catalogCount').textContent=`${list.length} / ${data.catalog.length}`;$('listStatus').textContent=list.length?`${list.length} μαθήματα στη λίστα`:'Δεν βρέθηκαν μαθήματα';
  $('listHelp').hidden=filter==='offered';$('listHelp').textContent=filter==='offered'?'':filter==='all'?'Ο πλήρης κατάλογος. Η απουσία ωρών επισημαίνεται.':filter==='passed'?'Τα περασμένα σου, και από τις δύο περιόδους.':'Οι επιλογές σου για αυτή την περίοδο.';
- const rows=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);const gapped=selected&&meetings(c.id).some(e=>!isLab(e)&&!included(e));return `<article class="course ${c.id===justToggled?'just':''} ${selected?'selected':''} ${passed?'passed':''} ${state.review.includes(c.id)?'review':''} ${gapped?'gapped':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}"><span class="link-mark" aria-hidden="true"></span><div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span class="sep" aria-hidden="true"></span><span>${c.semester}ο εξ.</span><span class="sep" aria-hidden="true"></span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div><div class="course-meta"><span>${slotSummary(c)}</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div><div class="course-meta">${passed?`<span class="tag">${icon('check')}Περασμένο</span>`:''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${selected&&needsLab(c)?`<button class="tag warn tag-action" data-detail="${esc(c.id)}">Διάλεξε εργαστήριο</button>`:''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${icon(selected?'minus':'plus')}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}),box=$('courseList');
+ const rows=list.map(c=>{const selected=chosen().includes(c.id),passed=state.passed.includes(c.id),missing=outstanding(c);const gapped=selected&&meetings(c.id).some(e=>!isLab(e)&&!included(e)),noLab=selected&&needsLab(c);return `<article class="course ${c.id===justToggled?'just':''} ${selected?'selected':''} ${passed?'passed':''} ${state.review.includes(c.id)?'review':''} ${gapped?'gapped':''} ${noLab?'lab-missing':''}" data-course="${esc(c.id)}" style="--course-color:${baseColor(c)}">${noLab?`<span class="link-mark" role="img" aria-label="${NO_LAB}" title="${NO_LAB}"></span>`:'<span class="link-mark" aria-hidden="true"></span>'}<div><button class="course-title" data-detail="${esc(c.id)}">${esc(c.name)}</button><div class="course-meta"><span>${esc(c.id)}</span><span class="sep" aria-hidden="true"></span><span>${c.semester}ο εξ.</span><span class="sep" aria-hidden="true"></span><span>${mandatory(c)?'Υποχρεωτικό':'Επιλογής'}</span></div><div class="course-meta"><span>${slotSummary(c)}</span><span class="credit-tag">${ects(c)??'?'} ECTS</span></div><div class="course-meta">${passed?`<span class="tag">${icon('check')}Περασμένο</span>`:''}${!available(c)?'<span class="tag">Χωρίς ώρες</span>':''}${noLab?`<button class="tag warn tag-action" data-detail="${esc(c.id)}">Διάλεξε εργαστήριο</button>`:''}${missing.length?`<span class="tag warn">${missing.length} προαπαιτούμενα προς έλεγχο</span>`:''}</div></div><button class="course-add" data-toggle="${esc(c.id)}" aria-label="${selected?'Αφαίρεση':'Προσθήκη'}: ${esc(c.name)}" aria-pressed="${selected}">${icon(selected?'minus':'plus')}</button>${filter==='all'||filter==='passed'?`<label class="course-pass"><input type="checkbox" data-passed="${esc(c.id)}" ${passed?'checked':''}>Το έχω περάσει</label>`:''}</article>`;}),box=$('courseList');
  // A toggle changes a row or two: while the list shows the same courses in the same order, only the rows whose markup
  // changed are replaced, so the rest of the list keeps its layout.
  if(rows.length&&rows.length===shownRows.length&&list.every((c,i)=>box.children[i]?.dataset.course===c.id))rows.forEach((html,i)=>{if(html!==shownRows[i])box.children[i].outerHTML=html;});
@@ -187,13 +210,16 @@ const heroSub=document.querySelector('.hero-sub'),heroDefault=heroSub.textConten
 // Now and next: the hero card and the week's now-line, repainted on each minute boundary without re-rendering the week.
 let liveEvents=[],gridRange=[0,1],nowTimer=0,renderedDay=-1,heroCard=null;
 const NOW_WORDS={now:'Τώρα',next:'Επόμενο'},phoneLayout=matchMedia('(max-width:860px)'),heroCta=document.querySelector('.hero-cta');
+function unmark(block){
+ block.classList.remove('is-now','is-next');block.querySelector('.event-state')?.remove();
+ if(block.dataset.mark){block.setAttribute('aria-label',block.dataset.label);delete block.dataset.label;delete block.dataset.mark;}
+}
 // Marks today's running and next meetings in place: a class, a label in the time line, and the state for screen readers.
 function markNow(marks){
  for(const block of $('calendar').querySelectorAll('.meeting')){
   const kind=marks.get(block.dataset.event)||'',was=block.dataset.mark||'';
   if(kind===was)continue;
-  block.classList.remove('is-now','is-next');block.querySelector('.event-state')?.remove();
-  if(was){block.setAttribute('aria-label',block.dataset.label);delete block.dataset.label;delete block.dataset.mark;}
+  unmark(block);
   if(!kind)continue;
   const tag=document.createElement('span');tag.className='event-state';tag.setAttribute('aria-hidden','true');tag.textContent=NOW_WORDS[kind];
   block.querySelector('.event-time>span').after(tag);
@@ -223,7 +249,8 @@ function paintCard(model){
   heroSub.after(heroCard);
  }
  const part=name=>heroCard.querySelector('.nc-'+name),num=part('num');
- part('label').textContent=model.label;part('name').textContent=model.names;part('meta').textContent=model.meta;
+ // Word joiners around the dash keep the time range ("09:00–11:00") on one line.
+ part('label').textContent=model.label;part('name').textContent=model.names;part('meta').textContent=model.meta.replace('–','⁠–⁠');
  num.textContent=model.number;
  if(model.prime){const em=document.createElement('em');em.textContent='′';num.append(em);}
  heroCard.querySelector('.sr-only').textContent=model.prime?` ${model.kind==='now'?'ακόμα':'σε'} ${model.number} ${model.number==='1'?'λεπτό':'λεπτά'}`:'';
@@ -243,23 +270,46 @@ function exit(el,to,hide,duration=160){
  const leaving=el.animate(to,{duration,easing:EASE,fill:'forwards'}),done=()=>{hide();leaving.cancel();};
  leaving.finished.then(done,done);
 }
-// Stat values roll like an odometer: every digit is a column that springs to its new value.
+// Stat values roll like an odometer: one eased count drives every digit, and a column turns over only while the one
+// below it passes from 9 to 0, so 16 to 20 reads 17, 18, 19, 20 and never overshoots. Each reel (styles.css) is a blank
+// row and then 0-9 printed twice and a last 0: digit d rests on row 11+d, and the rows either side carry a roll past 9
+// or 0 without a jump. A column the number has not reached yet rests on the blank row.
+const ROLL=600;
+function reelRow(units,place,keep=0){
+ const x=units/10**place;
+ if(!place)return 11+((x%10)+10)%10;
+ const carry=Math.min(1,Math.max(0,(units/10**(place-1))%10-9));
+ // A new leading digit turns over from blank to 1 (row 2), the same face as row 12; the ones digit is never blank.
+ return place>keep&&units<10**place?2*carry:11+Math.floor(x)%10+carry;
+}
 function countTo(el,value,suffix=''){
  const to=Number(value),text=(Number.isInteger(to)?to:Math.round(to*10)/10).toLocaleString('el-GR')+suffix,shape=text.replace(/\d/g,'0');
  if(el.dataset.text===text)return;
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
  if(odo?.dataset.shape!==shape){
-  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
-  odo=el.querySelector('.odo');odo.getBoundingClientRect();
+  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map(ch=>/\d/.test(ch)?'<span class="digit"><span></span></span>':`<span>${esc(ch)}</span>`).join('')}</span>`;
+  odo=el.querySelector('.odo');
  }else el.firstElementChild.textContent=text;
- const digits=text.match(/\d/g)||[];
- odo.querySelectorAll('.digit').forEach((d,i)=>d.style.setProperty('--n',digits[i]));
+ // Columns by place, ones (or tenths) first; a decimal comma counts in tenths.
+ const reels=[...odo.querySelectorAll('.digit>span')].reverse(),scale=/,\d/.test(text)?10:1;
+ const from=el.rollAt??0,show=v=>{el.rollAt=v;reels.forEach((r,i)=>r.style.setProperty('--n',reelRow(v*scale,i,scale===10?1:0)));};
+ cancelAnimationFrame(el.roll);
+ if(reducedMotion.matches||from===to){show(to);return;}
+ let t0=0;
+ const step=now=>{
+  t0||=now;
+  const k=Math.min(1,(now-t0)/ROLL);
+  show(k<1?from+(to-from)*(1-(1-k)**4):to);
+  if(k<1)el.roll=requestAnimationFrame(step);
+ };
+ show(from);el.roll=requestAnimationFrame(step);
 }
 // Each stat's bar (wide layout, styles.css): its height from the value, a quieter fill at zero.
 const BAR_MAX={count:10,hours:40,conflict:5,credits:40};
 function setBar(id,value,max){const cell=$(id).parentElement;cell.style.setProperty('--lvl',barLevel(value,max));cell.classList.toggle('is-zero',!value);}
 // A course just added flies from its row swatch into each new slot of the week.
+const FLIGHT=320,FLIGHT_STEPS=16;
 function fly(block,delay){
  const mark=$('courseList').querySelector(`[data-course="${CSS.escape(block.dataset.detail)}"] .link-mark`);
  if(!mark)return false;
@@ -273,20 +323,56 @@ function fly(block,delay){
  ghost.className='flight';ghost.setAttribute('aria-hidden','true');ghost.dataset.course=block.dataset.detail;ghost.dataset.season=state.season;
  ghost.style.cssText=`left:${to.left}px;top:${to.top}px;width:${to.width}px;height:${to.height}px;--event-color:${block.style.getPropertyValue('--event-color')}`;
  ghost.append(shape);document.body.append(ghost);
- const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:420,delay,fill:'backwards'};
- // Horizontal and vertical travel run on different curves, so the path bends into an arc.
- ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
- // The arc also leaves the page: the block swells toward the viewer mid-flight and comes back down onto its slot.
- ghost.animate({scale:['1','1.2','1']},{...timing,easing:'cubic-bezier(.45,0,.55,1)'});
- shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
- stampIn(block,delay+380);
+ // One arc, sampled into keyframes so position and size share a single ease: the swatch's dot leaves the list sideways
+ // (the curve's control point sits level with the swatch, three fifths of the way over) and only opens out to the
+ // block's size over the last part of the way, so it never spreads over the list it came from.
+ const sx=from.left+from.width/2-to.left-to.width/2,sy=from.top+from.height/2-to.top-to.height/2,cx=sx*.4,cy=sy;
+ const fill=getComputedStyle(block).backgroundColor,radius=getComputedStyle(block).borderRadius,frames=[];
+ for(let n=0;n<=FLIGHT_STEPS;n++){
+  const u=n/FLIGHT_STEPS,v=1-u,t=Math.min(1,Math.max(0,(u-.35)/.65)),open=t*t*(3-2*t);
+  const x=v*v*sx+2*v*u*cx,y=v*v*sy+2*v*u*cy;
+  const w=(from.width+(to.width-from.width)*open)/to.width,h=(from.height+(to.height-from.height)*open)/to.height;
+  frames.push({offset:u,transform:`translate(${x}px,${y}px) scale(${w},${h})`});
+ }
+ // It leaves as the swatch's solid colour and a dot, and arrives as the block's own fill and corners.
+ Object.assign(frames[0],{backgroundColor:block.style.getPropertyValue('--event-color'),borderRadius:'50%'});
+ Object.assign(frames.at(-1),{backgroundColor:fill,borderRadius:radius});
+ shape.animate(frames,{duration:FLIGHT,delay,easing:'cubic-bezier(.35,0,.15,1)',fill:'backwards'});
+ // Landed, the block is there at once under it in the same fill, and the flight thins away over it, so the only change
+ // is the block's words and its shadow settling: no second landing on top of the first.
+ block.animate({opacity:[0,1]},{duration:1,delay:delay+FLIGHT-1,fill:'backwards'});
+ ghost.animate({opacity:[1,0]},{duration:140,delay:delay+FLIGHT,easing:'ease',fill:'backwards'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
  return true;
 }
 // One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
 // above, a block arrives a touch larger and presses down to size. Blocks are dealt Monday to Friday, DEAL ms apart.
 const DEAL=40;
-// It comes down from the floating shadow to lie flat, so it reads as landing rather than zooming.
-function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.1)',boxShadow:'var(--shadow-lg)'},{opacity:1,transform:'none'}],{duration:240,delay,easing:EASE,fill:'backwards'});}
+// It comes down from the floating shadow to lie flat, so it reads as landing rather than zooming. The shadow fades on
+// its own layer (.meeting::after): animating box-shadow itself would repaint every landing block on every frame.
+function stampIn(block,delay){
+ const timing={duration:240,delay,easing:EASE,fill:'backwards'};
+ block.animate([{opacity:0,transform:'scale(1.1)'},{opacity:1,transform:'none'}],timing);
+ block.animate([{opacity:1},{opacity:0}],{...timing,pseudoElement:'::after'});
+}
+// The empty week's card opens out into the week: a copy of it grows from where it stood to the grid's frame (the part
+// on screen) and dissolves as the day columns fade in under it, its words leaving first, so the first blocks are dealt
+// onto the grid the card became rather than replacing it in a cut.
+function unfold(card,from,to){
+ const bottom=Math.min(to.bottom,innerHeight);
+ if(!from.width||!to.width||bottom<=to.top)return;
+ const ghost=card.cloneNode(true);
+ ghost.removeAttribute('id');ghost.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+ ghost.hidden=false;ghost.inert=true;ghost.setAttribute('aria-hidden','true');ghost.className='empty-state unfolding';
+ ghost.style.cssText=`left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+ document.body.append(ghost);
+ const x=to.left-from.left,y=to.top-from.top,sx=to.width/from.width,sy=(bottom-to.top)/from.height;
+ // The panel grows on an ease-in-out, so it has barely moved while the words fade and they never visibly stretch; it
+ // thins steadily from the start, so it never stands over the grid as an empty veil while the first blocks land.
+ const grow=ghost.animate({transform:['none',`translate(${x}px,${y}px) scale(${sx},${sy})`]},{duration:320,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'});
+ ghost.animate({opacity:[1,0]},{duration:260,delay:60,easing:'linear',fill:'forwards'});
+ for(const part of ghost.children)part.animate({opacity:[1,0]},{duration:120,easing:'ease',fill:'forwards'});
+ grow.finished.then(()=>ghost.remove(),()=>ghost.remove());
+}
 // A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
 // itself, so it looks exactly as it did.
 function leave(block,rect,delay=0){
@@ -366,6 +452,29 @@ $('checks').firstElementChild.onclick=event=>{if(event.currentTarget.closest('.n
 document.querySelector('.skip').addEventListener('click',()=>$('planner').focus({preventScroll:true}));
 // The names of the courses a meeting overlaps, each once.
 function clashNames(partners,events,id){return [...new Set((partners.get(id)||[]).map(other=>course(events.find(x=>x.id===other)?.courseId)?.name).filter(Boolean))];}
+// The week is patched, not rebuilt: its frame (heads, axis, day columns) is built once a day and each block is kept by
+// its data-event, so a block that stays is the same element (focus, hover tilt, a landing under way) and can slide.
+const drawn=new WeakMap(),shown=new WeakMap(),moves=new WeakMap();
+let frameDay=-1;
+function patch(el,html){if(drawn.get(el)!==html){drawn.set(el,html);el.innerHTML=html;}}
+function weekFrame(today){
+ if(frameDay===today)return;
+ frameDay=today;
+ $('calendar').innerHTML='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' id="todayHead" title="Σήμερα"':''}></div>`).join('')+'<div class="time-axis"></div>'+DAYS.map((d,i)=>`<div class="day-column${i===today?' today':''}">${i===today?'<span class="now-line" aria-hidden="true"></span>':''}</div>`).join('');
+}
+// Only what changed is written. A change clears the now/next mark first; paintNow puts it back.
+function drawBlock(block,b){
+ const key=JSON.stringify([b.conflict,b.review,b.attrs,b.style]);
+ if(shown.get(block)===key&&drawn.get(block)===b.content)return;
+ unmark(block);
+ if(shown.get(block)!==key){
+  shown.set(block,key);block.classList.toggle('conflict',b.conflict);block.classList.toggle('review',b.review);
+  for(const [name,value] of Object.entries(b.attrs))block.setAttribute(name,value);
+  // One property at a time: --dealt (week3d.js) and the hover tilt's --rx/--ry stay.
+  for(const [name,value] of Object.entries(b.style))block.style.setProperty(name,value);
+ }
+ patch(block,b.content);
+}
 function renderSchedule(){
  // A flight whose course was removed (or whose season was left) mid-air must not land in an empty slot.
  for(const ghost of document.querySelectorAll('.flight'))if(ghost.dataset.season!==state.season||!chosen().includes(ghost.dataset.course))ghost.remove();
@@ -376,16 +485,17 @@ function renderSchedule(){
  // Within a season, removed blocks lift away and new overlaps pulse. A season switch re-deals the week: the old blocks
  // lift away together, then the new season's are dealt in, the whole deal held to about half a second.
  const was=renderedSeason,sameSeason=was===state.season,swap=animate&&was!==''&&!sameSeason;renderedSeason=state.season;
- const blocks=animate?[...$('calendar').querySelectorAll('.meeting')]:[];
+ const calendar=$('calendar'),existing=new Map([...calendar.querySelectorAll('.meeting')].map(b=>[b.dataset.event,b])),blocks=animate?[...existing.values()]:[];
  const previous=new Map(blocks.map(b=>[b.dataset.event,b.getBoundingClientRect()])),wasConflict=new Set(blocks.filter(b=>b.classList.contains('conflict')).map(b=>b.dataset.event));
+ // Read where a sliding block is, then drop its slide: the next one starts from there.
+ for(const b of existing.values())moves.get(b)?.cancel();
  const events=activeEvents(),pairs=conflicts(events),conflictIds=new Set(pairs.flat().map(e=>e.id)),hadConflicts=parseInt($('conflictStat').dataset.text)>0;
  document.querySelector('.stats').classList.toggle('is-empty',!chosen().length);
  $('conflictJump').setAttribute('aria-label',`Επικαλύψεις: ${pairs.length}. Μετάβαση στον έλεγχο προγράμματος`);
  heroSub.textContent=chosen().length?`${chosen().length===1?'1 μάθημα':chosen().length+' μαθήματα'} · ${(Math.round(contactMinutes(events)/6)/10).toLocaleString('el-GR')} ώρες · ${pairs.length?(pairs.length===1?'1 επικάλυψη':pairs.length+' επικαλύψεις'):'χωρίς επικαλύψεις'}.`:heroDefault;
  liveEvents=events;
- const noLab=chosen().map(course).filter(c=>c&&needsLab(c));
- // Also on the printed sheet: a week without its labs must say so on paper.
- $('labNote').hidden=!noLab.length;$('labNote').innerHTML=noLab.length?`${icon('warn')}<span>Χωρίς εργαστήριο στο πρόγραμμα: ${noLab.map(c=>`<button class="link-button" data-detail="${esc(c.id)}">${esc(c.id)}</button>`).join(', ')}. Οι ώρες και οι επικαλύψεις δεν το μετρούν ακόμα.</span>`:'';
+ // A course whose lab is not in the program says so on its own blocks (also on the printed sheet) and in its rail row.
+ const noLab=new Set(chosen().map(course).filter(c=>c&&needsLab(c)).map(c=>c.id));
  if(hadConflicts&&!pairs.length&&animate)$('conflictStat').animate([{transform:'scale(1)',transformOrigin:'left center'},{transform:'scale(1.04)',transformOrigin:'left center'},{transform:'scale(1)',transformOrigin:'left center'}],{duration:300,easing:'cubic-bezier(.77,0,.175,1)'});
  countTo($('countStat'),chosen().length);countTo($('hoursStat'),Math.round(contactMinutes(events)/6)/10);countTo($('conflictStat'),pairs.length);$('conflictStat').classList.toggle('has-conflict',!!pairs.length);
  setBar('countStat',chosen().length,BAR_MAX.count);setBar('hoursStat',Math.round(contactMinutes(events)/6)/10,BAR_MAX.hours);setBar('conflictStat',pairs.length,BAR_MAX.conflict);
@@ -393,10 +503,11 @@ function renderSchedule(){
  $('countBreakdown').hidden=reviewCount+passedCount===0;
  $('countBreakdown').textContent=reviewCount+passedCount?`${declaration().length}${passedCount?' προς δήλωση':''}${reviewCount?' + '+reviewCount+' προς έλεγχο':''}${passedCount?' + '+passedCount+(passedCount===1?' περασμένο':' περασμένα'):''}`:'';
  
- // The first course of an empty week brings the grid in with a fade (opacity only, so flights still land on their slots).
- const arriving=animate&&was!==''&&wrap.hidden&&events.length>0;
+ // The first course of an empty week brings the grid in with a fade (opacity only, so flights still land on their slots),
+ // as the empty card opens out into it (unfold).
+ const arriving=animate&&was!==''&&wrap.hidden&&events.length>0,card=arriving&&$('emptyState').getBoundingClientRect();
  $('emptyState').hidden=events.length>0;wrap.hidden=events.length===0;
- if(arriving)$('calendar').animate([{opacity:0},{opacity:1}],{duration:240,easing:EASE});
+ if(arriving)$('calendar').animate([{opacity:0},{opacity:1}],{duration:240,delay:60,easing:EASE,fill:'backwards'});
  if(!events.length){
   const unpublished=data[state.season].published===false;
   $('emptyState').querySelector('h3').textContent=chosen().length?'Οι επιλογές σου κρατήθηκαν.':unpublished?`Το ${seasonName()} δεν έχει δημοσιευτεί ακόμα.`:'Πρώτα, τα μαθήματά σου.';
@@ -405,11 +516,31 @@ function renderSchedule(){
  const min=Math.min(9*60,...events.map(e=>Math.floor(e.start/60)*60)),max=Math.max(22*60,...events.map(e=>Math.ceil(e.end/60)*60));
  const hours=(max-min)/60;$('calendar').style.setProperty('--hours',hours);
  const today=renderedDay=(new Date().getDay()+6)%7;gridRange=[min,max];
- let html='<div class="day-head time-head">Ώρα</div>'+DAYS.map((d,i)=>`<div class="day-head${i===today?' today':''}"${i===today?' id="todayHead" title="Σήμερα"':''}><b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${events.filter(e=>e.day===i).length===1?'1 συνάντηση':events.filter(e=>e.day===i).length+' συναντήσεις'} · ${(contactMinutes(events.filter(e=>e.day===i))/60).toLocaleString('el-GR',{maximumFractionDigits:1})} ώρες</small></div>`).join('');
- html+='<div class="time-axis">'+Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join('')+'</div>';
- const laidOut=layoutEvents(events),partners=partnersOf(pairs);
- for(let d=0;d<5;d++)html+=`<div class="day-column${d===today?' today':''}">`+Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('')+(d===today?'<span class="now-line" aria-hidden="true"></span>':'')+laidOut.filter(e=>e.day===d).map(e=>{const c=course(e.courseId);if(!c)return '';const review=state.review.includes(c.id),clash=clashNames(partners,events,e.id);const detail=[`${DAYS[d]} ${time(e.start)}-${time(e.end)}`,c.name,e.type,e.room,e.teacher,clash.length?`επικάλυψη με ${clash.join(' και ')}`:'',review?'προς έλεγχο':''].filter(Boolean).join(', ');return `<button class="meeting ${conflictIds.has(e.id)?'conflict':''} ${review?'review':''}" data-detail="${esc(c.id)}" data-duration="${e.end-e.start}" data-event="${esc(e.id)}" data-partners="${esc((partners.get(e.id)||[]).join(' '))}" title="${esc(detail)}" aria-label="${esc(detail)}" style="top:calc(${(e.start-min)/(max-min)*100}% + 2px);height:calc(${(e.end-e.start)/(max-min)*100}% - 4px);left:calc(${e.lane/e.lanes*100}% + 3px);width:calc(${100/e.lanes}% - 6px);--event-color:${baseColor(c)};--event-on:${onColor(baseColor(c))};--event-on-dark:${onColor(mixDark(baseColor(c)))}"><span class="meeting-content"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflictIds.has(e.id)?icon('warn'):''}</span><strong class="full-title">${esc(hyphenate(c.name))}</strong><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong><span class="event-room"><span class="event-type">${esc(e.type)}${e.type&&e.room?' · ':''}</span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span>${clash.length?`<span class="event-clash">Επικάλυψη με ${esc(clash.join(' και '))}</span>`:''}</span></button>`;}).join('')+'</div>';
- $('calendar').innerHTML=html;
+ weekFrame(today);
+ const heads=calendar.querySelectorAll('.day-head:not(.time-head)'),cols=calendar.querySelectorAll('.day-column');
+ DAYS.forEach((d,i)=>{const day=events.filter(e=>e.day===i);patch(heads[i],`<b>${d}</b><small>${i===today?'<span class="today-word">Σήμερα</span>':''}${day.length===1?'1 συνάντηση':day.length+' συναντήσεις'} · ${(contactMinutes(day)/60).toLocaleString('el-GR',{maximumFractionDigits:1})} ώρες</small>`);});
+ patch(calendar.querySelector('.time-axis'),Array.from({length:hours+1},(_,i)=>`<span class="time-tick" style="top:${i/hours*100}%">${time(min+i*60)}</span>`).join(''));
+ const rules=Array.from({length:hours},(_,i)=>`<span class="hour-rule" style="top:${i/hours*100}%"></span>`).join('');
+ const laidOut=layoutEvents(events),partners=partnersOf(pairs),drawable=laidOut.filter(e=>course(e.courseId)),ids=new Set(drawable.map(e=>e.id));
+ // Gone blocks leave the columns before anything is measured (in the phone agenda they would still take room).
+ const gone=[...existing.values()].filter(b=>!ids.has(b.dataset.event));
+ for(const b of gone)b.remove();
+ cols.forEach((col,d)=>{
+  if(drawn.get(col)!==rules){drawn.set(col,rules);col.querySelectorAll('.hour-rule').forEach(rule=>rule.remove());col.insertAdjacentHTML('afterbegin',rules);}
+  // In the day's order (the phone agenda's reading order too), moving only the blocks that are out of place.
+  let at=col.querySelector('.meeting');
+  for(const e of drawable.filter(e=>e.day===d)){
+   const c=course(e.courseId),color=baseColor(c),dark=mixDark(color),review=state.review.includes(c.id),conflict=conflictIds.has(e.id),clash=clashNames(partners,events,e.id);
+   const detail=[`${DAYS[d]} ${time(e.start)}-${time(e.end)}`,c.name,e.type,e.room,e.teacher,clash.length?`επικάλυψη με ${clash.join(' και ')}`:'',review?'προς έλεγχο':'',noLab.has(c.id)?NO_LAB_DETAIL:''].filter(Boolean).join(', ');
+   let block=existing.get(e.id);
+   if(!block){block=document.createElement('button');block.className='meeting';}
+   drawBlock(block,{conflict,review,
+    attrs:{'data-detail':c.id,'data-duration':e.end-e.start,'data-event':e.id,'data-partners':(partners.get(e.id)||[]).join(' '),title:detail,'aria-label':detail},
+    style:{top:`calc(${(e.start-min)/(max-min)*100}% + 2px)`,height:`calc(${(e.end-e.start)/(max-min)*100}% - 4px)`,left:`calc(${e.lane/e.lanes*100}% + 3px)`,width:`calc(${100/e.lanes}% - 6px)`,'--event-color':color,'--event-on':onColor(color),'--event-on-dark':onColor(dark),'--event-dim':quietText(color),'--event-dim-dark':quietText(dark)},
+    content:`<span class="meeting-content"><span class="event-head"><span class="event-time"><span>${time(e.start)}<span class="event-end">-${time(e.end)}</span></span>${conflict?icon('warn'):''}</span><strong class="event-code">${esc(c.id).replace(/^(\D+)(?=\d)/,prefix=>`<span class="code-pre">${prefix}</span>`)}</strong></span><strong class="full-title">${esc(hyphenate(c.name))}</strong><span class="event-room"><span class="event-type">${esc(e.type)}${e.type&&e.room?' · ':''}</span>${esc(e.room)}</span><span class="event-teacher">${esc(e.teacher)}</span>${clash.length?`<span class="event-clash">Επικάλυψη με ${esc(clash.join(' και '))}</span>`:''}${noLab.has(c.id)?`<span class="lab-foot"><span class="lab-pill">${NO_LAB}</span></span>`:''}</span>`});
+   if(block===at)at=at.nextElementSibling;else col.insertBefore(block,at);
+  }
+ });
  // Day columns stay equal (styles.css); the lane total only sizes the print sheet and the notes-aside check.
  const dayLanes=[0,1,2,3,4].map(d=>Math.max(1,...laidOut.filter(e=>e.day===d).map(e=>e.lanes)));
  $('calendar').style.setProperty('--lane-total',dayLanes.reduce((a,b)=>a+b,0));
@@ -431,32 +562,38 @@ function renderSchedule(){
   const e=lessons[i%Math.max(1,lessons.length)];
   el.style.setProperty('--c',e?e.color:'');el.style.setProperty('--h',e?(.6+.4*(e.end-e.start)/longest).toFixed(2):'');
  });
- // landing: when the last newcomer arrives (a flight lands at ~380ms, a dealt block at ~150ms past its stagger).
+ // landing: when the last newcomer arrives (a flight lands after FLIGHT ms and thins away over 140ms; a dealt block
+ // lands ~150ms past its stagger).
  const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
  let entering=0,landing=150;const clashing=[],placed=[];
  if(animate)for(const block of all){
   const old=previous.get(block.dataset.event),now=block.getBoundingClientRect();
+  // A block on a day the phone is not showing has no box: nothing to see, so it takes no turn in the deal. One that
+  // had no box before (its day just came into view) is dealt in like a newcomer.
+  if(!now.width||!now.height)continue;
   placed.push(now);
-  if(old&&now.width&&now.height){
+  if(old&&old.width&&old.height){
    const x=old.left-now.left,y=old.top-now.top,sx=old.width/now.width,sy=old.height/now.height;
-   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:360,easing:SPRING});
+   if(Math.abs(x)+Math.abs(y)+Math.abs(old.width-now.width)+Math.abs(old.height-now.height)>1)moves.set(block,block.animate([{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,transformOrigin:'0 0'},{transform:'none',transformOrigin:'0 0'}],{duration:300,easing:SPRING}));
    if(sameSeason&&block.classList.contains('conflict')&&!wasConflict.has(block.dataset.event))clashing.push(block);
   }else{
    // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
-   const delay=swap?120+entering++*step:Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
+   const delay=swap?120+entering++*step:(arriving?60:0)+Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
    if(!flew)stampIn(block,delay);
-   landing=Math.max(landing,delay+(flew?380:150));
+   landing=Math.max(landing,delay+(flew?FLIGHT+140:150));
   }
  }
- if(swap&&!phone.matches)blocks.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
+ if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
+ if(card)unfold($('emptyState'),card,wrap.getBoundingClientRect());
+ // A season with nothing to show waits for the old week to lift away before its card rises, so the two never overlap.
+ if(swap&&!events.length&&gone.length)$('emptyState').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,delay:phone.matches?0:260,easing:EASE,fill:'backwards'});
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
- for(const block of clashing)block.animate([{outlineOffset:'-2px'},{outlineOffset:'-6px'},{outlineOffset:'-2px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
+ for(const block of clashing)block.animate([{outlineOffset:'1px'},{outlineOffset:'-3px'},{outlineOffset:'1px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
  // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,
  // a neighbour widening into a freed lane): the fade would double-expose over it.
  if(animate&&sameSeason&&events.length&&!phone.matches){
-  const kept=new Set(all.map(b=>b.dataset.event));
   const covered=r=>placed.some(p=>p.left<r.right-2&&p.right>r.left+2&&p.top<r.bottom-2&&p.bottom>r.top+2);
-  for(const b of blocks){const r=previous.get(b.dataset.event);if(!kept.has(b.dataset.event)&&!covered(r))leave(b,r);}
+  for(const b of gone){const r=previous.get(b.dataset.event);if(!covered(r))leave(b,r);}
  }
 }
 function renderChecks(pairs){
@@ -517,7 +654,73 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
- renderList();renderSchedule();renderSources();
+ renderFill();renderDayTabs();renderSchedule();renderList();renderSources();
+}
+// What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
+// and not waiting on a prerequisite, the guide's order of priority (p. 20). Like the priority check, it leaves out courses
+// whose prerequisites the guide does not list. Lower semesters go first, and a course whose meetings would overlap the
+// week so far (what is chosen plus what this fill has taken) is left out and named instead. Empty until the profile has
+// a semester.
+function fillPlan(){
+ const semester=Number(state.studySemester),add=[],clash=[];if(!semester)return {add,clash};
+ const to=fillSemester(semester,state.season),held=activeEvents();
+ const ready=data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&prerequisites(c)!==null&&!outstanding(c).length).sort((a,b)=>a.semester-b.semester);
+ for(const c of ready){
+  const own=meetings(c.id).filter(included);
+  if(own.some(e=>held.some(h=>h.day===e.day&&e.start<h.end&&h.start<e.end))){clash.push(c.id);continue;}
+  add.push(c.id);held.push(...own);
+ }
+ return {add,clash};
+}
+function renderFill(){
+ const ids=fillPlan().add,to=state.studySemester&&fillSemester(Number(state.studySemester),state.season),count=ids.length;
+ const rail=$('fillRail');rail.hidden=!count;
+ if(count){rail.lastElementChild.textContent=`Υποχρεωτικά ως το ${to}ο εξάμηνο · ${count}`;rail.title=`Προσθέτει ${count===1?'το υποχρεωτικό':'τα υποχρεωτικά'} ως το ${to}ο εξάμηνο που δεν έχεις περάσει`;}
+ // The empty week offers the shortcut too; without a semester in the profile it asks for one first.
+ const week=$('fillWeek');week.hidden=state.studySemester?!count:chosen().length>0;
+ week.textContent=state.studySemester?`Βάλε τα υποχρεωτικά μου · ${count}`:'Όρισε το εξάμηνό σου';
+}
+// Phones show the week one day at a time under these tabs, with "Όλες" listing every day; a swipe across the day moves
+// to the one beside it. The choice holds for the visit, and a change of season starts again from firstDay.
+let phoneDay=null,tabsSeason='';
+function renderDayTabs(){
+ const tabs=$('dayTabs'),calendar=$('calendar'),events=activeEvents(),counts=DAYS.map((_,i)=>events.filter(e=>e.day===i).length),today=(new Date().getDay()+6)%7;
+ tabs.hidden=!events.length;
+ if(!events.length){delete calendar.dataset.day;phoneDay=null;return;}
+ if(phoneDay===null||tabsSeason!==state.season)phoneDay=firstDay(counts,today);
+ tabsSeason=state.season;
+ // A course just added from the rail opens on its own day, so its blocks are seen landing.
+ const added=justToggled&&phoneDay!=='all'&&chosen().includes(justToggled)?events.filter(e=>e.courseId===justToggled).map(e=>e.day):[];
+ if(added.length&&!added.includes(phoneDay))phoneDay=Math.min(...added);
+ if(!tabs.children.length)tabs.innerHTML=[...SHORT_DAYS.map((d,i)=>`<button type="button" data-day="${i}"><b>${d}</b><small></small></button>`),'<button type="button" data-day="all"><b>Όλες</b><small></small></button>'].join('');
+ for(const tab of tabs.children){
+  const day=tab.dataset.day,on=String(phoneDay)===day,count=day==='all'?events.length:counts[day];
+  tab.setAttribute('aria-pressed',String(on));tab.tabIndex=on?0:-1;tab.classList.toggle('today',day===String(today));
+  tab.lastElementChild.textContent=count;
+  tab.setAttribute('aria-label',`${day==='all'?'Όλες οι ημέρες':DAYS[day]}${day===String(today)?' (σήμερα)':''}, ${count===1?'1 συνάντηση':count+' συναντήσεις'}`);
+ }
+ calendar.dataset.day=phoneDay;tabs.style.setProperty('--i',phoneDay==='all'?5:phoneDay);
+ $('dayNone').hidden=phoneDay==='all'||counts[phoneDay]>0;
+}
+function showDay(day){
+ const order=[0,1,2,3,4,'all'],from=order.indexOf(phoneDay),to=order.indexOf(day);
+ if(from===to)return;
+ phoneDay=day;renderDayTabs();
+ // The new day slides in from the side it was chosen on; the tabs stay put when the agenda had scrolled under them.
+ const tabs=$('dayTabs'),bar=parseFloat(rootStyle.getPropertyValue('--bar'))||0,top=tabs.getBoundingClientRect().top;
+ if(top<=bar+1)window.scrollTo({top:scrollY+$('calendarWrap').getBoundingClientRect().top-bar-tabs.offsetHeight,behavior:'instant'});
+ // It starts part-visible, so no frame of the change is an empty agenda.
+ if(!reducedMotion.matches)$('calendar').animate([{opacity:.3,transform:`translateX(${from<to?32:-32}px)`},{opacity:1,transform:'none'}],{duration:240,easing:EASE});
+}
+function fillCourses(){
+ if(!state.studySemester){openProfile();return;}
+ const {add:ids,clash}=fillPlan(),season=state.season,to=fillSemester(Number(state.studySemester),season);if(!ids.length)return;
+ state.selected[season]=[...chosen(),...ids];persist();render();
+ const left=clash.length?` ${clash.length===1?'Έμεινε έξω λόγω επικάλυψης το':`Έμειναν έξω λόγω επικάλυψης τα`} ${clash.join(', ')}.`:'';
+ notify(`${ids.length===1?'Μπήκε 1 υποχρεωτικό':`Μπήκαν ${ids.length} υποχρεωτικά`} ως το ${to}ο εξάμηνο.${left}`);
+ const undo=document.createElement('button');undo.type='button';undo.className='quiet';undo.textContent='Αναίρεση';
+ undo.onclick=()=>{state.selected[season]=state.selected[season].filter(id=>!ids.includes(id));persist();render();notify(`${ids.length===1?'Βγήκε το υποχρεωτικό':`Βγήκαν τα ${ids.length} υποχρεωτικά`}.`);$('notice').querySelector('button')?.focus();};
+ $('notice').insertBefore(undo,$('notice').lastElementChild);
 }
 function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
 function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();render();syncPassedChecklist();if(detailId===id&&$('courseDialog').open)renderDetail(id);}
@@ -819,6 +1022,25 @@ $('profileButton').onclick=()=>openProfile();
 const studyFilter=()=>{if(state.studySemester&&Number(state.studySemester)<=10)$('semesterFilter').value=state.studySemester;};
 for(const id of ['entryYear','studySemester','passedComplete'])$(id).addEventListener('change',()=>{state.entryYear=$('entryYear').value;const semester=$('studySemester').value,moved=semester!==state.studySemester;state.studySemester=semester;state.passedComplete=$('passedComplete').checked;persist();if(moved)studyFilter();render();});
 $('saveProfile').onclick=()=>closeDialog($('profileDialog'));
+$('fillRail').onclick=$('fillWeek').onclick=fillCourses;
+$('dayTabs').onclick=e=>{const tab=e.target.closest('button');if(tab)showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));};
+$('dayTabs').onkeydown=e=>{
+ const tabs=[...$('dayTabs').children],at=tabs.findIndex(t=>t.getAttribute('aria-pressed')==='true');
+ const to={ArrowLeft:at-1,ArrowRight:at+1,Home:0,End:tabs.length-1}[e.key];
+ if(to===undefined)return;e.preventDefault();
+ const tab=tabs[(to+tabs.length)%tabs.length];showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));tab.focus();
+};
+{
+ // A clear sideways swipe (twice as wide as it is tall) turns the day; a vertical scroll never does.
+ let x=0,y=0;
+ $('calendarWrap').addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true});
+ $('calendarWrap').addEventListener('touchend',e=>{
+  if(!phoneLayout.matches||phoneDay==='all'||$('dayTabs').hidden)return;
+  const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;
+  if(Math.abs(dx)<56||Math.abs(dx)<2*Math.abs(dy))return;
+  const day=phoneDay+(dx<0?1:-1);if(day>=0&&day<5)showDay(day);
+ },{passive:true});
+}
 // "/" jumps to the search; Enter there adds the course when only one is left.
 document.addEventListener('keydown',event=>{if(event.key!=='/'||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select')||document.querySelector('dialog[open]'))return;event.preventDefault();if(drawerMode.matches&&!railOpen())setRail(true);$('search').focus();});
 $('search').addEventListener('keydown',event=>{if(event.key!=='Enter')return;const rows=$('courseList').querySelectorAll('.course');if(rows.length===1)toggleCourse(rows[0].dataset.course,false);});
@@ -931,34 +1153,5 @@ window.addEventListener('afterprint',()=>{
  fitCalendar();
 });
 
-// Offline and instant loads through the service worker (sw.js). It is asked to check for a new version when the page
-// loads, when it comes back into view and every half hour; a new version shows the update toast. Not in an HTML backup.
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
- // A first visit installs a worker too, and it can claim this page before its "installed" event arrives: only a page
- // that already had a worker, or a worker found while another was active, is a new version.
- const sw=navigator.serviceWorker,toast=$('updateToast'),returning=!!sw.controller;
- let registration=null,taking=false;
- // The text is set again once shown: screen readers skip a live region that only turns visible.
- const offer=()=>{if(!toast.hidden)return;const s=toast.firstElementChild,text=s.textContent;s.textContent='';toast.hidden=false;requestAnimationFrame(()=>s.textContent=text);};
- sw.addEventListener('message',event=>{if(event.data==='update')offer();});
- // A new service worker took over (after "Ανανέωση"): load the page it serves.
- sw.addEventListener('controllerchange',()=>{if(taking)location.reload();});
- $('updateReload').onclick=()=>{
-  if(registration?.waiting){taking=true;registration.waiting.postMessage('skip-waiting');}
-  else location.reload();
- };
- $('updateClose').onclick=()=>exit(toast,{opacity:0,transform:'translate(-50%,-10px) scale(.96)'},()=>{toast.hidden=true;if(toast.contains(document.activeElement)||document.activeElement===document.body)$('printButton').focus({preventScroll:true});},200);
- const check=()=>{registration?.update().catch(()=>{});sw.controller?.postMessage('check');};
- const start=async()=>{
-  try{registration=await sw.register('./sw.js',{updateViaCache:'none'});}catch{return;}
-  // A new service worker waiting behind the current one is a new version too.
-  if(registration.waiting&&returning)offer();
-  registration.addEventListener('updatefound',()=>{const next=registration.installing,update=!!registration.active;next?.addEventListener('statechange',()=>{if(next.state==='installed'&&update&&registration.waiting)offer();});});
-  check();
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
-  setInterval(()=>{if(document.visibilityState==='visible')check();},30*60*1000);
- };
- if(document.readyState==='complete')start();else addEventListener('load',start,{once:true});
-}
 // Read by the loader in index.html: a script that threw part-way still fires onload.
 window.plannerBooted=true;
