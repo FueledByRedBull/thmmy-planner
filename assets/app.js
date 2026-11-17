@@ -308,7 +308,9 @@ function fly(block,delay){
  ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
  // The arc also leaves the page: the block swells toward the viewer mid-flight and comes back down onto its slot.
  ghost.animate({scale:['1','1.2','1']},{...timing,easing:'cubic-bezier(.45,0,.55,1)'});
- shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px'},{transform:'none',borderRadius:'10px'}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
+ // It leaves as the swatch's solid colour and settles into the block's fill on the way down.
+ const fillTo=getComputedStyle(shape).backgroundColor;
+ shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px',backgroundColor:block.style.getPropertyValue('--event-color')},{transform:'none',borderRadius:'10px',backgroundColor:fillTo}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
  stampIn(block,delay+380);
  return true;
 }
@@ -531,6 +533,8 @@ function renderSchedule(){
   }
  }
  if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
+ // A season with nothing to show waits for the old week to lift away before its card rises, so the two never overlap.
+ if(swap&&!events.length&&gone.length)$('emptyState').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,delay:phone.matches?0:200,easing:EASE,fill:'backwards'});
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
  for(const block of clashing)block.animate([{outlineOffset:'1px'},{outlineOffset:'-3px'},{outlineOffset:'1px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
  // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,
@@ -643,7 +647,7 @@ function renderDayTabs(){
   tab.lastElementChild.textContent=count;
   tab.setAttribute('aria-label',`${day==='all'?'Όλες οι ημέρες':DAYS[day]}${day===String(today)?' (σήμερα)':''}, ${count===1?'1 συνάντηση':count+' συναντήσεις'}`);
  }
- calendar.dataset.day=phoneDay;
+ calendar.dataset.day=phoneDay;tabs.style.setProperty('--i',phoneDay==='all'?5:phoneDay);
  $('dayNone').hidden=phoneDay==='all'||counts[phoneDay]>0;
 }
 function showDay(day){
@@ -653,7 +657,8 @@ function showDay(day){
  // The new day slides in from the side it was chosen on; the tabs stay put when the agenda had scrolled under them.
  const tabs=$('dayTabs'),bar=parseFloat(rootStyle.getPropertyValue('--bar'))||0,top=tabs.getBoundingClientRect().top;
  if(top<=bar+1)window.scrollTo({top:scrollY+$('calendarWrap').getBoundingClientRect().top-bar-tabs.offsetHeight,behavior:'instant'});
- if(!reducedMotion.matches)$('calendar').animate([{opacity:0,transform:`translateX(${from<to?24:-24}px)`},{opacity:1,transform:'none'}],{duration:220,easing:EASE});
+ // It starts part-visible, so no frame of the change is an empty agenda.
+ if(!reducedMotion.matches)$('calendar').animate([{opacity:.3,transform:`translateX(${from<to?32:-32}px)`},{opacity:1,transform:'none'}],{duration:240,easing:EASE});
 }
 function fillCourses(){
  if(!state.studySemester){openProfile();return;}
