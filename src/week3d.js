@@ -8,7 +8,7 @@
 import {
  BackSide, BoxGeometry, CanvasTexture, Color, DirectionalLight, EdgesGeometry, ExtrudeGeometry, Group,
  HemisphereLight, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial,
- NeutralToneMapping, NoToneMapping, PCFShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, Plane,
+ NoToneMapping, PCFShadowMap, PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, Plane,
  Quaternion, Raycaster, SRGBColorSpace, Scene, ShadowMaterial, Shape, Vector2, Vector3, WebGLRenderer
 } from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
@@ -38,7 +38,8 @@ const renderer=new WebGLRenderer({canvas,alpha:true,antialias:devicePixelRatio<2
 renderer.setClearColor(0,0);
 // Production setting: reading shader logs forces every compile to finish synchronously on the main thread.
 renderer.debug.checkShaderErrors=false;
-renderer.toneMapping=NeutralToneMapping;
+// No tone curve: the light is set so a tile's lit top comes out at its own colour, which any curve would shift.
+renderer.toneMapping=NoToneMapping;
 renderer.shadowMap.enabled=true;
 // PCF by name: three 0.186 dropped PCFSoftShadowMap and swaps PCF in at the first shadow pass, which would make every
 // shader compiled ahead of time (see the startup below) compile again, synchronously, in the first frames.
@@ -60,12 +61,11 @@ const scene=new Scene(),camera=new PerspectiveCamera(LENS[0],1,.5,200),week=new 
 const ENV=512;
 async function environment(){
  const pmrem=new PMREMGenerator(renderer),room=new RoomEnvironment(),eye=new PerspectiveCamera(90,1,.1,100),tone=renderer.toneMapping;
- // Light cards join the room before the bake: a long softbox overhead, which draws a crisp streak along every clearcoat
- // edge, two thin strips (one tall behind, one warm in front) that cut a hairline highlight down the bevels and give the
- // chrome tiles something sharp to mirror, and a pink and a cool card low at the sides, which put colour into the reflections.
+ // Light cards join the room before the bake: a long softbox overhead, which draws a soft streak along every bevel, and
+ // two thin strips (one tall behind, one in front) that cut a hairline highlight down the bevels and give the chrome
+ // tiles something sharp to mirror. All of them white: a tinted card would shift the course colours it falls on.
  const card=(color,power,x,y,z,w,h,d)=>{const m=new Mesh(new BoxGeometry(w,h,d),new MeshBasicMaterial({color:new Color(color).multiplyScalar(power)}));m.position.set(x,y,z);room.add(m);};
- card('#ffffff',14,1,12.5,4,11,.1,.6);card('#ff4fa8',5,-13,3.5,2,.1,4,8);card('#7fb2ff',3.5,12.5,4,-3,.1,4,7);
- card('#ffffff',20,-9.5,4.5,-8,.4,9,.1);card('#fff1e0',9,9,2.5,9,.35,6,.1);
+ card('#ffffff',14,1,12.5,4,11,.1,.6);card('#ffffff',20,-9.5,4.5,-8,.4,9,.1);card('#ffffff',9,9,2.5,9,.35,6,.1);
  pmrem._setSize(ENV);
  const target=pmrem._allocateTargets(),plane=pmrem._lodMeshes[0].geometry;
  const box=pmrem._backgroundBox=new Mesh(new BoxGeometry(),new MeshBasicMaterial({name:'PMREM.Background',side:BackSide,depthWrite:false,depthTest:false}));
@@ -77,33 +77,39 @@ async function environment(){
  scene.environment=pmrem.fromScene(room,.04,.1,100,{size:ENV}).texture;
  room.dispose();pmrem.dispose();
 }
-// A strong key from the upper left shades slab sides against their tops; a cool rim from behind draws the edges.
+// Product-shot light, all of it white so the course colours read as they do in the planner: one key from the upper
+// left with a soft but defined shadow shades slab sides against their tops, a faint rim from behind draws the edges.
 const key=new DirectionalLight('#ffffff',2.2);
-key.position.set(-6,13,8);
+key.position.set(-7,13,-6);
 key.castShadow=true;
 key.shadow.mapSize.set(2048,2048);
-key.shadow.radius=3.5;
+key.shadow.radius=5;
 key.shadow.bias=-.0003;
 key.shadow.normalBias=.015;
-const rim=new DirectionalLight('#dfe6ff',1);
+const rim=new DirectionalLight('#ffffff',1);
 rim.position.set(7,5,-10);
-const fill=new HemisphereLight('#ffffff','#9aa1ad',.25);
+const fill=new HemisphereLight('#ffffff','#a0a0a0',.25);
 // A small key under the cursor: it hovers over the board where the pointer points and catches the clearcoat. It stays in
 // the scene at zero intensity (a light added or removed later recompiles every material) and casts no shadow.
 const spot=new PointLight('#ffffff',0,7,2);
 // The lamp inside the "now" slab: a pink-tinted point light just above it that colours its neighbours (see glow). Zero
 // intensity when nothing is lit, for the same reason as the cursor light; it casts no shadow.
 const lamp=new PointLight('#ff4fa8',0,3.6,2);
+// The board stands on the page as on a desk: the floor (the page's own ground, so it only draws the key's shadow) lies
+// just under it, and `ground` (see drawGround) lays a soft pool of light, a large soft shadow and a contact shadow there.
 const floor=new Mesh(new PlaneGeometry(80,80),new ShadowMaterial({opacity:.2}));
 floor.rotation.x=-Math.PI/2;
-floor.position.y=-1.15;
+floor.position.y=-.34;
 floor.receiveShadow=true;
+const ground=new Mesh(new PlaneGeometry(1,1),new MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));
+ground.rotation.x=-Math.PI/2;
+ground.renderOrder=-1;
 // Tiles off the board (flung by a hard spin, or thrown to the sky on the way back up from the planner) live in `air`.
 // "Spinning the board" really swings the camera round a still board, so `air` turns with the camera's azimuth: a free
 // tile then moves, and rests, in the viewer's frame, over a studio floor that stays still while the board spins.
 const air=new Group();
 week.add(lamp);
-scene.add(key,key.target,rim,fill,spot,floor,week,air);
+scene.add(key,key.target,rim,fill,spot,floor,ground,week,air);
 
 let pal=palette(),danger=new Color(pal.danger),size={w:9,d:7},hours={min:-1,max:-1},board=null,labels=null,edges=null;
 const slabs=new Map(),dying=new Set(),geometries=new Map();
@@ -172,14 +178,16 @@ let suppressClick=false,down=null;
 
 function palette(){
  const dark=root.dataset.theme==='dark';
- return{dark,board:dark?'#262626':'#fbfbfb',edge:dark?'#454545':'#c9c9c9',ink:dark?'#f2f2f2':'#0e0e0e',accent:dark?'#ff4fa8':'#ef1a84',danger:dark?'#ff5c6c':'#d61f3a',warning:dark?'#fbbf24':'#985200',shadow:dark?.6:.24,chrome:dark?'#a3a7ae':'#dcdfe4'};
+ // `pool` is the light the key throws on the ground round the board (white at that strength), `drop` how dark the
+ // shadows under it are: on the dark page a shadow alone would vanish into the ground, so the pool carries it.
+ return{dark,board:dark?'#1d1e21':'#f4f5f7',edge:dark?'#34363b':'#d3d6dc',ink:dark?'#f2f2f2':'#0e0e0e',accent:dark?'#ff4fa8':'#ef1a84',danger:dark?'#ff5c6c':'#d61f3a',warning:dark?'#fbbf24':'#985200',shadow:dark?.5:.2,pool:dark?.16:.55,drop:dark?.85:.3,chrome:dark?'#a3a7ae':'#dcdfe4'};
 }
 function light(){
- key.intensity=pal.dark?1.9:2.3;
- rim.intensity=pal.dark?1.5:.7;
- scene.environmentIntensity=pal.dark?.85:.7;
+ key.intensity=1.65;
+ rim.intensity=.2;
+ scene.environmentIntensity=.27;
  floor.material.opacity=pal.shadow;
- spot.color.set(pal.dark?'#e6edff':'#ffffff');
+ spot.color.set('#ffffff');
 }
 const rgba=(hex,a)=>{const c=new Color(hex);return`rgba(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)},${a})`;};
 const hhmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
@@ -258,10 +266,33 @@ function drawLabels(){
  labels.material.needsUpdate=true;
 }
 
-// Brushed satin: the board's grain runs along its long side (the cap's UVs are plan coordinates, so the anisotropy
-// frame needs no tangents), a thin lacquer on top, a light touch of metal.
-function satin(m){
- m.roughness=pal.dark?.5:.42;m.metalness=pal.dark?.35:.2;m.anisotropy=.7;m.clearcoat=pal.dark?.1:.25;
+// The ground under the board, drawn once per board size and theme: a soft pool of light, a large soft shadow cast away
+// from the key (toward +x, -z), and a tight contact shadow right under the board's outline. Canvas shadows rather than
+// a blur filter, which not every browser runs on a canvas. The ground plane follows the board's place (see step).
+const SPREAD=2.6;
+function drawGround(){
+ const k=36,gw=size.w+2*SPREAD,gd=size.d+2*SPREAD,cw=Math.round(gw*k),ch=Math.round(gd*k),c=document.createElement('canvas');
+ c.width=cw;c.height=ch;
+ const g=c.getContext('2d'),bx=SPREAD*k,bz=SPREAD*k,bw=size.w*k,bd=size.d*k,r=.34*k;
+ const pool=g.createRadialGradient(cw/2,ch/2,0,cw/2,ch/2,Math.max(cw,ch)/2);
+ pool.addColorStop(0,rgba('#ffffff',pal.pool));pool.addColorStop(.55,rgba('#ffffff',pal.pool*.6));pool.addColorStop(1,rgba('#ffffff',0));
+ g.fillStyle=pool;g.fillRect(0,0,cw,ch);
+ // A shape far off the canvas, its shadow thrown back into place: only the blurred shadow lands.
+ const shade=(blur,alpha,dx,dz,grow)=>{
+  g.save();g.shadowColor=`rgba(0,0,0,${alpha})`;g.shadowBlur=blur*k;g.shadowOffsetX=cw*2+dx*k;g.shadowOffsetY=dz*k;
+  g.fillStyle='#000';g.beginPath();g.roundRect(bx-grow*k-cw*2,bz-grow*k,bw+2*grow*k,bd+2*grow*k,r+grow*k);g.fill();g.restore();
+ };
+ shade(2.2,pal.drop*.55,.5,-.6,.2);
+ shade(.35,pal.drop,0,0,.04);
+ const texture=release(new CanvasTexture(c));
+ texture.colorSpace=SRGBColorSpace;
+ ground.material.map?.dispose();
+ ground.material.map=texture;ground.material.needsUpdate=true;
+ ground.scale.set(gw,gd,1);
+}
+// Matte: the board is a quiet ground for the tiles, its labels printed on a dull surface.
+function matte(m){
+ m.roughness=.8;m.metalness=0;m.clearcoat=0;
  return m;
 }
 function makeBoard(model){
@@ -269,27 +300,23 @@ function makeBoard(model){
  size={w:AXIS+GRID+PAD,d:HEAD+(hours.max-hours.min)/60*HOUR+PAD};
  if(board){week.remove(board,labels);board.material.dispose();edges.geometry.dispose();edges.material.dispose();labels.geometry.dispose();labels.material.map?.dispose();labels.material.dispose();}
  // Transparent so the board can dissolve into the planner sheet as it lands.
- board=new Mesh(slabGeometry(size.w,size.d,BOARD,.34),satin(new MeshPhysicalMaterial({color:pal.board,clearcoatRoughness:.35,anisotropyRotation:0,transparent:true})));
+ board=new Mesh(slabGeometry(size.w,size.d,BOARD,.34),matte(new MeshPhysicalMaterial({color:pal.board,transparent:true})));
  board.position.y=-BOARD;board.receiveShadow=board.castShadow=true;
  edges=new LineSegments(new EdgesGeometry(board.geometry,40),new LineBasicMaterial({color:pal.edge,transparent:true}));
  board.add(edges);
  labels=new Mesh(new PlaneGeometry(size.w,size.d),new MeshStandardMaterial({transparent:true,roughness:.95,depthWrite:false}));
  labels.rotation.x=-Math.PI/2;labels.position.y=.004;labels.receiveShadow=true;
  week.add(board,labels);
- drawLabels();
+ drawLabels();drawGround();
  const reach=Math.max(size.w,size.d)/2+1.5,shadow=key.shadow.camera;
  shadow.left=shadow.bottom=-reach;shadow.right=shadow.top=reach;shadow.near=1;shadow.far=40;shadow.updateProjectionMatrix();
 }
 
 function slabMaterial(e){
  if(e.sample)return new MeshPhysicalMaterial({color:pal.chrome,metalness:1,roughness:.04,envMapIntensity:1.6});
- // Course colours are already vivid; a touch darker keeps the clearcoat highlights from blowing out.
- const c=new Color(e.color),hsl={};
- c.getHSL(hsl,SRGBColorSpace);
- c.setHSL(hsl.h,hsl.s,hsl.l*.9,SRGBColorSpace);
- const m=gel(new MeshPhysicalMaterial({color:c,roughness:GLOSS,ior:1.49,specularIntensity:1,clearcoat:1,clearcoatRoughness:.02,transparent:e.review,opacity:e.review?.6:1}));
- if(e.conflict)m.emissive.set(pal.danger);
- return m;
+ // Matte satin: a rough body under a thin, soft coat, so the top reads as the planner's own block colour and only
+ // the bevels catch a highlight.
+ return gel(new MeshPhysicalMaterial({color:e.color,roughness:GLOSS,ior:1.49,specularIntensity:.3,clearcoat:COAT,clearcoatRoughness:.3,transparent:e.review,opacity:e.review?.6:1}));
 }
 
 // The flat fill a block has in the planner: the course colour, 10% into the surface on the dark theme (styles.css .meeting).
@@ -303,13 +330,15 @@ function tint(slab,k,pulse){
  const m=slab.mesh.material,e=slab.e;
  if(e.sample)return;
  m.color.copy(slab.base).multiplyScalar(1-k*.94);
- m.clearcoat=1-k*.9;m.envMapIntensity=1-k*.9;m.roughness=lerp(slab.rough,GLOSS+.5,k);
+ m.clearcoat=COAT*(1-k*.9);m.envMapIntensity=1-k*.9;m.roughness=lerp(slab.rough,1,k);
  if(e.review)m.opacity=.6+.4*k;
  // Its edges give way to the flat fill as the tile lands.
  m.userData.rim.value=RIM*(1-k);
- if(e.conflict){m.emissive.copy(danger).lerp(slab.flat,k);m.emissiveIntensity=lerp(pulse,1,k);}
+ // A conflict pulses in the danger colour on the tile's sides and bevels only: on its top, a red glow would turn the
+ // course colour into another one.
+ if(e.conflict)m.userData.clash.value.copy(danger).multiplyScalar(pulse*1.6*(1-k));
  // The lit "now" slab breathes in its glow until the morph takes it down to the flat fill.
- else if(slab.glow){m.emissive.copy(slab.lit).lerp(slab.flat,k);m.emissiveIntensity=lerp(GLOW*(1+.35*breath),1,k);}
+ if(slab.glow){m.emissive.copy(slab.lit).lerp(slab.flat,k);m.emissiveIntensity=lerp(GLOW*(1+.35*breath),1,k);}
  else{m.emissive.copy(slab.flat);m.emissiveIntensity=k;}
 }
 // The class running now (else the next one today) glows like lit frosted glass: a rough body under the clear coat, the
@@ -317,7 +346,7 @@ function tint(slab,k,pulse){
 // blocks each minute (.is-now, .is-next, same ids as the tiles); a conflicting tile keeps its warning pulse instead.
 // The breathing is only a function of the clock inside step: it never keeps the loop awake, so the loop's own sleep after
 // 15 idle seconds still applies (the glow then rests at its last level).
-const GLOSS=.12,GLOW=.6,FROST=.45;
+const GLOSS=.6,COAT=.15,GLOW=.6,FROST=.7;
 let glowId='',glowSlab=null,breath=0;
 function glow(){
  glowSlab=null;
@@ -339,14 +368,15 @@ new MutationObserver(records=>{
 }).observe(document.getElementById('calendar'),{childList:true,subtree:true,attributes:true,attributeOldValue:true,attributeFilter:['class']});
 
 // Lit acrylic: the faces of a tile that turn away from the eye pick up its own colour, as light gathers at the edges
-// of a sheet of perspex. One shader for every tile; the strength is each material's own (see tint).
-const RIM=.3;
+// of a sheet of perspex. A conflict's glow (`clash`) lights only the faces that do not look up. One shader for every
+// tile; the strengths are each material's own (see tint).
+const RIM=.2;
 function gel(m){
- m.userData.rim={value:0};
+ m.userData.rim={value:0};m.userData.clash={value:new Color(0)};
  m.onBeforeCompile=shader=>{
-  shader.uniforms.uRim=m.userData.rim;
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float uRim;')
-   .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance+=diffuseColor.rgb*uRim*pow(1.-saturate(dot(normal,normalize(vViewPosition))),3.4);');
+  shader.uniforms.uRim=m.userData.rim;shader.uniforms.uClash=m.userData.clash;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float uRim;\nuniform vec3 uClash;')
+   .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance+=diffuseColor.rgb*uRim*pow(1.-saturate(dot(normal,normalize(vViewPosition))),3.4)+uClash*(1.-smoothstep(.6,.95,inverseTransformDirection(normal,viewMatrix).y));');
  };
  m.customProgramCacheKey=()=>'gel';
  return m;
@@ -385,8 +415,9 @@ function release(texture){
  texture.onUpdate=()=>{texture.image.width=texture.image.height=0;texture.onUpdate=null;};
  return texture;
 }
-// The course code engraved into the slab top: a darker, matte groove cut through the clearcoat, whose walls are a
-// normal map built from the lettering, so they catch the scene's light and shift as the board turns.
+// The course code engraved into the slab top and inked like the planner's block text (dark on light colours, white on
+// dark ones; see ink), a matte groove whose walls are a normal map built from the lettering, so they catch the scene's
+// light and shift as the board turns.
 // Narrow tops shrink the code (dropping the ECE prefix last); a top too small for it stays plain.
 // Identical tops (a course meeting twice at the same size) share one pair of textures.
 const DECAL=300,WALL=2,SLOPE=9,engravings=new Map();
@@ -406,17 +437,23 @@ function engrave(e,W,H,k){
  for(let i=0;i<n;i++)a[i]=id[i*4+3]/255;
  for(let y=0;y<H;y++){const o=y*W;let s=0;for(let x=-WALL;x<=WALL;x++)s+=a[o+Math.min(W-1,Math.max(0,x))];for(let x=0;x<W;x++){tmp[o+x]=s/span;s+=a[o+Math.min(W-1,x+WALL+1)]-a[o+Math.max(0,x-WALL)];}}
  for(let x=0;x<W;x++){let s=0;for(let y=-WALL;y<=WALL;y++)s+=tmp[Math.min(H-1,Math.max(0,y))*W+x];for(let y=0;y<H;y++){a[y*W+x]=s/span;s+=tmp[Math.min(H-1,y+WALL+1)*W+x]-tmp[Math.max(0,y-WALL)*W+x];}}
- // Wall slopes become normals (a recess: walls face into the cut); deeper is darker, so the floor sits in shadow.
+ // Wall slopes become normals (a recess: walls face into the cut); the mask is the letters' coverage, inked by the material.
  const normals=new ImageData(W,H),nd=normals.data;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const i=y*W+x,j=i*4,dx=(a[x<W-1?i+1:i]-a[x>0?i-1:i])/2,dy=(a[y<H-1?i+W:i]-a[y>0?i-W:i])/2;
   if(dx===0&&dy===0){nd[j]=nd[j+1]=128;nd[j+2]=255;}
   else{const nx=SLOPE*dx,ny=-SLOPE*dy,l=1/Math.sqrt(nx*nx+ny*ny+1);nd[j]=(nx*l*.5+.5)*255;nd[j+1]=(ny*l*.5+.5)*255;nd[j+2]=(l*.5+.5)*255;}
   nd[j+3]=255;
-  id[j]=id[j+1]=id[j+2]=255*(1-.82*a[i]);id[j+3]=Math.min(255,a[i]*400);
+  id[j]=id[j+1]=id[j+2]=255;id[j+3]=Math.min(255,a[i]*400);
  }
  g.putImageData(img,0,0);bump.getContext('2d').putImageData(normals,0,0);
  return {mask,bump};
+}
+// The planner's text colour on a block (app.js onColor): near-black on light colours, white on dark ones, whichever
+// contrasts more with the colour's relative luminance.
+function ink(hex){
+ const c=new Color(hex),l=.2126*c.r+.7152*c.g+.0722*c.b;
+ return (l+.05)/.0544>=1.05/(l+.05)?'#0e0e0e':'#ffffff';
 }
 function decal(slab){
  const e=slab.e;
@@ -432,8 +469,8 @@ function decal(slab){
   engravings.set(key,entry);
  }
  entry.users++;slab.engraving=key;
- // The groove is the slab's own colour, shaded by depth, matte with no coat; nudged above the top face to stay clear of it.
- slab.decal=new Mesh(new PlaneGeometry(fw,fd),new MeshStandardMaterial({color:slab.base,map:entry.map,normalMap:entry.normalMap,roughness:.55,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+ // The groove is inked, matte with no coat; nudged above the top face to stay clear of it.
+ slab.decal=new Mesh(new PlaneGeometry(fw,fd),new MeshStandardMaterial({color:ink(e.color),map:entry.map,normalMap:entry.normalMap,roughness:.55,metalness:0,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
  slab.decal.rotation.x=-Math.PI/2;slab.decal.position.y=slab.h+.002;slab.decal.receiveShadow=true;
  slab.mesh.add(slab.decal);
 }
@@ -484,7 +521,7 @@ function restyle(){
  pal=palette();
  light();
  danger.set(pal.danger);
- if(board){board.material.color.set(pal.board);satin(board.material);edges.material.color.set(pal.edge);drawLabels();}
+ if(board){board.material.color.set(pal.board);matte(board.material);edges.material.color.set(pal.edge);drawLabels();drawGround();}
  for(const slab of slabs.values()){
   if(slab.e.sample)slab.mesh.material.color.set(pal.chrome);
   slab.flat=flatColor(slab.e);
@@ -1057,6 +1094,11 @@ function step(now){
  const chrome=smooth((e-.82)/.15);
  if(board){board.material.opacity=edges.material.opacity=dissolve;labels.material.opacity=words;}
  floor.material.opacity=pal.shadow*calm;
+ // The ground stays on the floor under the board, turns with it, and fades as the board lifts off it (held, or on its
+ // way up on load) and as it leaves for the planner.
+ const gap=week.position.y-BOARD*week.scale.y-floor.position.y;
+ ground.position.set(week.position.x,floor.position.y,week.position.z);ground.rotation.z=week.rotation.y;
+ ground.material.opacity=calm*(gap<0?0:Math.min(1,Math.exp(-(gap-.14)*3)));
  // Camera: the hero's three-quarter orbit, straight down once landed (phones keep the gentle tilt).
  // The elevation never reaches straight down or the board's own plane, whatever the springs overshoot.
  const az0=HERO_AZ+(springs.cx.x*.26+orbit.yaw.x)*calm,el0=Math.min(Math.PI/2-.04,Math.max(.06,HERO_EL+(orbit.pitch.x-springs.cy.x*.12)*calm));
@@ -1079,7 +1121,7 @@ function step(now){
  }
  // The key light leans with the pointer (on the same springs as the camera), so highlights slide across the clearcoat
  // and the shadows shift as the hand moves; it is back in place by the time the board lands.
- key.position.set(-6+springs.cx.x*4*calm,13,8+springs.cy.x*3*calm);
+ key.position.set(-7+springs.cx.x*4*calm,13,-6+springs.cy.x*3*calm);
  // Free tiles move in the viewer's frame: the air layer turns with the camera (see `air`).
  air.rotation.y=az;air.updateMatrixWorld();week.updateMatrixWorld();camera.updateMatrixWorld();
  moving=cursorLight(dt,calm,still)|moving;
