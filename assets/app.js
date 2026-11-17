@@ -309,6 +309,7 @@ function countTo(el,value,suffix=''){
 const BAR_MAX={count:10,hours:40,conflict:5,credits:40};
 function setBar(id,value,max){const cell=$(id).parentElement;cell.style.setProperty('--lvl',barLevel(value,max));cell.classList.toggle('is-zero',!value);}
 // A course just added flies from its row swatch into each new slot of the week.
+const FLIGHT=320,FLIGHT_STEPS=16;
 function fly(block,delay){
  const mark=$('courseList').querySelector(`[data-course="${CSS.escape(block.dataset.detail)}"] .link-mark`);
  if(!mark)return false;
@@ -322,15 +323,25 @@ function fly(block,delay){
  ghost.className='flight';ghost.setAttribute('aria-hidden','true');ghost.dataset.course=block.dataset.detail;ghost.dataset.season=state.season;
  ghost.style.cssText=`left:${to.left}px;top:${to.top}px;width:${to.width}px;height:${to.height}px;--event-color:${block.style.getPropertyValue('--event-color')}`;
  ghost.append(shape);document.body.append(ghost);
- const dx=from.left+from.width/2-to.left-to.width/2,dy=from.top+from.height/2-to.top-to.height/2,timing={duration:420,delay,fill:'backwards'};
- // Horizontal and vertical travel run on different curves, so the path bends into an arc.
- ghost.animate([{transform:`translateX(${dx}px)`},{transform:'none'}],{...timing,easing:'cubic-bezier(.55,0,.3,1)'});
- // The arc also leaves the page: the block swells toward the viewer mid-flight and comes back down onto its slot.
- ghost.animate({scale:['1','1.2','1']},{...timing,easing:'cubic-bezier(.45,0,.55,1)'});
- // It leaves as the swatch's solid colour and settles into the block's fill on the way down.
- const fillTo=getComputedStyle(shape).backgroundColor;
- shape.animate([{transform:`translateY(${dy}px) scale(${from.width/to.width},${from.height/to.height})`,borderRadius:'3px',backgroundColor:block.style.getPropertyValue('--event-color')},{transform:'none',borderRadius:'10px',backgroundColor:fillTo}],{...timing,easing:'cubic-bezier(.2,.8,.25,1)'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
- stampIn(block,delay+380);
+ // One arc, sampled into keyframes so position and size share a single ease: the swatch's dot leaves the list sideways
+ // (the curve's control point sits level with the swatch, three fifths of the way over) and only opens out to the
+ // block's size over the last part of the way, so it never spreads over the list it came from.
+ const sx=from.left+from.width/2-to.left-to.width/2,sy=from.top+from.height/2-to.top-to.height/2,cx=sx*.4,cy=sy;
+ const fill=getComputedStyle(block).backgroundColor,radius=getComputedStyle(block).borderRadius,frames=[];
+ for(let n=0;n<=FLIGHT_STEPS;n++){
+  const u=n/FLIGHT_STEPS,v=1-u,t=Math.min(1,Math.max(0,(u-.35)/.65)),open=t*t*(3-2*t);
+  const x=v*v*sx+2*v*u*cx,y=v*v*sy+2*v*u*cy;
+  const w=(from.width+(to.width-from.width)*open)/to.width,h=(from.height+(to.height-from.height)*open)/to.height;
+  frames.push({offset:u,transform:`translate(${x}px,${y}px) scale(${w},${h})`});
+ }
+ // It leaves as the swatch's solid colour and a dot, and arrives as the block's own fill and corners.
+ Object.assign(frames[0],{backgroundColor:block.style.getPropertyValue('--event-color'),borderRadius:'50%'});
+ Object.assign(frames.at(-1),{backgroundColor:fill,borderRadius:radius});
+ shape.animate(frames,{duration:FLIGHT,delay,easing:'cubic-bezier(.35,0,.15,1)',fill:'backwards'});
+ // Landed, the block is there at once under it in the same fill, and the flight thins away over it, so the only change
+ // is the block's words and its shadow settling: no second landing on top of the first.
+ block.animate({opacity:[0,1]},{duration:1,delay:delay+FLIGHT-1,fill:'backwards'});
+ ghost.animate({opacity:[1,0]},{duration:140,delay:delay+FLIGHT,easing:'ease',fill:'backwards'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
  return true;
 }
 // One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
@@ -551,7 +562,8 @@ function renderSchedule(){
   const e=lessons[i%Math.max(1,lessons.length)];
   el.style.setProperty('--c',e?e.color:'');el.style.setProperty('--h',e?(.6+.4*(e.end-e.start)/longest).toFixed(2):'');
  });
- // landing: when the last newcomer arrives (a flight lands at ~380ms, a dealt block at ~150ms past its stagger).
+ // landing: when the last newcomer arrives (a flight lands after FLIGHT ms and thins away over 140ms; a dealt block
+ // lands ~150ms past its stagger).
  const all=[...$('calendar').querySelectorAll('.meeting')],step=swap?Math.min(DEAL,360/Math.max(1,all.length)):DEAL;
  let entering=0,landing=150;const clashing=[],placed=[];
  if(animate)for(const block of all){
@@ -568,7 +580,7 @@ function renderSchedule(){
    // New blocks are dealt in, Monday to Friday (after the old week has lifted away, on a season switch).
    const delay=swap?120+entering++*step:(arriving?60:0)+Math.min(entering++,12)*step,flew=block.dataset.detail===justToggled&&chosen().includes(justToggled)&&fly(block,delay);
    if(!flew)stampIn(block,delay);
-   landing=Math.max(landing,delay+(flew?380:150));
+   landing=Math.max(landing,delay+(flew?FLIGHT+140:150));
   }
  }
  if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
