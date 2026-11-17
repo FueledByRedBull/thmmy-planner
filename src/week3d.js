@@ -28,6 +28,8 @@ const FIT=.7;
 // Phones: the board's share of the viewport width, the shrink that leaves room for the perspective's near corners, and
 // the height the slabs rise above the board.
 const PHONE_WIDTH=.92,PHONE_FIT=.98,SLAB=.5;
+// The hero pose (radians): the camera's azimuth and elevation around the board at rest.
+const HERO_AZ=-.58,HERO_EL=.56;
 // A sample week shown before any course is chosen; rendered as chrome so it never reads as real data.
 const SAMPLE=[[0,540,660],[0,720,840],[1,600,780],[1,900,1020],[2,540,720],[2,780,840],[2,1020,1140],[3,660,780],[3,960,1140],[4,600,720],[4,840,960]]
  .map(([day,start,end],i)=>({id:'sample'+i,day,start,end,lane:0,lanes:1,ects:3+(i*3)%7,sample:true}));
@@ -792,7 +794,7 @@ function resize(){
   // Phones: the week is the hero object. It is fitted by its true outline in the hero pose (not a bounding circle): as
   // wide as PHONE_WIDTH of the screen, and as high as fits between the title and the facts, where its top corner may
   // rise beside the short last line of the title.
-  const sa=Math.sin(-.58),ca=Math.cos(-.58),se=Math.sin(.56),ce=Math.cos(.56),pts=[];
+  const sa=Math.sin(HERO_AZ),ca=Math.cos(HERO_AZ),se=Math.sin(HERO_EL),ce=Math.cos(HERO_EL),pts=[];
   for(const y of [-BOARD,SLAB]){
    const quad=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([i,j])=>[i*size.w/2,j*size.d/2]);
    quad.forEach(([x0,z0],n)=>{const[x1,z1]=quad[(n+1)%4];for(let t=0;t<8;t++){const x=x0+(x1-x0)*t/8,z=z0+(z1-z0)*t/8;pts.push([x*ca-z*sa,y*ce-x*sa*se-z*ca*se]);}});
@@ -1057,7 +1059,7 @@ function step(now){
  floor.material.opacity=pal.shadow*calm;
  // Camera: the hero's three-quarter orbit, straight down once landed (phones keep the gentle tilt).
  // The elevation never reaches straight down or the board's own plane, whatever the springs overshoot.
- const az0=-.58+(springs.cx.x*.26+orbit.yaw.x)*calm,el0=Math.min(Math.PI/2-.04,Math.max(.06,.56+(orbit.pitch.x-springs.cy.x*.12)*calm));
+ const az0=HERO_AZ+(springs.cx.x*.26+orbit.yaw.x)*calm,el0=Math.min(Math.PI/2-.04,Math.max(.06,HERO_EL+(orbit.pitch.x-springs.cy.x*.12)*calm));
  // The lens closes as the board lands and the camera backs off to match; on load it comes in from further back.
  camera.fov=lerp(LENS[0],LENS[1],e);
  const az=R?lerp(az0,0,e):az0+.58*tilt,el=R?lerp(el0,Math.PI/2-.0015,e):el0+.76*tilt,r=view.dist*LAND/Math.tan(camera.fov*Math.PI/360)*(1+.06*tilt)*lerp(orbit.zoom.x,1,e)*(1+(1-springs.dolly.x)*1.1*calm);

@@ -538,15 +538,16 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  .meeting .full-title{font-size:12px;line-height:1.2;letter-spacing:-.015em}
  .meeting .event-code{display:block;font-size:12px;font-weight:400;letter-spacing:-.01em}
  .meeting:is([data-duration="30"],[data-duration="45"],[data-duration="60"]) .full-title{display:none}
- /* The words would not fit: the dashed outline stays as a small ring (the block's label and tooltip say it). */
+ }
+/* The words need a 148px block: below that the dashed outline stays as a small ring (the block's label and tooltip
+   say it). */
+@container (max-width:147px){
  .lab-foot{padding-top:6px}
  .lab-pill{width:11px;height:11px;padding:0;font-size:0;line-height:0;overflow:hidden}}
-/* From 60 to 112px the head is one line, start time then code (it wraps only when both do not fit). The overlap
-   icon steps aside here: the red ring carries it, and the block's label and tooltip name the clash. */
+/* From 60 to 112px the head is one line, start time then code (it wraps only when both do not fit). */
 @container (60px<width<=112px){
  .meeting .event-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;margin-bottom:2px}
- .meeting .event-time{margin:0}
- .meeting .event-time .icon{display:none}}
+ .meeting .event-time{margin:0}}
 /* Soft hyphens are for narrow lanes only; wider lanes wrap whole words. */
 @container (width>112px){.meeting .full-title{hyphens:none}}
 @container (max-width:96px){
@@ -837,11 +838,9 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .nc-text{display:contents}
  .nc-label{grid-row:1}
  .nc-num{grid-row:2;font-size:64px;line-height:.9;text-align:left}
- .nc-name{grid-row:3}
- .nc-meta{grid-row:4}
+ .nc-name{grid-row:3;font-size:20px;line-height:1.1}
+ .nc-meta{grid-row:4;font-size:14px}
  .nc-track{grid-row:5}
- .nc-name{font-size:20px;line-height:1.1}
- .nc-meta{font-size:14px}
  /* A short or narrow phone leaves the week no room between the title and the facts at these sizes: the poster tightens so it keeps some. */
  @media (max-height:720px){
   .hero-title{font-size:clamp(44px,12.4vw,60px)}
