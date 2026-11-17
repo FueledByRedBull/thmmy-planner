@@ -47,10 +47,11 @@ systemTheme.addEventListener('change',applyTheme);
      URLs and versions must match their uses below. -->
 <link rel="preload" href="./data/courses.json?v=6edaf7c814f2" as="fetch" crossorigin>
 <link rel="preload" href="./data/guide.json?v=5020198886fc" as="fetch" crossorigin>
-<link rel="preload" href="./assets/app.js?v=gen5" as="script">
+<link rel="preload" href="./assets/app.js?v=gen6" as="script">
 <script src="./assets/vendor/lenis.min.js?v=1.3.26" defer></script>
 <script src="./assets/motion.js?v=gen2" defer></script>
 <script src="./assets/pointer.js?v=gen2" defer></script>
+<script src="./assets/updates.js?v=gen1" defer></script>
 </head>
 <body>
 <a class="skip" href="#planner">Μετάβαση στο περιεχόμενο</a>
@@ -118,7 +119,7 @@ systemTheme.addEventListener('change',applyTheme);
   document.getElementById('guide-data').textContent=JSON.stringify(files[1]);
   // The preloads make the app ready before the first frame; let the hero paint first (or 100ms, for background tabs).
   await Promise.race([new Promise(r=>requestAnimationFrame(()=>setTimeout(r))),new Promise(r=>setTimeout(r,100))]);
-  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=gen5";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
+  await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src="./assets/app.js?v=gen6";script.onload=resolve;script.onerror=()=>reject(Error('Δεν φορτώθηκε η εφαρμογή.'));document.body.append(script);});
   if(!globalThis.plannerBooted)throw Error('Η εφαρμογή δεν ξεκίνησε, πιθανόν από αλλοιωμένα αποθηκευμένα δεδομένα.');
   controls.forEach(el=>el.disabled=false);if(notice.textContent===loading)notice.hidden=true;
   const root=document.documentElement;root.classList.replace('is-loading','is-intro');setTimeout(()=>root.classList.remove('is-intro'),1800);
