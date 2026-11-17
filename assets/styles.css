@@ -352,6 +352,8 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:26px var(--gutter) 24
 @container (max-width:270px){.filters{grid-template-columns:1fr}}
 .subtle{color:var(--text-3);font-size:13px;line-height:1.55}
 .list-help{margin:12px 4px 8px}
+.fill-rail{justify-content:flex-start;width:100%;margin-top:8px}
+.fill-week{margin-top:12px}
 /* The last 28px fade out, so a row cut by the edge reads as more below; the bottom padding lets the last row scroll clear of it. */
 .course-list{flex:1;min-height:120px;margin:0;padding:0 2px 28px 0;overflow:auto;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),#0000);mask-image:linear-gradient(#000 calc(100% - 28px),#0000)}
 /* Rows part by space; a chosen row takes a wash of its course colour, so the list shows the week at a glance. */

@@ -7,7 +7,7 @@ import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8');
 const from=source.indexOf('function layoutEvents('),to=source.indexOf('let shownRows');
 assert.ok(from>=0&&to>from,'layoutEvents…barLevel moved in assets/app.js');
-const {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel}=new Function(source.slice(from,to)+';return {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel};')();
+const {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel,fillSemester}=new Function(source.slice(from,to)+';return {layoutEvents,conflicts,contactMinutes,nowAndNext,nowMarks,checkParts,partnersOf,inTeachingPeriod,nextCard,barLevel,fillSemester};')();
 
 const event=(id,day,start,end)=>({id,day,start,end});
 
@@ -205,4 +205,25 @@ test('barLevel: value over the ceiling, held between 35% and the full track',()=
  assert.equal(barLevel(2,10),.35);
  assert.equal(barLevel(5,10),.5);
  assert.equal(barLevel(30,10),1);
+});
+
+test('fillSemester: the current semester in its own season, the next one in the other',()=>{
+ assert.equal(fillSemester(3,'fall'),3);
+ assert.equal(fillSemester(3,'spring'),4);
+ assert.equal(fillSemester(4,'spring'),4);
+ assert.equal(fillSemester(4,'fall'),5);
+});
+
+test('fillIds: mandatory, taught, not passed, not chosen and ready courses up to the planned semester',()=>{
+ const from=source.indexOf('function fillIds('),to=source.indexOf('function renderFill(');
+ assert.ok(from>=0&&to>from,'fillIds moved in assets/app.js');
+ const course=(id,semester,extra={})=>({id,semester,mandatory:true,...extra});
+ const catalog=[course('A',1),course('B',3),course('C',3,{mandatory:false}),course('D',5),course('E',1),course('F',3),course('G',1,{archived:true}),course('H',3),course('I',2)];
+ const taught=new Set(['A','B','C','D','E','F','G','H']),waiting=new Set(['H']);
+ const make=state=>new Function('state','data','mandatory','available','outstanding','chosen','fillSemester',source.slice(from,to)+';return fillIds;')(
+  state,{catalog},c=>c.mandatory,c=>taught.has(c.id),c=>waiting.has(c.id)?['X']:[],()=>state.selected[state.season],fillSemester);
+ const state={season:'fall',studySemester:'3',passed:['E'],selected:{fall:['F'],spring:[]}};
+ assert.deepEqual(make(state)(),['A','B']);
+ assert.deepEqual(make({...state,studySemester:''})(),[]);
+ assert.deepEqual(make({...state,studySemester:'4'})(),['A','B','D']);
 });

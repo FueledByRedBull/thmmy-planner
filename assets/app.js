@@ -161,6 +161,9 @@ function nextCard({now,next,minutesToNext},date,nameOf,time){
  }
  return null;
 }
+// The semester "fill my semester" plans for: the profile's current one, or the next when the other season is on screen
+// (fall teaches the odd semesters), since that coming season is the one being planned.
+function fillSemester(semester,season){return semester%2===(season==='fall'?1:0)?semester:semester+1;}
 // How wide a stat's bar runs as a share of its track: value over the stat's usual ceiling, never under 35% so a small value still reads as a bar.
 function barLevel(value,max){return Math.min(1,Math.max(.35,value/max));}
 let shownRows=[];
@@ -538,7 +541,31 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
- renderSchedule();renderList();renderSources();
+ renderFill();renderSchedule();renderList();renderSources();
+}
+// What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
+// and not waiting on a prerequisite, the guide's order of priority (p. 20). Empty until the profile has a semester.
+function fillIds(){
+ const semester=Number(state.studySemester);if(!semester)return [];
+ const to=fillSemester(semester,state.season);
+ return data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&!outstanding(c).length).map(c=>c.id);
+}
+function renderFill(){
+ const ids=fillIds(),to=state.studySemester&&fillSemester(Number(state.studySemester),state.season),count=ids.length;
+ const rail=$('fillRail');rail.hidden=!count;
+ if(count){rail.lastElementChild.textContent=`Υποχρεωτικά ως το ${to}ο εξάμηνο · ${count}`;rail.title=`Προσθέτει ${count===1?'το υποχρεωτικό':'τα υποχρεωτικά'} ως το ${to}ο εξάμηνο που δεν έχεις περάσει`;}
+ // The empty week offers the shortcut too; without a semester in the profile it asks for one first.
+ const week=$('fillWeek');week.hidden=state.studySemester?!count:chosen().length>0;
+ week.textContent=state.studySemester?`Βάλε τα υποχρεωτικά μου · ${count}`:'Όρισε το εξάμηνό σου';
+}
+function fillCourses(){
+ if(!state.studySemester){openProfile();return;}
+ const ids=fillIds(),season=state.season,to=fillSemester(Number(state.studySemester),season);if(!ids.length)return;
+ state.selected[season]=[...chosen(),...ids];persist();render();
+ notify(`${ids.length===1?'Μπήκε 1 υποχρεωτικό':`Μπήκαν ${ids.length} υποχρεωτικά`} ως το ${to}ο εξάμηνο.`);
+ const undo=document.createElement('button');undo.type='button';undo.className='quiet';undo.textContent='Αναίρεση';
+ undo.onclick=()=>{state.selected[season]=state.selected[season].filter(id=>!ids.includes(id));persist();render();$('notice').hidden=true;};
+ $('notice').insertBefore(undo,$('notice').lastElementChild);
 }
 function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
 function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();render();syncPassedChecklist();if(detailId===id&&$('courseDialog').open)renderDetail(id);}
@@ -840,6 +867,7 @@ $('profileButton').onclick=()=>openProfile();
 const studyFilter=()=>{if(state.studySemester&&Number(state.studySemester)<=10)$('semesterFilter').value=state.studySemester;};
 for(const id of ['entryYear','studySemester','passedComplete'])$(id).addEventListener('change',()=>{state.entryYear=$('entryYear').value;const semester=$('studySemester').value,moved=semester!==state.studySemester;state.studySemester=semester;state.passedComplete=$('passedComplete').checked;persist();if(moved)studyFilter();render();});
 $('saveProfile').onclick=()=>closeDialog($('profileDialog'));
+$('fillRail').onclick=$('fillWeek').onclick=fillCourses;
 // "/" jumps to the search; Enter there adds the course when only one is left.
 document.addEventListener('keydown',event=>{if(event.key!=='/'||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select')||document.querySelector('dialog[open]'))return;event.preventDefault();if(drawerMode.matches&&!railOpen())setRail(true);$('search').focus();});
 $('search').addEventListener('keydown',event=>{if(event.key!=='Enter')return;const rows=$('courseList').querySelectorAll('.course');if(rows.length===1)toggleCourse(rows[0].dataset.course,false);});
