@@ -623,10 +623,10 @@ function renderDayTabs(){
  // A course just added from the rail opens on its own day, so its blocks are seen landing.
  const added=justToggled&&phoneDay!=='all'&&chosen().includes(justToggled)?events.filter(e=>e.courseId===justToggled).map(e=>e.day):[];
  if(added.length&&!added.includes(phoneDay))phoneDay=Math.min(...added);
- if(!tabs.children.length)tabs.innerHTML=[...SHORT_DAYS.map((d,i)=>`<button type="button" role="tab" data-day="${i}" aria-controls="calendarWrap"><b>${d}</b><small></small></button>`),'<button type="button" role="tab" data-day="all" aria-controls="calendarWrap"><b>Όλες</b><small></small></button>'].join('');
+ if(!tabs.children.length)tabs.innerHTML=[...SHORT_DAYS.map((d,i)=>`<button type="button" data-day="${i}"><b>${d}</b><small></small></button>`),'<button type="button" data-day="all"><b>Όλες</b><small></small></button>'].join('');
  for(const tab of tabs.children){
   const day=tab.dataset.day,on=String(phoneDay)===day,count=day==='all'?events.length:counts[day];
-  tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;tab.classList.toggle('today',day===String(today));
+  tab.setAttribute('aria-pressed',String(on));tab.tabIndex=on?0:-1;tab.classList.toggle('today',day===String(today));
   tab.lastElementChild.textContent=count;
   tab.setAttribute('aria-label',`${day==='all'?'Όλες οι ημέρες':DAYS[day]}${day===String(today)?' (σήμερα)':''}, ${count===1?'1 συνάντηση':count+' συναντήσεις'}`);
  }
@@ -952,9 +952,9 @@ const studyFilter=()=>{if(state.studySemester&&Number(state.studySemester)<=10)$
 for(const id of ['entryYear','studySemester','passedComplete'])$(id).addEventListener('change',()=>{state.entryYear=$('entryYear').value;const semester=$('studySemester').value,moved=semester!==state.studySemester;state.studySemester=semester;state.passedComplete=$('passedComplete').checked;persist();if(moved)studyFilter();render();});
 $('saveProfile').onclick=()=>closeDialog($('profileDialog'));
 $('fillRail').onclick=$('fillWeek').onclick=fillCourses;
-$('dayTabs').onclick=e=>{const tab=e.target.closest('[role=tab]');if(tab)showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));};
+$('dayTabs').onclick=e=>{const tab=e.target.closest('button');if(tab)showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));};
 $('dayTabs').onkeydown=e=>{
- const tabs=[...$('dayTabs').children],at=tabs.findIndex(t=>t.getAttribute('aria-selected')==='true');
+ const tabs=[...$('dayTabs').children],at=tabs.findIndex(t=>t.getAttribute('aria-pressed')==='true');
  const to={ArrowLeft:at-1,ArrowRight:at+1,Home:0,End:tabs.length-1}[e.key];
  if(to===undefined)return;e.preventDefault();
  const tab=tabs[(to+tabs.length)%tabs.length];showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));tab.focus();

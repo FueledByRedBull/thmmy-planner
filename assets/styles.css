@@ -820,8 +820,8 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  .day-tabs button{flex-direction:column;gap:1px;min-height:50px;padding:6px 0;border-radius:14px;background:none;color:var(--text-3);transition:background-color .2s var(--ease),color .2s var(--ease)}
  .day-tabs b{font-size:14px;font-weight:600;color:var(--text);transition:color .2s var(--ease)}
  .day-tabs small{font-size:12px;font-variant-numeric:tabular-nums}
- .day-tabs [aria-selected=true]{background:var(--text);color:color-mix(in srgb,var(--sheet) 72%,var(--text))}
- .day-tabs [aria-selected=true] b{color:var(--sheet)}
+ .day-tabs [aria-pressed=true]{background:var(--text);color:color-mix(in srgb,var(--sheet) 72%,var(--text))}
+ .day-tabs [aria-pressed=true] b{color:var(--sheet)}
  .day-tabs .today b{text-decoration:underline 2px var(--accent);text-underline-offset:4px}
  .calendar[data-day="0"]>:is(.day-head,.day-column):not(:nth-child(2),:nth-child(8)),
  .calendar[data-day="1"]>:is(.day-head,.day-column):not(:nth-child(3),:nth-child(9)),
@@ -951,7 +951,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media(forced-colors:active){
  .season-switch::before{display:none}
  .season-switch button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText}
- .day-tabs [aria-selected=true],.day-tabs [aria-selected=true] b{forced-color-adjust:none;background:Highlight;color:HighlightText}
+ .day-tabs [aria-pressed=true],.day-tabs [aria-pressed=true] b{forced-color-adjust:none;background:Highlight;color:HighlightText}
 }
 /* Touch: every control reaches the 44px target. */
 @media (pointer:coarse){
