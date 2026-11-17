@@ -161,6 +161,12 @@ function nextCard({now,next,minutesToNext},date,nameOf,time){
  }
  return null;
 }
+// The day a phone opens the week on: today while it has meetings, else the next weekday that does (a weekend looks
+// ahead to Monday on); a week with none lists every day.
+function firstDay(counts,today){
+ for(let k=0;k<5;k++){const day=today<5?(today+k)%5:k;if(counts[day])return day;}
+ return 'all';
+}
 // The semester "fill my semester" plans for: the profile's current one, or the next when the other season is on screen
 // (fall teaches the odd semesters), since that coming season is the one being planned.
 function fillSemester(semester,season){return semester%2===(season==='fall'?1:0)?semester:semester+1;}
@@ -541,7 +547,7 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
- renderFill();renderSchedule();renderList();renderSources();
+ renderFill();renderSchedule();renderDayTabs();renderList();renderSources();
 }
 // What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
 // and not waiting on a prerequisite, the guide's order of priority (p. 20). Empty until the profile has a semester.
@@ -557,6 +563,34 @@ function renderFill(){
  // The empty week offers the shortcut too; without a semester in the profile it asks for one first.
  const week=$('fillWeek');week.hidden=state.studySemester?!count:chosen().length>0;
  week.textContent=state.studySemester?`Βάλε τα υποχρεωτικά μου · ${count}`:'Όρισε το εξάμηνό σου';
+}
+// Phones show the week one day at a time under these tabs, with "Όλες" listing every day; a swipe across the day moves
+// to the one beside it. The choice holds for the visit, and a change of season starts again from firstDay.
+let phoneDay=null,tabsSeason='';
+function renderDayTabs(){
+ const tabs=$('dayTabs'),calendar=$('calendar'),events=activeEvents(),counts=DAYS.map((_,i)=>events.filter(e=>e.day===i).length),today=(new Date().getDay()+6)%7;
+ tabs.hidden=!events.length;
+ if(!events.length){delete calendar.dataset.day;return;}
+ if(phoneDay===null||tabsSeason!==state.season)phoneDay=firstDay(counts,today);
+ tabsSeason=state.season;
+ if(!tabs.children.length)tabs.innerHTML=[...SHORT_DAYS.map((d,i)=>`<button type="button" role="tab" data-day="${i}" aria-controls="calendarWrap"><b>${d}</b><small></small></button>`),'<button type="button" role="tab" data-day="all" aria-controls="calendarWrap"><b>Όλες</b><small></small></button>'].join('');
+ for(const tab of tabs.children){
+  const day=tab.dataset.day,on=String(phoneDay)===day,count=day==='all'?events.length:counts[day];
+  tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;tab.classList.toggle('today',day===String(today));
+  tab.lastElementChild.textContent=count;
+  tab.setAttribute('aria-label',`${day==='all'?'Όλες οι ημέρες':DAYS[day]}${day===String(today)?' (σήμερα)':''}, ${count===1?'1 συνάντηση':count+' συναντήσεις'}`);
+ }
+ calendar.dataset.day=phoneDay;
+ $('dayNone').hidden=phoneDay==='all'||counts[phoneDay]>0;
+}
+function showDay(day){
+ const order=[0,1,2,3,4,'all'],from=order.indexOf(phoneDay),to=order.indexOf(day);
+ if(from===to)return;
+ phoneDay=day;renderDayTabs();
+ // The new day slides in from the side it was chosen on; the tabs stay put when the agenda had scrolled under them.
+ const tabs=$('dayTabs'),bar=parseFloat(rootStyle.getPropertyValue('--bar'))||0,top=tabs.getBoundingClientRect().top;
+ if(top<=bar+1)window.scrollTo({top:scrollY+$('calendarWrap').getBoundingClientRect().top-bar-tabs.offsetHeight,behavior:'instant'});
+ if(!reducedMotion.matches)$('calendar').animate([{opacity:0,transform:`translateX(${from<to?24:-24}px)`},{opacity:1,transform:'none'}],{duration:220,easing:EASE});
 }
 function fillCourses(){
  if(!state.studySemester){openProfile();return;}
@@ -868,6 +902,24 @@ const studyFilter=()=>{if(state.studySemester&&Number(state.studySemester)<=10)$
 for(const id of ['entryYear','studySemester','passedComplete'])$(id).addEventListener('change',()=>{state.entryYear=$('entryYear').value;const semester=$('studySemester').value,moved=semester!==state.studySemester;state.studySemester=semester;state.passedComplete=$('passedComplete').checked;persist();if(moved)studyFilter();render();});
 $('saveProfile').onclick=()=>closeDialog($('profileDialog'));
 $('fillRail').onclick=$('fillWeek').onclick=fillCourses;
+$('dayTabs').onclick=e=>{const tab=e.target.closest('[role=tab]');if(tab)showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));};
+$('dayTabs').onkeydown=e=>{
+ const tabs=[...$('dayTabs').children],at=tabs.findIndex(t=>t.getAttribute('aria-selected')==='true');
+ const to={ArrowLeft:at-1,ArrowRight:at+1,Home:0,End:tabs.length-1}[e.key];
+ if(to===undefined)return;e.preventDefault();
+ const tab=tabs[(to+tabs.length)%tabs.length];showDay(tab.dataset.day==='all'?'all':Number(tab.dataset.day));tab.focus();
+};
+{
+ // A clear sideways swipe (twice as wide as it is tall) turns the day; a vertical scroll never does.
+ let x=0,y=0;
+ $('calendarWrap').addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true});
+ $('calendarWrap').addEventListener('touchend',e=>{
+  if(!phoneLayout.matches||phoneDay==='all'||$('dayTabs').hidden)return;
+  const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;
+  if(Math.abs(dx)<56||Math.abs(dx)<2*Math.abs(dy))return;
+  const day=phoneDay+(dx<0?1:-1);if(day>=0&&day<5)showDay(day);
+ },{passive:true});
+}
 // "/" jumps to the search; Enter there adds the course when only one is left.
 document.addEventListener('keydown',event=>{if(event.key!=='/'||event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select')||document.querySelector('dialog[open]'))return;event.preventDefault();if(drawerMode.matches&&!railOpen())setRail(true);$('search').focus();});
 $('search').addEventListener('keydown',event=>{if(event.key!=='Enter')return;const rows=$('courseList').querySelectorAll('.course');if(rows.length===1)toggleCourse(rows[0].dataset.course,false);});

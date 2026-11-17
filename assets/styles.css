@@ -813,7 +813,23 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media screen and (min-width:961px) and (max-width:1180px){
  .rail-open .workspace{padding-left:calc(364px - max(20px,2vw))}
 }
+.day-tabs,.day-none{display:none}
 @media screen and (max-width:860px){
+ /* One day at a time: tabs over the agenda (app.js renderDayTabs), the chosen day's heading and meetings below. */
+ .day-tabs{position:sticky;top:var(--bar);z-index:6;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;margin:0 0 4px;padding:4px;border-radius:18px;background:linear-gradient(var(--fill),var(--fill)),var(--sheet);box-shadow:0 0 0 8px var(--sheet),0 -14px 0 8px var(--sheet)}
+ .day-tabs button{flex-direction:column;gap:1px;min-height:50px;padding:6px 0;border-radius:14px;background:none;color:var(--text-3);transition:background-color .2s var(--ease),color .2s var(--ease)}
+ .day-tabs b{font-size:14px;font-weight:600;color:var(--text);transition:color .2s var(--ease)}
+ .day-tabs small{font-size:12px;font-variant-numeric:tabular-nums}
+ .day-tabs [aria-selected=true]{background:var(--text);color:color-mix(in srgb,var(--sheet) 72%,var(--text))}
+ .day-tabs [aria-selected=true] b{color:var(--sheet)}
+ .day-tabs .today b{text-decoration:underline 2px var(--accent);text-underline-offset:4px}
+ .calendar[data-day="0"]>:is(.day-head,.day-column):not(:nth-child(2),:nth-child(8)),
+ .calendar[data-day="1"]>:is(.day-head,.day-column):not(:nth-child(3),:nth-child(9)),
+ .calendar[data-day="2"]>:is(.day-head,.day-column):not(:nth-child(4),:nth-child(10)),
+ .calendar[data-day="3"]>:is(.day-head,.day-column):not(:nth-child(5),:nth-child(11)),
+ .calendar[data-day="4"]>:is(.day-head,.day-column):not(:nth-child(6),:nth-child(12)){display:none}
+ .calendar:not([data-day=all])>.day-head{position:static;padding-top:10px}
+ .day-none{display:block;margin:0;padding:8px 10px 40px}
  :root{--bar:68px;--dock:calc(max(92svh,540px) - 9svh)}
  .masthead{gap:8px;padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left))}
  .brand-text,.btn-label,.btn-extra{display:none}
@@ -935,6 +951,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
 @media(forced-colors:active){
  .season-switch::before{display:none}
  .season-switch button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText}
+ .day-tabs [aria-selected=true],.day-tabs [aria-selected=true] b{forced-color-adjust:none;background:Highlight;color:HighlightText}
 }
 /* Touch: every control reaches the 44px target. */
 @media (pointer:coarse){

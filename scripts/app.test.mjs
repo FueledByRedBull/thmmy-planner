@@ -227,3 +227,14 @@ test('fillIds: mandatory, taught, not passed, not chosen and ready courses up to
  assert.deepEqual(make({...state,studySemester:''})(),[]);
  assert.deepEqual(make({...state,studySemester:'4'})(),['A','B','D']);
 });
+
+test('firstDay: today while it has meetings, else the next weekday that does, and a weekend looks to Monday on',()=>{
+ const from=source.indexOf('function firstDay('),to=source.indexOf('// The semester "fill my semester"');
+ assert.ok(from>=0&&to>from,'firstDay moved in assets/app.js');
+ const firstDay=new Function(source.slice(from,to)+';return firstDay;')();
+ assert.equal(firstDay([2,0,1,0,3],0),0);
+ assert.equal(firstDay([2,0,1,0,3],1),2);
+ assert.equal(firstDay([2,0,0,0,0],3),0);
+ assert.equal(firstDay([0,1,0,0,0],5),1);
+ assert.equal(firstDay([0,0,0,0,0],2),'all');
+});
