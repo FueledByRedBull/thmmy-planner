@@ -116,8 +116,8 @@ function quietText(hex){
  for(let a=75;a<100;a++){const l=luminance(text.map((v,i)=>v*a/100+fill[i]*(1-a/100)));if((Math.max(l,lf)+.05)/(Math.min(l,lf)+.05)>=4.5)return a/100;}
  return 1;
 }
-// The dark theme paints blocks as 90% hue over --surface (#181818, styles.css), so their text is picked against that fill.
-const mixDark=h=>'#'+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*.9+0x18*.1).toString(16).padStart(2,'0')).join('');
+// The dark theme paints blocks as 90% hue over --surface (#17171a, styles.css), so their text is picked against that fill.
+const mixDark=h=>'#'+[1,3,5].map((i,k)=>Math.round(parseInt(h.slice(i,i+2),16)*.9+[0x17,0x17,0x1a][k]*.1).toString(16).padStart(2,'0')).join('');
 function layoutEvents(events){
  const result=[];
  for(let day=0;day<5;day++){

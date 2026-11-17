@@ -319,9 +319,10 @@ function slabMaterial(e){
  return gel(new MeshPhysicalMaterial({color:e.color,roughness:GLOSS,ior:1.49,specularIntensity:.3,clearcoat:COAT,clearcoatRoughness:.3,transparent:e.review,opacity:e.review?.6:1}));
 }
 
-// The flat fill a block has in the planner: the course colour, 10% into the surface on the dark theme (styles.css .meeting).
+// The flat fill a block has in the planner (styles.css .meeting): the course colour 90% over the dark surface, or a 30%
+// tint over the white surface in the light theme.
 function flatColor(e){
- const hex=e.color||'#888888',a=parseInt(hex.slice(1),16),b=pal.dark?0x181818:a,t=pal.dark?.1:0;
+ const hex=e.color||'#888888',a=parseInt(hex.slice(1),16),b=pal.dark?0x17171a:0xffffff,t=pal.dark?.1:.7;
  const ch=s=>Math.round(((a>>s)&255)*(1-t)+((b>>s)&255)*t);
  return new Color(`rgb(${ch(16)},${ch(8)},${ch(0)})`);
 }
