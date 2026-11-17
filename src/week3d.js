@@ -321,15 +321,19 @@ function slabMaterial(e){
 
 // The flat fill a block has in the planner (styles.css .meeting): the course colour 90% over the dark surface, or a 30%
 // tint over the white surface in the light theme.
-function flatColor(e){
- const hex=e.color||'#888888',a=parseInt(hex.slice(1),16),b=pal.dark?0x17171a:0xffffff,t=pal.dark?.1:.7;
+function flatColor(e,t=pal.dark?.1:.7){
+ const hex=e.color||'#888888',a=parseInt(hex.slice(1),16),b=pal.dark?0x17171a:0xffffff;
  const ch=s=>Math.round(((a>>s)&255)*(1-t)+((b>>s)&255)*t);
  return new Color(`rgb(${ch(16)},${ch(8)},${ch(0)})`);
 }
 // As slabs land, their lit tops hand over to the exact flat fill of the planner's blocks, so the crossfade never shifts hue.
+// They hold the full course colour through the flight and only pale to the light theme's 30% print over the last stretch,
+// as the board lies flat; tinted while still tilted, they read as ghosts.
+const flatFill=new Color();
 function tint(slab,k,pulse){
  const m=slab.mesh.material,e=slab.e;
  if(e.sample)return;
+ flatFill.copy(slab.full).lerp(slab.flat,smooth((k-.65)/.35));
  m.color.copy(slab.base).multiplyScalar(1-k*.94);
  m.clearcoat=COAT*(1-k*.9);m.envMapIntensity=1-k*.9;m.roughness=lerp(slab.rough,1,k);
  if(e.review)m.opacity=.6+.4*k;
@@ -339,8 +343,8 @@ function tint(slab,k,pulse){
  // course colour into another one.
  if(e.conflict)m.userData.clash.value.copy(danger).multiplyScalar(pulse*1.6*(1-k));
  // The lit "now" slab breathes in its glow until the morph takes it down to the flat fill.
- if(slab.glow){m.emissive.copy(slab.lit).lerp(slab.flat,k);m.emissiveIntensity=lerp(GLOW*(1+.35*breath),1,k);}
- else{m.emissive.copy(slab.flat);m.emissiveIntensity=k;}
+ if(slab.glow){m.emissive.copy(slab.lit).lerp(flatFill,k);m.emissiveIntensity=lerp(GLOW*(1+.35*breath),1,k);}
+ else{m.emissive.copy(flatFill);m.emissiveIntensity=k;}
 }
 // The class running now (else the next one today) glows like lit frosted glass: a rough body under the clear coat, the
 // course colour pushed toward hot pink as its own light, and a small lamp over it (see step). The planner marks its
@@ -404,7 +408,7 @@ function makeSlab(e,order,meetings){
  const still=reduce.matches,from=new Vector3(),far=approach(mesh.position,from);
  // `y` is how far out the tile still is along `from`, its way in (see approach), never more than three quarters of the
  // way to the lens, however zoomed in the board or late in the deal the tile; it tumbles by `spin`, less the nearer it gets.
- const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),from,spin:{x:(Math.random()-.5)*.024,z:(Math.random()-.5)*.024},air:null,base:mesh.material.color.clone(),rough:GLOSS,glow:false,lit:null,flat:flatColor(e),y:still?0:Math.min(11+order*.15,far*.75),v:still?0:-14,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?380:0)+Math.min(order,16)*DEAL)};
+ const slab={e,mesh,w,d,h,edge,decal:null,rx:{x:0,v:0},rz:{x:0,v:0},sq:{x:0,v:0},home:mesh.position.clone(),from,spin:{x:(Math.random()-.5)*.024,z:(Math.random()-.5)*.024},air:null,base:mesh.material.color.clone(),rough:GLOSS,glow:false,lit:null,flat:flatColor(e),full:flatColor(e,0),y:still?0:Math.min(11+order*.15,far*.75),v:still?0:-14,lift:0,lv:0,s:1,start:performance.now()+(still?0:(firstBuild?380:0)+Math.min(order,16)*DEAL)};
  mesh.position.addScaledVector(slab.from,slab.y);mesh.visible=still;mesh.userData.slab=slab;
  week.add(mesh);
  decal(slab);
@@ -525,7 +529,7 @@ function restyle(){
  if(board){board.material.color.set(pal.board);matte(board.material);edges.material.color.set(pal.edge);drawLabels();drawGround();}
  for(const slab of slabs.values()){
   if(slab.e.sample)slab.mesh.material.color.set(pal.chrome);
-  slab.flat=flatColor(slab.e);
+  slab.flat=flatColor(slab.e);slab.full=flatColor(slab.e,0);
   slab.edge?.material.color.set(slab.e.conflict?pal.danger:pal.warning);
  }
  wake();
