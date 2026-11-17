@@ -233,7 +233,7 @@ function paintCard(model){
   heroSub.after(heroCard);
  }
  const part=name=>heroCard.querySelector('.nc-'+name),num=part('num');
- part('label').textContent=model.label;part('name').textContent=model.names;part('meta').textContent=model.meta;
+ part('label').textContent=model.label;part('name').textContent=model.names;part('meta').textContent=model.meta.replace('–','⁠–⁠');
  num.textContent=model.number;
  if(model.prime){const em=document.createElement('em');em.textContent='′';num.append(em);}
  heroCard.querySelector('.sr-only').textContent=model.prime?` ${model.kind==='now'?'ακόμα':'σε'} ${model.number} ${model.number==='1'?'λεπτό':'λεπτά'}`:'';
