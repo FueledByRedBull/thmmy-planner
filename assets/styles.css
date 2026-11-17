@@ -358,7 +358,7 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 /* Rows part by space; a chosen row takes a wash of its course colour, so the list shows the week at a glance. */
 .course{position:relative;display:grid;grid-template-columns:12px minmax(0,1fr) 32px;column-gap:12px;align-items:start;margin-bottom:2px;padding:12px 8px 12px 10px;border-radius:var(--r-md);transition:background-color .2s var(--ease)}
 @media (hover:hover) and (pointer:fine){.course:hover{background:var(--fill)}}
-.course.selected{background:color-mix(in srgb,var(--course-color) 11%,transparent)}
+.course.selected{background:color-mix(in srgb,var(--course-color) 16%,transparent)}
 .course-title,.checks li,.legend-item span,.dialog-head h2,.meeting-option span,.meeting-option small,.dialog-meta{overflow-wrap:anywhere}
 .dialog-head>div{min-width:0}
 .course.selected .course-title{font-weight:650}
@@ -374,10 +374,9 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .course.just .link-mark{animation:pop .5s var(--ease)}
 .course-title{display:block;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;font-size:14px;font-weight:600;line-height:1.35;white-space:normal}
 @media (hover:hover) and (pointer:fine){.course-title:hover{background:none;text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}}
-.course-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:3px;color:var(--text-3);font-size:12.5px}
+.course-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:3px;color:var(--text-2);font-size:12.5px}
 .course-meta:empty{display:none}
 .course-meta .sep::before{content:'\00b7'}
-.selected .course-meta{color:var(--text-2)}
 .credit-tag{margin-left:auto;padding:1px 8px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600}
 .selected .credit-tag{background:var(--text);color:var(--sheet)}
 .tag,.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--pill);background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.5}
@@ -429,15 +428,15 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:0 var(--gutter) 24px;
 .check-jump{justify-self:start;gap:6px;padding:8px 16px}
 .check-jump .icon{width:16px;height:16px}
 .notes-aside .check-jump{display:none}
-.tb-label{color:var(--text-3);font-size:13px;font-weight:500}
+.tb-label{color:var(--text-3);font-size:14px;font-weight:500}
 .stats b{font-size:clamp(44px,5.8vw,92px);font-weight:800;line-height:1.2;letter-spacing:-.045em}
 .stats b.has-conflict,.stats>:has(.has-conflict) .tb-label{color:var(--danger)}
 /* Wide layouts: a 6px bar under each number on a quiet track, its width the value set by app.js (--lvl, .35 to 1; an
    empty stat shows the track alone). The overlaps bar turns danger. */
 @media (min-width:861px){
- .stats b{position:relative;margin-bottom:12px;padding-bottom:14px}
+ .stats b{position:relative;margin-bottom:6px;padding-bottom:14px}
  .stats b::before,.stats b::after{content:'';position:absolute;left:0;bottom:0;height:6px;border-radius:var(--pill)}
- .stats b::before{right:0;background:var(--fill)}
+ .stats b::before{right:0;background:var(--fill-2)}
  .stats b::after{width:calc(var(--lvl,.35) * 100%);background:var(--text);transition:width .6s var(--ease)}
  .stats>.is-zero b::after{width:0}
  .stats b.has-conflict::after{background:var(--danger)}
@@ -473,6 +472,7 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
 .day-head small{max-width:100%;min-height:2.7em;max-height:2.7em;overflow:hidden;color:var(--text-3);font-size:12px;line-height:1.35}
 .day-head .today-word{display:block;color:var(--text-2);font-weight:600}
 .day-head.today b{padding:1px 10px;border-radius:var(--pill);background:var(--accent);color:var(--on-accent)}
+@media (min-width:861px){.day-head.today{background:color-mix(in srgb,var(--accent) var(--today),var(--sheet))}.day-head.today small{color:var(--text-2)}}
 .time-head{justify-content:flex-end;align-items:flex-end;padding:0 10px 10px 0;color:var(--text-3);font-size:12px;font-weight:600}
 .time-axis,.time-head{position:sticky;left:0;z-index:4;background:var(--sheet)}
 .time-axis{color:var(--text-3);font-size:12px;font-weight:400}
@@ -997,6 +997,8 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
  /* A printed week is used on other days: no today marking. */
  .day-column.today{background:none}
  .hour-rule::before{display:none}
+ .day-head.today{background:var(--sheet)}
+ .day-head.today small{color:var(--text-3)}
  .day-head.today b{margin:0;padding:0;background:none;color:inherit}
  .day-head .today-word{display:none}
  .now-line,.time-pill,.meeting .event-state{display:none}
