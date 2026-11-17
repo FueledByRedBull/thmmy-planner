@@ -588,6 +588,12 @@ function seat(slab,squash=.22){
  slab.air=null;slab.y=slab.v=slab.lift=slab.lv=0;slab.rx.x=slab.rx.v=slab.rz.x=slab.rz.v=0;slab.sq.x=squash;slab.sq.v=0;
  if(squash)thud(slab);
 }
+// How far a tile waiting to be dealt has dropped onto its slot (0 hovering, 1 landed); 1 for every other tile.
+function dropped(slab,now){
+ const a=slab.air;
+ if(a?.kind!=='deal')return 1;
+ return a.mode==='deal'&&now>=a.t0?Math.min(1,(now-a.t0)/200):0;
+}
 function settleAll(){for(const slab of airborne())seat(slab,0);sky=deal=null;}
 // A tile dealt onto the landed planner hands over to its own block: the tile hides, the block appears with a press.
 function stamp(slab){
@@ -701,8 +707,8 @@ function stepAir(now,dt,p,R,e){
  if(!list.length){sky=deal=null;return false;}
  // Hovering tiles are dealt once the board has landed, or onto the board wherever it is if the scroll rests or turns back.
  if(deal?.phase==='hover'&&(e>=.995||now-pMoved>200&&p>FREE||heading<0||p<=FREE)){
-  // Held to about half a second whatever the week holds: the gap shrinks for big weeks.
-  const dealing=list.filter(s=>s.air.kind==='deal').sort(sweep),gap=Math.min(DEAL,360/dealing.length);
+  // Held to about four tenths of a second whatever the week holds: the gap shrinks for big weeks.
+  const dealing=list.filter(s=>s.air.kind==='deal').sort(sweep),gap=Math.min(DEAL,240/dealing.length);
   dealing.forEach((slab,i)=>{const a=slab.air;a.mode='deal';a.t0=now+i*gap;a.from=null;});
   deal.phase='deal';
  }
@@ -1052,8 +1058,11 @@ function step(now){
  breath=still?0:Math.sin(t*2.1);
  for(const slab of slabs.values()){
   if(now<slab.start)continue;
-  if(slab.decal)slab.decal.material.opacity=words;
-  tint(slab,flatten,pulse);
+  // A tile hovering to be dealt keeps its lit colour and its print until its own drop, and flattens on the way down,
+  // so the landed board never shows a row of blank pale placeholders waiting for their turn.
+  const fall=dropped(slab,now),k=Math.min(flatten,fall);
+  if(slab.decal)slab.decal.material.opacity=Math.max(words,1-fall);
+  tint(slab,k,pulse);
   // Tiles in the air are moved by stepAir below.
   if(slab.air)continue;
   slab.mesh.visible=!slab.dealt;

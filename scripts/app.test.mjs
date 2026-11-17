@@ -243,3 +243,20 @@ test('firstDay: today while it has meetings, else the next weekday that does, an
  assert.equal(firstDay([0,1,0,0,0],5),1);
  assert.equal(firstDay([0,0,0,0,0],2),'all');
 });
+
+test('reelRow: a column turns over only while the one below passes 9 to 0, and a new leading digit starts blank',()=>{
+ const from=source.indexOf('function reelRow('),to=source.indexOf('function countTo(');
+ assert.ok(from>=0&&to>from,'reelRow moved in assets/app.js');
+ const reelRow=new Function(source.slice(from,to)+';return reelRow')();
+ // Digit d rests on row 11+d.
+ assert.deepEqual([reelRow(16,0),reelRow(16,1)],[17,12]);
+ // Halfway from 18 to 19 the tens column has not moved; halfway from 19 to 20 it is half turned.
+ assert.deepEqual([reelRow(18.5,0),reelRow(18.5,1)],[19.5,12]);
+ assert.deepEqual([reelRow(19.5,0),reelRow(19.5,1)],[20.5,12.5]);
+ // 20 lands on row 11 for the ones, the same face as row 21 it rolled into.
+ assert.deepEqual([reelRow(20,0),reelRow(20,1)],[11,13]);
+ // Below 10 the tens column is blank (row 0), turning to 1 (row 2) between 9 and 10.
+ assert.deepEqual([reelRow(8,1),reelRow(9.5,1)],[0,1]);
+ // In tenths (hours like 0,5) the ones column is never blank.
+ assert.equal(reelRow(5,1,1),11);
+});

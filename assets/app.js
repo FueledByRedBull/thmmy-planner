@@ -269,22 +269,40 @@ function exit(el,to,hide,duration=160){
  const leaving=el.animate(to,{duration,easing:EASE,fill:'forwards'}),done=()=>{hide();leaving.cancel();};
  leaving.finished.then(done,done);
 }
-// Stat values roll like an odometer: every digit is a column that springs to its new value.
+// Stat values roll like an odometer: one eased count drives every digit, and a column turns over only while the one
+// below it passes from 9 to 0, so 16 to 20 reads 17, 18, 19, 20 and never overshoots. Each reel (styles.css) is a blank
+// row and then 0-9 printed twice and a last 0: digit d rests on row 11+d, and the rows either side carry a roll past 9
+// or 0 without a jump. A column the number has not reached yet rests on the blank row.
+const ROLL=600;
+function reelRow(units,place,keep=0){
+ const x=units/10**place;
+ if(!place)return 11+((x%10)+10)%10;
+ const carry=Math.min(1,Math.max(0,(units/10**(place-1))%10-9));
+ // A new leading digit turns over from blank to 1 (row 2), the same face as row 12; the ones digit is never blank.
+ return place>keep&&units<10**place?2*carry:11+Math.floor(x)%10+carry;
+}
 function countTo(el,value,suffix=''){
  const to=Number(value),text=(Number.isInteger(to)?to:Math.round(to*10)/10).toLocaleString('el-GR')+suffix,shape=text.replace(/\d/g,'0');
  if(el.dataset.text===text)return;
- const was=(el.dataset.text||'').match(/\d/g)||[];
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
  if(odo?.dataset.shape!==shape){
-  // A rebuilt counter starts from the old value, matched from the right ("9" to "12" keeps the 9 under the 2), and a
-  // new leading digit starts blank (-1 is the empty row above 0), so 9 to 12 never flashes "09" on the way.
-  const count=(text.match(/\d/g)||[]).length;let k=0;
-  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i};--n:${was[was.length-count+k++]??-1}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
-  odo=el.querySelector('.odo');odo.getBoundingClientRect();
+  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map(ch=>/\d/.test(ch)?'<span class="digit"><span></span></span>':`<span>${esc(ch)}</span>`).join('')}</span>`;
+  odo=el.querySelector('.odo');
  }else el.firstElementChild.textContent=text;
- const digits=text.match(/\d/g)||[];
- odo.querySelectorAll('.digit').forEach((d,i)=>d.style.setProperty('--n',digits[i]));
+ // Columns by place, ones (or tenths) first; a decimal comma counts in tenths.
+ const reels=[...odo.querySelectorAll('.digit>span')].reverse(),scale=/,\d/.test(text)?10:1;
+ const from=el.rollAt??0,show=v=>{el.rollAt=v;reels.forEach((r,i)=>r.style.setProperty('--n',reelRow(v*scale,i,scale===10?1:0)));};
+ cancelAnimationFrame(el.roll);
+ if(reducedMotion.matches||from===to){show(to);return;}
+ let t0=0;
+ const step=now=>{
+  t0||=now;
+  const k=Math.min(1,(now-t0)/ROLL);
+  show(k<1?from+(to-from)*(1-(1-k)**4):to);
+  if(k<1)el.roll=requestAnimationFrame(step);
+ };
+ show(from);el.roll=requestAnimationFrame(step);
 }
 // Each stat's bar (wide layout, styles.css): its height from the value, a quieter fill at zero.
 const BAR_MAX={count:10,hours:40,conflict:5,credits:40};
@@ -534,7 +552,7 @@ function renderSchedule(){
  }
  if(swap&&!phone.matches)gone.forEach((b,i)=>leave(b,previous.get(b.dataset.event),Math.min(i*8,120)));
  // A season with nothing to show waits for the old week to lift away before its card rises, so the two never overlap.
- if(swap&&!events.length&&gone.length)$('emptyState').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,delay:phone.matches?0:200,easing:EASE,fill:'backwards'});
+ if(swap&&!events.length&&gone.length)$('emptyState').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:240,delay:phone.matches?0:260,easing:EASE,fill:'backwards'});
  // Already on the week and now overlapping: its red ring pulses inward once, as the newcomer lands.
  for(const block of clashing)block.animate([{outlineOffset:'1px'},{outlineOffset:'-3px'},{outlineOffset:'1px'}],{duration:400,delay:landing,easing:'cubic-bezier(.77,0,.175,1)'});
  // Removed blocks lift away where they stood, unless something moves into that spot (the phone agenda closing the gap,

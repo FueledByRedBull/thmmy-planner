@@ -446,12 +446,13 @@ main{position:relative;z-index:1;margin:-13svh 0 0;padding:26px var(--gutter) 24
  .is-loading .stats b{margin-bottom:0;padding-bottom:0}
  .is-loading .stats b::before,.is-loading .stats b::after{content:none}
 }
-/* Odometer: each digit is a 0-9 column clipped to one line. */
+/* Odometer: each digit is a 0-9 column clipped to one line. Its top and bottom .2em fade out, clear of a resting
+   digit's ink (.225em to .975em), so digits rolling past dim at the edges like a drum instead of being sliced. */
 .odo{display:inline-flex}
-.digit{display:inline-block;height:1.2em;overflow:hidden}
-/* The 0-9 reel is generated content, so it never reaches find-in-page, selection or the accessibility tree. */
-.digit>span{display:block;transform:translateY(calc(var(--n,0) * -1.2em));transition:transform .6s var(--ease) calc(var(--i,0) * 30ms)}
-.digit>span::before{content:'0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9';white-space:pre}
+.digit{display:inline-block;height:1.2em;overflow:hidden;-webkit-mask-image:linear-gradient(#0000,#000 .2em,#000 1em,#0000);mask-image:linear-gradient(#0000,#000 .2em,#000 1em,#0000)}
+/* The reel (a blank row, 0-9 twice and a 0; countTo in app.js turns it) is generated content, so it never reaches find-in-page, selection or the accessibility tree. */
+.digit>span{display:block;transform:translateY(calc(var(--n,11) * -1.2em))}
+.digit>span::before{content:'\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0';white-space:pre}
 .tb-note{display:block;margin-top:2px;color:var(--text-3);font-size:12.5px}
 .inline-note{margin:-6px 0 4px;color:var(--text-3);font-size:12px;line-height:1.5}
 .calendar-scroll{overflow-x:auto}
