@@ -139,7 +139,8 @@
   const wrap=cal.closest('#calendarWrap');
   let cols=[],rects=[],axis=null,rectEpoch=-1,hot=null,shown=false,label='';
   const unhot=()=>{if(hot){hot.classList.remove('is-hot');hot=null;}if(shown){shown=false;pill.classList.remove('is-on');}};
-  new MutationObserver(()=>{cols=[];rectEpoch=-1;wake();}).observe(cal,{childList:true});
+  // The week is patched in place (renderSchedule), so a change anywhere inside it can resize the columns.
+  new MutationObserver(()=>{cols=[];rectEpoch=-1;wake();}).observe(cal,{childList:true,subtree:true});
   const two=n=>String(n).padStart(2,'0');
   effects.push({
    step(){
