@@ -499,6 +499,9 @@ body:has(#calendarWrap:focus-within) .hero-stage{visibility:hidden}
  border:0;border-radius:var(--r-block);background:var(--block-fill);color:var(--event-on,var(--text));box-shadow:var(--block-inset);
  font-size:12px;font-weight:400;line-height:1.35;text-align:left;white-space:normal;
  transition:transform 160ms var(--ease),box-shadow .25s var(--ease),outline-offset .25s var(--ease)}
+/* The floating shadow a block lands from (stampIn in app.js). It lives on its own layer and only its opacity animates,
+   so the landing stays on the compositor; an outer shadow paints outside the box, so it never covers the text. */
+.meeting::after{content:'';position:absolute;inset:0;border-radius:inherit;corner-shape:inherit;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none}
 :root[data-theme=dark] .meeting{color:var(--event-on-dark,var(--event-on));--block-fill:color-mix(in srgb,var(--event-color) 90%,var(--surface))}
 @media (hover:hover) and (pointer:fine){.meeting:hover{background-color:var(--block-fill);z-index:3;box-shadow:var(--shadow-md),var(--block-inset)}}
 .meeting:active:not(:disabled){transform:scale(.985)}

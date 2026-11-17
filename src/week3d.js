@@ -1125,7 +1125,7 @@ function loop(now){
  raf=0;
  if(!compiled)return;
  const still=reduce.matches,was=last,p=progress(),isDocked=!still&&live&&(p>=1&&shown.x>=1&&handed&&!deal||document.body.classList.contains('rail-open'));
- if(isDocked!==docked){docked=isDocked;stage.classList.toggle('docked',docked);}
+ if(isDocked!==docked){docked=isDocked;stage.classList.toggle('docked',docked);if(!docked)flushBuild();}
  // Docked under the planner (once a deal in progress has finished): hand the week back to the page and sleep (no frames
  // at all) until a scroll, a resize or the course drawer closing wakes it.
  // Docked also re-arms the throw to the sky for the next way back up, and seats any tile still in the air.
@@ -1222,7 +1222,14 @@ hero.addEventListener('click',event=>{
  if(slab&&typeof window.openDetail==='function')window.openDetail(slab.e.course);
 });
 canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stage.classList.remove('live');root.classList.remove('has-3d');clearTarget();cancelAnimationFrame(raf);raf=-1;});
-document.addEventListener('weekmodel',()=>requestAnimationFrame(build));
+// Docked, the board is hidden while the planner animates the same change, and a rebuild costs tens of milliseconds on
+// the main thread: it waits until the planner has settled, or until the student scrolls back up, whichever is first.
+let pendingBuild=0;
+function flushBuild(){if(pendingBuild){clearTimeout(pendingBuild);pendingBuild=0;build();}}
+document.addEventListener('weekmodel',()=>{
+ if(!docked){clearTimeout(pendingBuild);pendingBuild=0;requestAnimationFrame(build);return;}
+ clearTimeout(pendingBuild);pendingBuild=setTimeout(()=>{pendingBuild=0;build();},700);
+});
 new MutationObserver(restyle).observe(root,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(resize).observe(stage);
 // Waker for the sleeping board: a scroll moves it at once. (Under reduced motion the

@@ -258,10 +258,14 @@ function exit(el,to,hide,duration=160){
 function countTo(el,value,suffix=''){
  const to=Number(value),text=(Number.isInteger(to)?to:Math.round(to*10)/10).toLocaleString('el-GR')+suffix,shape=text.replace(/\d/g,'0');
  if(el.dataset.text===text)return;
+ const was=(el.dataset.text||'').match(/\d/g)||[];
  el.dataset.text=text;
  let odo=el.querySelector('.odo');
  if(odo?.dataset.shape!==shape){
-  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
+  // A rebuilt counter starts from the old value, matched from the right ("9" to "12" keeps the 9 under the 2), and a
+  // new leading digit starts blank (-1 is the empty row above 0), so 9 to 12 never flashes "09" on the way.
+  const count=(text.match(/\d/g)||[]).length;let k=0;
+  el.innerHTML=`<span class="sr-only">${esc(text)}</span><span class="odo" aria-hidden="true" data-shape="${esc(shape)}">${[...text].map((ch,i)=>/\d/.test(ch)?`<span class="digit" style="--i:${i};--n:${was[was.length-count+k++]??-1}"><span></span></span>`:`<span>${esc(ch)}</span>`).join('')}</span>`;
   odo=el.querySelector('.odo');odo.getBoundingClientRect();
  }else el.firstElementChild.textContent=text;
  const digits=text.match(/\d/g)||[];
@@ -296,8 +300,13 @@ function fly(block,delay){
 // One landing for the planner's blocks, the same as a 3D tile dealt onto the planner (stamp() in week3d.js): seen from
 // above, a block arrives a touch larger and presses down to size. Blocks are dealt Monday to Friday, DEAL ms apart.
 const DEAL=40;
-// It comes down from the floating shadow to lie flat, so it reads as landing rather than zooming.
-function stampIn(block,delay){block.animate([{opacity:0,transform:'scale(1.1)',boxShadow:'var(--shadow-lg)'},{opacity:1,transform:'none'}],{duration:240,delay,easing:EASE,fill:'backwards'});}
+// It comes down from the floating shadow to lie flat, so it reads as landing rather than zooming. The shadow fades on
+// its own layer (.meeting::after): animating box-shadow itself would repaint every landing block on every frame.
+function stampIn(block,delay){
+ const timing={duration:240,delay,easing:EASE,fill:'backwards'};
+ block.animate([{opacity:0,transform:'scale(1.1)'},{opacity:1,transform:'none'}],timing);
+ block.animate([{opacity:1},{opacity:0}],{...timing,pseudoElement:'::after'});
+}
 // A removed block lifts away where it stood: it rises a touch toward the viewer as it fades. It is the detached block
 // itself, so it looks exactly as it did.
 function leave(block,rect,delay=0){
@@ -527,7 +536,7 @@ function render(){
  $('colorMode').value=state.colorMode;$('provider').value=state.provider;
  $('profileButton').querySelector('.btn-label').textContent=state.studySemester?`Προφίλ · ${state.studySemester}ο εξάμηνο`:'Το προφίλ σπουδών μου';
  $('railFabCount').textContent=chosen().length;$('railFabCount').hidden=!chosen().length;
- renderList();renderSchedule();renderSources();
+ renderSchedule();renderList();renderSources();
 }
 function toggleCourse(id,flourish=true){state.selected[state.season]=setIn(chosen(),id,!chosen().includes(id));persist();justToggled=flourish?id:'';render();justToggled='';if(detailId===id&&$('courseDialog').open)renderDetail(id);}
 function setPassed(id,on){state.passed=setIn(state.passed,id,on);persist();render();syncPassedChecklist();if(detailId===id&&$('courseDialog').open)renderDetail(id);}
