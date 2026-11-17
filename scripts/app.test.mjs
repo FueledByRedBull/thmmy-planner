@@ -215,18 +215,22 @@ test('fillSemester: the current semester in its own season, the next one in the 
  assert.equal(fillSemester(16,'fall'),16,'the profile tops out at 16');
 });
 
-test('fillIds: mandatory, taught, not passed, not chosen and ready courses (prerequisites listed in the guide) up to the planned semester',()=>{
- const from=source.indexOf('function fillIds('),to=source.indexOf('function renderFill(');
- assert.ok(from>=0&&to>from,'fillIds moved in assets/app.js');
+test('fillPlan: mandatory, taught, not passed, not chosen and ready courses (prerequisites listed in the guide) up to the planned semester, lower semesters first, overlaps left out',()=>{
+ const from=source.indexOf('function fillPlan('),to=source.indexOf('function renderFill(');
+ assert.ok(from>=0&&to>from,'fillPlan moved in assets/app.js');
  const course=(id,semester,extra={})=>({id,semester,mandatory:true,...extra});
- const catalog=[course('A',1),course('B',3),course('C',3,{mandatory:false}),course('D',5),course('E',1),course('F',3),course('G',1,{archived:true}),course('H',3),course('I',2),course('J',1)];
- const taught=new Set(['A','B','C','D','E','F','G','H','J']),waiting=new Set(['H']),unlisted=new Set(['J']);
- const make=state=>new Function('state','data','mandatory','available','outstanding','prerequisites','chosen','fillSemester',source.slice(from,to)+';return fillIds;')(
-  state,{catalog},c=>c.mandatory,c=>taught.has(c.id),c=>waiting.has(c.id)?['X']:[],c=>unlisted.has(c.id)?null:[],()=>state.selected[state.season],fillSemester);
+ const catalog=[course('B',3),course('A',1),course('C',3,{mandatory:false}),course('D',5),course('E',1),course('F',3),course('G',1,{archived:true}),course('H',3),course('I',2),course('J',1),course('K',3),course('L',1)];
+ const taught=new Set(['A','B','C','D','E','F','G','H','J','K','L']),waiting=new Set(['H']),unlisted=new Set(['J']);
+ // F is already on the week on Monday 9-11; K overlaps it; L and B both take Tuesday 9-11, and L (semester 1) goes first.
+ const at=(courseId,day,start,end)=>({courseId,day,start,end});
+ const events=[at('F',0,540,660),at('K',0,600,720),at('L',1,540,660),at('B',1,600,660),at('A',2,540,660)];
+ const make=state=>new Function('state','data','mandatory','available','outstanding','prerequisites','chosen','fillSemester','activeEvents','meetings','included',source.slice(from,to)+';return fillPlan;')(
+  state,{catalog},c=>c.mandatory,c=>taught.has(c.id),c=>waiting.has(c.id)?['X']:[],c=>unlisted.has(c.id)?null:[],()=>state.selected[state.season],fillSemester,
+  ()=>events.filter(e=>state.selected[state.season].includes(e.courseId)),id=>events.filter(e=>e.courseId===id),()=>true);
  const state={season:'fall',studySemester:'3',passed:['E'],selected:{fall:['F'],spring:[]}};
- assert.deepEqual(make(state)(),['A','B']);
- assert.deepEqual(make({...state,studySemester:''})(),[]);
- assert.deepEqual(make({...state,studySemester:'4'})(),['A','B','D']);
+ assert.deepEqual(make(state)(),{add:['A','L'],clash:['B','K']});
+ assert.deepEqual(make({...state,studySemester:''})(),{add:[],clash:[]});
+ assert.deepEqual(make({...state,studySemester:'4'})(),{add:['A','L','D'],clash:['B','K']});
 });
 
 test('firstDay: today while it has meetings, else the next weekday that does, and a weekend looks to Monday on',()=>{

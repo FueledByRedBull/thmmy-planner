@@ -11,7 +11,7 @@ const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Πα�
 // No pure green, amber or red: passed, review and overlap are carried by those hues plus icons, dashes and outlines.
 // Course colours: two families (cobalts, ambers) and a slate, told apart by lightness before hue, so no two courses
 // rely on red against green. Ordered so that neighbouring slots differ in family and in lightness.
-const COLORS=['#4a6cf0','#f0b23c','#a9c1ff','#c98a26','#6f7a92','#ffe08f','#2b3f9e','#e09a2e','#d7e3ff'];
+const COLORS=['#4a6cf0','#f0b23c','#a9c1ff','#c98a26','#6f7a92','#ffeaa6','#2b3f9e','#98600f','#d7e3ff'];
 const blankState=()=>({season:'fall',selected:{fall:[],spring:[]},passed:[],excluded:[],labs:[],review:[],creditTo:{},colors:{},colorMode:'course',entryYear:'',studySemester:'',passedComplete:false,provider:'jina'});
 let data=initialData,state={...blankState(),...(embeddedState||{})},storageWarning='',detailId=null,busy=false;
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved?.version===1&&saved.data?.catalog&&saved.state?.selected){data=saved.data;state={...blankState(),...saved.state};}}catch(e){storageWarning='Η τοπική αποθήκευση δεν είναι διαθέσιμη ή δεν διαβάστηκε. Χρησιμοποίησε «Αποθήκευση αντιγράφου» για να κρατήσεις τη δουλειά σου.';}
@@ -602,14 +602,22 @@ function render(){
 }
 // What it adds: the mandatory courses up to that semester that this season teaches and that are not passed, not chosen
 // and not waiting on a prerequisite, the guide's order of priority (p. 20). Like the priority check, it leaves out courses
-// whose prerequisites the guide does not list. Empty until the profile has a semester.
-function fillIds(){
- const semester=Number(state.studySemester);if(!semester)return [];
- const to=fillSemester(semester,state.season);
- return data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&prerequisites(c)!==null&&!outstanding(c).length).map(c=>c.id);
+// whose prerequisites the guide does not list. Lower semesters go first, and a course whose meetings would overlap the
+// week so far (what is chosen plus what this fill has taken) is left out and named instead. Empty until the profile has
+// a semester.
+function fillPlan(){
+ const semester=Number(state.studySemester),add=[],clash=[];if(!semester)return {add,clash};
+ const to=fillSemester(semester,state.season),held=activeEvents();
+ const ready=data.catalog.filter(c=>!c.archived&&c.semester<=to&&mandatory(c)&&available(c)&&!state.passed.includes(c.id)&&!chosen().includes(c.id)&&prerequisites(c)!==null&&!outstanding(c).length).sort((a,b)=>a.semester-b.semester);
+ for(const c of ready){
+  const own=meetings(c.id).filter(included);
+  if(own.some(e=>held.some(h=>h.day===e.day&&e.start<h.end&&h.start<e.end))){clash.push(c.id);continue;}
+  add.push(c.id);held.push(...own);
+ }
+ return {add,clash};
 }
 function renderFill(){
- const ids=fillIds(),to=state.studySemester&&fillSemester(Number(state.studySemester),state.season),count=ids.length;
+ const ids=fillPlan().add,to=state.studySemester&&fillSemester(Number(state.studySemester),state.season),count=ids.length;
  const rail=$('fillRail');rail.hidden=!count;
  if(count){rail.lastElementChild.textContent=`Υποχρεωτικά ως το ${to}ο εξάμηνο · ${count}`;rail.title=`Προσθέτει ${count===1?'το υποχρεωτικό':'τα υποχρεωτικά'} ως το ${to}ο εξάμηνο που δεν έχεις περάσει`;}
  // The empty week offers the shortcut too; without a semester in the profile it asks for one first.
@@ -649,9 +657,10 @@ function showDay(day){
 }
 function fillCourses(){
  if(!state.studySemester){openProfile();return;}
- const ids=fillIds(),season=state.season,to=fillSemester(Number(state.studySemester),season);if(!ids.length)return;
+ const {add:ids,clash}=fillPlan(),season=state.season,to=fillSemester(Number(state.studySemester),season);if(!ids.length)return;
  state.selected[season]=[...chosen(),...ids];persist();render();
- notify(`${ids.length===1?'Μπήκε 1 υποχρεωτικό':`Μπήκαν ${ids.length} υποχρεωτικά`} ως το ${to}ο εξάμηνο.`);
+ const left=clash.length?` ${clash.length===1?'Έμεινε έξω λόγω επικάλυψης το':`Έμειναν έξω λόγω επικάλυψης τα`} ${clash.join(', ')}.`:'';
+ notify(`${ids.length===1?'Μπήκε 1 υποχρεωτικό':`Μπήκαν ${ids.length} υποχρεωτικά`} ως το ${to}ο εξάμηνο.${left}`);
  const undo=document.createElement('button');undo.type='button';undo.className='quiet';undo.textContent='Αναίρεση';
  undo.onclick=()=>{state.selected[season]=state.selected[season].filter(id=>!ids.includes(id));persist();render();notify(`${ids.length===1?'Βγήκε το υποχρεωτικό':`Βγήκαν τα ${ids.length} υποχρεωτικά`}.`);$('notice').querySelector('button')?.focus();};
  $('notice').insertBefore(undo,$('notice').lastElementChild);
