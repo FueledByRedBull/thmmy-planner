@@ -9,7 +9,9 @@ const NO_LAB='Χωρίς εργαστήριο',NO_LAB_DETAIL='χωρίς εργ�
 const DAYS=['Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή'],SHORT_DAYS=['Δε','Τρ','Τε','Πε','Πα'];
 // Vivid course palette (cobalt, hot pink, tangerine, violet, aqua, lemon, sky, orchid, periwinkle). No grey: on the studio ground it reads as disabled.
 // No pure green, amber or red: passed, review and overlap are carried by those hues plus icons, dashes and outlines.
-const COLORS=['#3b5bff','#ff4fa8','#ff7b2e','#8f5cff','#1fd1c1','#ffd43b','#3ab8ff','#d34df0','#9db4ff'];
+// Course colours: two families (cobalts, ambers) and a slate, told apart by lightness before hue, so no two courses
+// rely on red against green. Ordered so that neighbouring slots differ in family and in lightness.
+const COLORS=['#4a6cf0','#f0b23c','#a9c1ff','#c98a26','#6f7a92','#ffe08f','#2b3f9e','#e09a2e','#d7e3ff'];
 const blankState=()=>({season:'fall',selected:{fall:[],spring:[]},passed:[],excluded:[],labs:[],review:[],creditTo:{},colors:{},colorMode:'course',entryYear:'',studySemester:'',passedComplete:false,provider:'jina'});
 let data=initialData,state={...blankState(),...(embeddedState||{})},storageWarning='',detailId=null,busy=false;
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved?.version===1&&saved.data?.catalog&&saved.state?.selected){data=saved.data;state={...blankState(),...saved.state};}}catch(e){storageWarning='Η τοπική αποθήκευση δεν είναι διαθέσιμη ή δεν διαβάστηκε. Χρησιμοποίησε «Αποθήκευση αντιγράφου» για να κρατήσεις τη δουλειά σου.';}
