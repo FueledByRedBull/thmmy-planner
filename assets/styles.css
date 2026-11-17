@@ -1003,7 +1003,7 @@ dialog.closing::backdrop{opacity:0;transition:opacity .16s var(--ease)}
     so a 100dvh body spilled a blank second page. */
  html,body{min-height:0;height:auto;background:var(--sheet);color:var(--text);print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .workspace::after{display:none!important}
- .sprite,.skip,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.masthead,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.check-jump,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
+ .sprite,.skip,.hero,.hero-stage,.flight,.leaving,.dock-mark,.rail-fab,#focusSchedule,.season-switch,.masthead,.sidebar,footer,.notice,.update-report,.update-toast,.checks,.check-jump,.legend-bar>label,.legend-bar>.subtle,.empty-state,.sheet-skeleton,.inline-note,dialog{display:none!important}
  main{width:297mm;max-width:none;margin:0;padding:9mm;border-radius:0;box-shadow:none;background:var(--sheet);animation:none}
  .workspace{display:block;width:100%;height:191mm;border:0}
  /* Printing mid-morph (or from the hero) still prints the whole week. */
